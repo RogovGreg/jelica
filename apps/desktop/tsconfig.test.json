@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "rootDir": "../..",
+    "outDir": "dist-test",
+    "types": ["node"]
+  },
+  "include": [
+    "src/common/**/*.ts",
+    "src/main/**/*.ts",
+    "src/preload/bridge.ts",
+    "src/renderer/global.d.ts",
+    "src/renderer/platform.ts",
+    "tests/**/*.ts",
+    "../../packages/app-platform/src/platform.ts"
+  ]
+}

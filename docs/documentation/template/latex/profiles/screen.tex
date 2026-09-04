@@ -1,0 +1,35 @@
+\JelicaScreenProfiletrue
+
+\definecolor{JelicaHeading}{HTML}{174F46}
+\definecolor{JelicaAccent}{HTML}{16745F}
+\definecolor{JelicaMuted}{HTML}{52645F}
+
+\ifdefined\HCode
+\else
+  \IfFontExistsTF{Google Sans Flex}{
+    \setsansfont{Google Sans Flex}
+  }{
+    \ifJelicaCyrillicLocale
+      \setsansfont{DejaVu Sans}
+    \else
+      \IfFontExistsTF{TeX Gyre Heros}{
+        \setsansfont{TeX Gyre Heros}
+      }{
+        \setsansfont{Latin Modern Sans}
+      }
+    \fi
+  }
+\fi
+\renewcommand{\familydefault}{\sfdefault}
+
+\setstocksize{9in}{6in}
+\settrimmedsize{\stockheight}{\stockwidth}{*}
+\setlrmarginsandblock{0.65in}{0.65in}{*}
+\setulmarginsandblock{0.75in}{0.75in}{*}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=JelicaAccent,
+  urlcolor=JelicaAccent,
+  citecolor=JelicaAccent
+}

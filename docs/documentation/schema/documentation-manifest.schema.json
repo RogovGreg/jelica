@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:jelica:documentation-manifest:1",
+  "title": "JELICA documentation manifest",
+  "description": "Stable client contract for generated JELICA documentation artifacts.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "locale",
+    "title",
+    "subtitle",
+    "version",
+    "year",
+    "profile",
+    "textSize",
+    "paths",
+    "sections",
+    "pages"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "locale": {
+      "$ref": "#/$defs/locale"
+    },
+    "title": {
+      "$ref": "#/$defs/nonBlankString"
+    },
+    "subtitle": {
+      "$ref": "#/$defs/nonBlankString"
+    },
+    "version": {
+      "$ref": "#/$defs/documentationVersion"
+    },
+    "year": {
+      "type": "integer",
+      "minimum": 1000,
+      "maximum": 9999
+    },
+    "profile": {
+      "$ref": "#/$defs/nonBlankString"
+    },
+    "textSize": {
+      "$ref": "#/$defs/nonBlankString"
+    },
+    "paths": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "minLength": 1,
+        "pattern": "^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$"
+      }
+    },
+    "sections": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/section"
+      }
+    },
+    "pages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/page"
+      }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "nonBlankString": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "locale": {
+      "type": "string",
+      "pattern": "^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*$"
+    },
+    "documentationVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+(?:\\.[0-9]+){1,2}(?:[-+][0-9A-Za-z.-]+)?$"
+    },
+    "stableId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+    },
+    "anchor": {
+      "type": "string",
+      "pattern": "^#[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+    },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$"
+    },
+    "stringList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/nonBlankString"
+      }
+    },
+    "pageReference": {
+      "type": "object",
+      "required": [
+        "path",
+        "anchor"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/relativePath"
+        },
+        "anchor": {
+          "$ref": "#/$defs/anchor"
+        }
+      },
+      "additionalProperties": true
+    },
+    "heading": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "path",
+        "anchor"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/stableId"
+        },
+        "title": {
+          "$ref": "#/$defs/nonBlankString"
+        },
+        "path": {
+          "$ref": "#/$defs/relativePath"
+        },
+        "anchor": {
+          "$ref": "#/$defs/anchor"
+        }
+      },
+      "additionalProperties": true
+    },
+    "section": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "keywords",
+        "anchor",
+        "pages",
+        "headings"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/stableId"
+        },
+        "title": {
+          "$ref": "#/$defs/nonBlankString"
+        },
+        "keywords": {
+          "$ref": "#/$defs/stringList"
+        },
+        "anchor": {
+          "$ref": "#/$defs/anchor"
+        },
+        "pages": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/pageReference"
+          }
+        },
+        "headings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/heading"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "page": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "path"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/stableId"
+        },
+        "title": {
+          "$ref": "#/$defs/nonBlankString"
+        },
+        "path": {
+          "$ref": "#/$defs/relativePath"
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

@@ -1,0 +1,94 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{jelica-doc}[2026/08/24 JELICA documentation presentation layer]
+
+\RequirePackage{jelica-base}
+
+\providecommand{\JelicaLogoAsset}{../../template/latex/assets/jelica-publication-logo.png}
+
+\newcommand{\JelicaLocale}{en}
+\newcommand{\JelicaTitle}{JELICA Documentation}
+\newcommand{\JelicaDisplayTitle}{Documentation}
+\newcommand{\JelicaSubtitle}{User Manual and Reference Guide}
+\newcommand{\JelicaVersion}{0.1}
+\newcommand{\JelicaYear}{2026}
+\newcommand{\JelicaDocumentKeywords}{JELICA, documentation, analysis, reports}
+
+\newcommand{\JelicaSetLocale}[1]{\renewcommand{\JelicaLocale}{#1}}
+\newcommand{\JelicaSetTitle}[1]{\renewcommand{\JelicaTitle}{#1}}
+\newcommand{\JelicaSetDisplayTitle}[1]{\renewcommand{\JelicaDisplayTitle}{#1}}
+\newcommand{\JelicaSetSubtitle}[1]{\renewcommand{\JelicaSubtitle}{#1}}
+\newcommand{\JelicaSetVersion}[1]{\renewcommand{\JelicaVersion}{#1}}
+\newcommand{\JelicaSetYear}[1]{\renewcommand{\JelicaYear}{#1}}
+\newcommand{\JelicaSetKeywords}[1]{\renewcommand{\JelicaDocumentKeywords}{#1}}
+
+\AtBeginDocument{
+  \hypersetup{
+    pdftitle={\JelicaTitle},
+    pdfauthor={JELICA},
+    pdfsubject={\JelicaSubtitle},
+    pdfkeywords={\JelicaDocumentKeywords},
+    pdfcreator={JELICA documentation pipeline (LuaLaTeX)}
+  }
+}
+
+\makepagestyle{jelica}
+\makeoddhead{jelica}{}{\JelicaBrandFont\fontsize{9}{11}\selectfont\JelicaTitle}{}
+\makeevenhead{jelica}{}{\JelicaBrandFont\fontsize{9}{11}\selectfont\JelicaTitle}{}
+\makeoddfoot{jelica}{}{\JelicaBrandFont\fontsize{9}{11}\selectfont\thepage}{}
+\makeevenfoot{jelica}{}{\JelicaBrandFont\fontsize{9}{11}\selectfont\thepage}{}
+\pagestyle{jelica}
+
+\newcommand{\JelicaMakeTitle}{
+  \hypersetup{pageanchor=false}
+  \begin{titlingpage}
+    \thispagestyle{empty}
+    \centering
+    \vspace*{18mm}
+    \ifdefined\HCode
+      \includegraphics[width=0.82\textwidth,keepaspectratio]{\JelicaLogoAsset}\par
+    \else
+      \includegraphics[
+        width=0.82\textwidth,
+        trim=100bp 360bp 100bp 360bp,
+        clip,
+        keepaspectratio
+      ]{\JelicaLogoAsset}\par
+    \fi
+    \vspace{18mm}
+    {\JelicaBrandFont\fontsize{30}{34}\selectfont\color{JelicaHeading}
+      \JelicaDisplayTitle\par}
+    \vspace{7mm}
+    {\JelicaBrandFont\fontsize{14}{18}\selectfont\color{JelicaMuted}
+      \JelicaSubtitle\par}
+    \vfill
+    {\JelicaBrandFont\fontsize{11}{14}\selectfont\color{JelicaHeading}
+      Version \JelicaVersion\par}
+    \vspace{3mm}
+    {\JelicaBrandFont\fontsize{11}{14}\selectfont\color{JelicaMuted}
+      \JelicaYear\par}
+    \vspace*{12mm}
+  \end{titlingpage}
+  \hypersetup{pageanchor=true}
+  \JelicaApplyBodySize
+}
+
+\newcommand{\JelicaTableOfContents}{
+  \ifdefined\HCode
+  \else
+    \tableofcontents*
+  \fi
+}
+
+\newcommand{\JelicaChapter}[3]{
+  \chapter{#2}
+  \hypertarget{#1}{}
+  \label{chapter:#1}
+}
+
+\newcommand{\JelicaSection}[2]{
+  \section{#2}
+  \hypertarget{#1}{}
+  \label{section:#1}
+}
+
+\endinput

@@ -1,0 +1,1151 @@
+{
+  "common.action.save": {
+    "text": "Save",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "common.action.cancel": {
+    "text": "Cancel",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "common.action.close": {
+    "text": "Close",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "common.action.retry": {
+    "text": "Retry",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "common.action.download": {
+    "text": "Download",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "common.state.loading": {
+    "text": "Loading",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "common.state.error": {
+    "text": "Error",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "common.state.empty": {
+    "text": "No data",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "common.state.success": {
+    "text": "Success",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.navigation.title": {
+    "text": "Account",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.navigation.description": {
+    "text": "Sign in or create an account while guest analysis remains available.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.login.title": {
+    "text": "Log in",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.register.title": {
+    "text": "Create account",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.verify.title": {
+    "text": "Verify email",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.verify.registration-created": {
+    "text": "Your account was created. Enter the verification token sent to your email.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.field.identifier": {
+    "text": "Username or email",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.field.username": {
+    "text": "Username",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.field.email": {
+    "text": "Email",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.field.password": {
+    "text": "Password",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.field.verification-token": {
+    "text": "Verification token",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.field.language": {
+    "text": "Language",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.action.login": {
+    "text": "Log in",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.action.register": {
+    "text": "Create account",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.action.logout": {
+    "text": "Log out",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.action.verify-email": {
+    "text": "Verify email",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.state.logging-in": {
+    "text": "Logging in…",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.state.registering": {
+    "text": "Creating account…",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.state.verifying": {
+    "text": "Verifying…",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.state.signing-out": {
+    "text": "Logging out…",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.error.invalid-credentials": {
+    "text": "The username, email, or password is incorrect.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.error.email-verification-required": {
+    "text": "Verify your email before logging in.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.error.login-failed": {
+    "text": "Login could not be completed. Try again.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.error.account-exists": {
+    "text": "An account with that username or email already exists.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.error.registration-failed": {
+    "text": "Account creation could not be completed. Check the fields and try again.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.error.invalid-verification-token": {
+    "text": "The verification token is invalid, expired, or already used.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.error.verification-failed": {
+    "text": "Email verification could not be completed. Try again.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.error.logout-failed": {
+    "text": "Logout could not be completed.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.error.service-unavailable": {
+    "text": "The authentication service is unavailable.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "auth.email.check": { "text": "Check your email to verify your account.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "auth.email.delivery-failed": { "text": "Your account was created, but the verification email could not be sent right now.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "auth.email.resend": { "text": "Resend verification email", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "auth.email.sent": { "text": "If an account requires verification, a message will be sent.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "auth.email.delivery-unavailable": { "text": "Email delivery is temporarily unavailable. Try again later.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "auth.action.forgot-password": { "text": "Forgot password?", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "auth.forgot.title": { "text": "Forgot password", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "auth.forgot.description": { "text": "Enter your email and we will send reset instructions if an account matches.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "auth.forgot.submit": { "text": "Send reset instructions", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "auth.forgot.sent": { "text": "If an account matches, check your email for reset instructions.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "auth.reset.title": { "text": "Reset password", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "auth.reset.new-password": { "text": "New password", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "auth.reset.confirm-password": { "text": "Confirm password", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "auth.reset.submit": { "text": "Reset password", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "auth.reset.success": { "text": "Your password was reset. Please log in with your new password.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "auth.reset.invalid": { "text": "This reset link is invalid or expired.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "auth.reset.request-new": { "text": "Request a new reset link", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "auth.error.password-mismatch": { "text": "Passwords do not match.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "auth.error.password-reset-failed": { "text": "Password reset could not be completed. Try again.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "page.projects.title": {
+    "text": "Projects",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "page.projects.empty": {
+    "text": "No projects are available yet.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "project.page.subtitle": { "text": "Organize analytical work and collaborate with your team.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.tab.projects": { "text": "Projects", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.tab.invitations": { "text": "Invitations", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.create": { "text": "Create project", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.edit": { "text": "Edit", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.save": { "text": "Save", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.cancel": { "text": "Cancel", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.freeze": { "text": "Freeze project", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.unfreeze": { "text": "Unfreeze project", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.leave": { "text": "Leave project", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.delete": { "text": "Delete project", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.accept": { "text": "Accept", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.decline": { "text": "Decline", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.status.active": { "text": "Active", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.status.frozen": { "text": "Frozen", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.status.banner": { "text": "This project is frozen. Changes to tasks and collaboration are disabled.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.empty": { "text": "No projects yet", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.empty.description": { "text": "Create a project to organize your analytical work.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.invitation.empty": { "text": "No pending invitations", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.invitation.empty.description": { "text": "Invitations to Projects will appear here.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.invitation.invited-by": { "text": "Invited by", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.invitation.expires": { "text": "Expires", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.form.name": { "text": "Name", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.form.description": { "text": "Description", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.form.required": { "text": "Project name is required.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.form.creating": { "text": "Creating…", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.overview.back": { "text": "Projects", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.overview.info": { "text": "Project information", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.overview.tasks": { "text": "Tasks", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.overview.members": { "text": "Members", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.overview.created-at": { "text": "Created at", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.overview.created-by": { "text": "Created by", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.overview.owner": { "text": "Current owner", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.overview.total": { "text": "Total", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.overview.view-tasks": { "text": "View tasks", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.overview.view-members": { "text": "View members", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.activity": { "text": "Activity", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.activity.empty": { "text": "No activity yet.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.activity.created": { "text": "Project created", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.activity.updated": { "text": "Project updated", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.activity.frozen": { "text": "Project frozen", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.activity.unfrozen": { "text": "Project unfrozen", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.activity.member-joined": { "text": "Member joined the project", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.activity.member-removed": { "text": "Member removed", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.activity.role-changed": { "text": "Member role changed", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.activity.ownership-transferred": { "text": "Ownership transferred", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.activity.task-attached": { "text": "Task attached", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.activity.task-detached": { "text": "Task detached", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.confirm": { "text": "Confirm action", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.working": { "text": "Working…", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.freeze.confirm": { "text": "Freeze project?", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.unfreeze.confirm": { "text": "Unfreeze project?", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.leave.confirm": { "text": "Leave project?", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.delete.confirm": { "text": "Delete project?", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.freeze.description": { "text": "The Project will become read-only for collaboration and task changes.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.unfreeze.description": { "text": "The Project will become active again.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.leave.description": { "text": "You will lose access to this Project. Tasks will not be deleted.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.delete.description": { "text": "The Project will be deleted. Its Tasks will remain and be detached.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.action.transfer-first": { "text": "Transfer ownership before leaving.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.error.unavailable": { "text": "Project unavailable", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.error.details-unavailable": { "text": "Some overview details are unavailable.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.tab.members": { "text": "Members", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.tab.invitations": { "text": "Invitations", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.username": { "text": "Username", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.role": { "text": "Role", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.role.viewer": { "text": "Viewer", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.role.commenter": { "text": "Commenter", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.role.member": { "text": "Member", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.role.supervisor": { "text": "Supervisor", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.joined": { "text": "Joined", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.email": { "text": "Email", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.actions": { "text": "Actions", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.you": { "text": "You", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.owner": { "text": "Owner", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.search": { "text": "Search members", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.search.placeholder": { "text": "Filter by username", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.empty.filter": { "text": "No members match this search.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.action.apply": { "text": "Apply", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.action.remove": { "text": "Remove", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.action.transfer": { "text": "Transfer ownership", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.action.revoke": { "text": "Revoke", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.invite.title": { "text": "Invite member", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.invite.send": { "text": "Send invitation", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.invite.pending": { "text": "Pending invitations", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.invite.frozen": { "text": "This Project is frozen. New invitations cannot be sent.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.confirm.remove.title": { "text": "Remove member?", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.confirm.remove.description": { "text": "This user will leave the Project. Their Tasks will be detached, not deleted, and ownership will not change.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.confirm.transfer.title": { "text": "Transfer ownership?", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.confirm.transfer.description": { "text": "This user will become Project owner. They will be promoted to Supervisor if needed, and you will remain a Supervisor.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.confirm.revoke.title": { "text": "Revoke invitation?", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "members.confirm.revoke.description": { "text": "This pending invitation will be revoked and the user may be invited again later.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "page.profile.title": {
+    "text": "Profile",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "page.settings.title": {
+    "text": "Settings",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "page.settings.unavailable": {
+    "text": "Personal settings are not editable yet.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "page.notifications.title": {
+    "text": "Notifications",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "page.notifications.empty": {
+    "text": "No notifications are available.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "docs.navigation.overview": {
+    "text": "Documentation overview",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "docs.navigation.download": {
+    "text": "Downloads",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "docs.section.list": {
+    "text": "Sections",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "docs.search.label": {
+    "text": "Search documentation",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "docs.search.placeholder": {
+    "text": "Search titles, headings, and content",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "docs.search.results": {
+    "text": "Search results",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "docs.search.no-results": {
+    "text": "No documentation pages match your search.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "docs.metadata.version": {
+    "text": "Documentation version",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "docs.metadata.artifact-format": {
+    "text": "Artifact format",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "docs.metadata.locale": {
+    "text": "Documentation language",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "docs.metadata.profile": {
+    "text": "Presentation profile",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "docs.metadata.text-size": {
+    "text": "Text size",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "docs.viewer.current-page": {
+    "text": "Current page",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "docs.viewer.open-standalone": {
+    "text": "Open standalone page",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "docs.download.title": {
+    "text": "Documentation downloads",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "docs.download.pdf": {
+    "text": "PDF manual",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "docs.download.release-metadata": {
+    "text": "Release metadata",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "docs.unavailable.title": {
+    "text": "Documentation unavailable",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "docs.unavailable.description": {
+    "text": "The documentation release bundle is missing or cannot be read. Build or mount a validated release and try again.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "task.action.start": {
+    "text": "Start task",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "task.action.pause": {
+    "text": "Pause task",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "task.action.resume": {
+    "text": "Resume task",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "task.action.cancel": {
+    "text": "Cancel task",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "task.status.created": {
+    "text": "Created",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "task.status.queued": {
+    "text": "Queued",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "task.status.running": {
+    "text": "Running",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "task.status.paused": {
+    "text": "Paused",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "task.status.completed": {
+    "text": "Completed",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "task.status.failed": {
+    "text": "Failed",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "task.status.cancelled": {
+    "text": "Cancelled",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "page.tasks.title": {
+    "text": "Tasks",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "error.task.not-found": {
+    "text": "Task not found",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "project.navigation.label": { "text": "Project navigation", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.navigation.overview": { "text": "Overview", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.navigation.tasks": { "text": "Tasks", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.navigation.members": { "text": "Members", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.tasks.subtitle": { "text": "Tasks organized in this Project.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.tasks.summary": { "text": "Project task summary", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.tasks.total": { "text": "Total", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.tasks.empty": { "text": "No tasks in this Project yet.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "project.tasks.back-overview": { "text": "Back to overview", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "breadcrumbs.label": { "text": "Breadcrumbs", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "breadcrumbs.projects": { "text": "Projects", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "breadcrumbs.tasks": { "text": "Tasks", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "task.routing.redirecting": { "text": "Opening task…", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "task.project.assignment": { "text": "Project assignment", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "task.project.label": { "text": "Project", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "task.project.none": { "text": "No project", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "task.project.loading": { "text": "Projects are loading…", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "task.project.unavailable": { "text": "Project assignment is unavailable right now; you can still create a standalone task.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "task.project.apply": { "text": "Apply", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "task.project.applying": { "text": "Applying…", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "task.project.attaching": { "text": "Attaching task to Project…", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "task.project.partial-failure": { "text": "Task was created, but it could not be attached to the Project.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "task.project.partial-success": { "text": "The task exists as a standalone task. You can retry attaching it or open it.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "task.project.retry": { "text": "Retry attaching", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "task.project.open-task": { "text": "Open task", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"error.resourceUnavailable.title": { "text": "Resource unavailable", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"error.resourceUnavailable.description": { "text": "This resource does not exist or you do not have access to it.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"error.accessDenied.title": { "text": "Access denied", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"error.accessDenied.projectDescription": { "text": "You no longer have access to this project.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"error.accessDenied.taskDescription": { "text": "You no longer have access to this task.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"error.accessDenied.resultDescription": { "text": "You no longer have access to this result.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"project.action.backToProjects": { "text": "Back to Projects", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.action.backToTasks": { "text": "Back to Tasks", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.action.backToResults": { "text": "Back to Results", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"project.navigation.discussion": { "text": "Discussion", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.title": { "text": "Discussion", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.subtitle": { "text": "Project-wide conversation for current members", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.connection.connecting": { "text": "Connecting…", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.connection.connected": { "text": "Connected", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.connection.reconnecting": { "text": "Reconnecting…", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.reconnecting.description": { "text": "Live updates are reconnecting. Messages remain readable, but changes are temporarily disabled.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.presence.label": { "text": "Members currently online", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.presence.online": { "text": "Online:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.presence.none": { "text": "none", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.typing": { "text": "Typing:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.loading": { "text": "Loading discussion…", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.empty.title": { "text": "No comments yet", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.empty.description": { "text": "Start the Project discussion with the first comment.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.empty.readonly": { "text": "The discussion is empty. You currently have read-only access.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.messages.label": { "text": "Project discussion comments", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.comment.edited": { "text": "Edited", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.edit.label": { "text": "Edit comment", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.composer.label": { "text": "New comment", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.composer.placeholder": { "text": "Write a plain-text comment. Use @username to mention a Project member.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.composer.send": { "text": "Send", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.readonly.viewer": { "text": "You have read-only access to this discussion.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.delete.title": { "text": "Delete comment?", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.delete.description": { "text": "This comment will be permanently deleted.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.delete.moderationDescription": { "text": "This member's comment will be permanently deleted as a moderation action.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.reactions.label": { "text": "Comment reactions", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.reaction.support": { "text": "Support this comment", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.reaction.oppose": { "text": "Oppose this comment", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.mentions.label": { "text": "Mention suggestions", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.mentions.noMatches": { "text": "No matching Project members", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.newMessages": { "text": "New messages", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.error.validation": { "text": "The comment text is invalid. Check its length and try again.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.error.forbidden": { "text": "Your current Project permissions do not allow this action.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.error.frozen": { "text": "This Project is frozen, so the discussion is read-only.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.error.commentNotFound": { "text": "This comment is no longer available.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.error.selfReaction": { "text": "You cannot react to your own comment.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.error.resourceUnavailable": { "text": "The requested discussion resource is unavailable.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.error.accessRevoked": { "text": "Your Project access was revoked.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.error.protocol": { "text": "A realtime protocol error occurred. Reconnect and try again.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.error.realtimeUnavailable": { "text": "Live updates are unavailable. Your text has been preserved; try again after reconnecting.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"discussion.error.generic": { "text": "The discussion action could not be completed.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.discussion.unavailable": { "text": "Discussion is not available for this task yet.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.discussion.detached": { "text": "This task is not attached to a Project. Discussion is read-only.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.discussion.detached.owner": { "text": " As task owner, you can still moderate history.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.discussion.frozen": { "text": "This Project is frozen, so discussion changes are disabled.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.discussion.reconnecting": { "text": "Live updates are reconnecting. Changes are temporarily disabled.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.discussion.clear.title": { "text": "Clear discussion history?", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.discussion.clear.description": { "text": "All task discussion comments will be permanently deleted.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.discussion.clear.action": { "text": "Clear history", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.discussion.mentions": { "text": "Mention current members: {members}", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.discussion.open": { "text": "Open discussion", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.discussion.attach.title": { "text": "Attach task to Project?", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.discussion.reattach.title": { "text": "Reattach task to Project?", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.discussion.attach.description": { "text": "Attaching makes existing discussion history available to Project members.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.discussion.reattach.description": { "text": "Reattaching makes existing discussion history available to Project members.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.discussion.online": { "text": "Online:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.discussion.online.none": { "text": "none", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.name": { "text": "Task name (optional)", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.trace-id": { "text": "Trace ID (optional)", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.upload.sources": { "text": "Analysis sources", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.upload.add-files": { "text": "Add files", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.upload.add-folder": { "text": "Add folder", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.upload.folder": { "text": "Folder", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.upload.ncbi": { "text": "NCBI sources", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.upload.ncbi-placeholder": { "text": "Accession or supported NCBI URL", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.upload.add-ncbi": { "text": "Add NCBI source", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.upload.configuration": { "text": "Configuration (optional)", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.upload.choose-config": { "text": "Choose configuration", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.upload.replace-config": { "text": "Replace configuration", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.upload.remove": { "text": "Remove", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.upload.uploading": { "text": "Uploading", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.upload.submitting": { "text": "Submitting…", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.upload.no-sources": { "text": "Add at least one file, folder, or NCBI source.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.upload.already-submitted": { "text": "This upload was already submitted.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.upload.retry": { "text": "Retry", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.analysis-settings": { "text": "Analysis settings", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.analysis-settings-hint": { "text": "Unchanged settings inherit from the uploaded config or JELICA defaults.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.analysis.inherit": { "text": "From config/default", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.analysis.enabled": { "text": "Enabled", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.analysis.disabled": { "text": "Disabled", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.analysis.reset": { "text": "Reset", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.analysis.alignment-mode": { "text": "Alignment mode", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.analysis.alignment-construction": { "text": "Alignment construction", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.analysis.mafft-strategy": { "text": "MAFFT strategy", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.analysis.comparative": { "text": "Comparative analysis", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.analysis.distance": { "text": "Distance matrix", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.analysis.tree": { "text": "Phylogenetic tree", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.analysis.clades": { "text": "Clade detection", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.analysis.kmers": { "text": "K-mers (comma-separated)", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.analysis.kmer-strand": { "text": "K-mer strand", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.analysis.reference": { "text": "Reference selector", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.analysis.reference-placeholder": { "text": "Logical source or record selector", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.analysis.clade-threshold": { "text": "Clade distance threshold", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.lifecycle.title": { "text": "Lifecycle controls", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.lifecycle.start": { "text": "Start", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.lifecycle.pause": { "text": "Pause", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.lifecycle.resume": { "text": "Resume", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.lifecycle.starting": { "text": "Starting…", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.lifecycle.pausing": { "text": "Pausing…", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.lifecycle.resuming": { "text": "Resuming…", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.status.pausing": { "text": "Pausing", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.status.resuming": { "text": "Resuming", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.status.interrupted": { "text": "Interrupted", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.status.waiting": { "text": "Waiting", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.empty": { "text": "No tasks", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.task-id": { "text": "Task", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.trace-id": { "text": "Trace ID", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.state": { "text": "State", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.stage": { "text": "Stage", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.progress": { "text": "Progress", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.updated": { "text": "Updated", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.source": { "text": "Source", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.owner": { "text": "Owner", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.owner-present": { "text": "Owner available", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.actions": { "text": "Actions", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.open": { "text": "Open task", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.open-result": { "text": "Open result", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.cached": { "text": "cached", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.stale": { "text": "stale", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.latest-known": { "text": "Showing the latest known task state from projection storage. Open a task for live runtime status.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.filters": { "text": "Filters", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.all-visible": { "text": "All visible tasks", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.mine": { "text": "My tasks", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.project": { "text": "Project", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.all-projects": { "text": "All projects", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.no-project": { "text": "No project", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.all-states": { "text": "All states", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.apply-filters": { "text": "Apply filters", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.refresh": { "text": "Refresh", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.results.latest-known": { "text": "Results are listed from completed tasks in projection storage.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"profile.account-information": { "text": "Account information", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"profile.email-verified": { "text": "Email verified", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"profile.email-unverified": { "text": "Email not verified", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"profile.created": { "text": "Created", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"profile.open-settings": { "text": "Open settings", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"settings.language-preference": { "text": "Language preference", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"settings.appearance": { "text": "Appearance", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"settings.interface-scale": { "text": "Interface scale", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"settings.appearance-local": { "text": "Appearance is stored on this device.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"settings.appearance-account": { "text": "Appearance is saved to your account and available on your signed-in devices.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"settings.security": { "text": "Security", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"settings.active-sessions": { "text": "Active sessions", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"settings.current-session": { "text": "Current session", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"settings.last-active": { "text": "Last active", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"settings.expires": { "text": "Expires", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"settings.sign-out-session": { "text": "Sign out session", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"settings.sign-out-other-sessions": { "text": "Sign out other sessions", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"settings.no-other-sessions": { "text": "No other active sessions.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"settings.sessions-error": { "text": "Unable to load sessions.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"settings.session-revoked": { "text": "Session revoked.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"settings.session-revoke-failed": { "text": "Unable to revoke session.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"settings.other-sessions-revoked": { "text": "Other sessions revoked.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"settings.language-save-failed": { "text": "Unable to save language.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"auth.error.rate-limited": { "text": "Too many attempts. Try again later.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"desktop.shell.title": { "text": "JELICA Desktop", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.shell.description": { "text": "Local analysis foundation", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.shell.platform-label": { "text": "Desktop platform", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.shell.platform-unavailable": { "text": "Desktop bridge unavailable", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.shell.foundation-title": { "text": "Desktop foundation is ready", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.shell.foundation-description": { "text": "The secure desktop shell is connected through the platform adapter.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.shell.analysis-title": { "text": "Local analysis", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.shell.analysis-description": { "text": "Local task workflows will be added in the next desktop stage.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.shell.theme-label": { "text": "Theme", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.shell.locale-label": { "text": "Language", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.theme.system": { "text": "System", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.theme.light": { "text": "Light", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.theme.dark": { "text": "Dark", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.theme.monochrome": { "text": "Monochrome", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.nav.home": { "text": "Home", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.nav.tasks": { "text": "Tasks", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.nav.new-analysis": { "text": "New analysis", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.nav.results": { "text": "Results", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.nav.documentation": { "text": "Documentation", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.nav.settings": { "text": "Settings", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.docs.unavailable": { "text": "Documentation unavailable", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.docs.unavailable-description": { "text": "The packaged documentation release could not be loaded.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.docs.open-pdf": { "text": "Open PDF", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.settings.title": { "text": "Desktop settings", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.settings.scale": { "text": "Interface scale", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.settings.reset-scale": { "text": "Reset to 100%", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.tasks.title": { "text": "Local tasks", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.tasks.refresh": { "text": "Refresh", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.tasks.empty": { "text": "No local tasks yet.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.tasks.new": { "text": "Create analysis", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.analysis.title": { "text": "New local analysis", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.analysis.select-files": { "text": "Select files", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.analysis.select-folder": { "text": "Select folder", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.analysis.select-config": { "text": "Select config", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.analysis.inputs": { "text": "Inputs", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.analysis.config": { "text": "Config", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.analysis.ncbi": { "text": "NCBI accessions or URLs", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.analysis.name": { "text": "Task name", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.analysis.create": { "text": "Start analysis", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.analysis.no-inputs": { "text": "Select at least one local input.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.task.title": { "text": "Task details", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.task.reload": { "text": "Reload", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.task.not-found": { "text": "Task not found.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.task.failure": { "text": "Task failed.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.result.title": { "text": "Results", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.result.no-results": { "text": "No completed task results yet.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.result.show-folder": { "text": "Show in folder", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.result.unavailable": { "text": "Result package is unavailable.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.action.remove": { "text": "Remove", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.state.loading": { "text": "Loading…", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.state.creating": { "text": "Creating…", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"desktop.error.generic": { "text": "The operation could not be completed.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": "ChatGPT", "translatedAt": "2026-08-29" }
+  ,"common.navigation.main-label": { "text": "Main navigation", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.navigation.application-label": { "text": "Application sections", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.navigation.primary-label": { "text": "Primary navigation", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.action.home": { "text": "Home", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.action.open-app": { "text": "Open app", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.action.open-tasks": { "text": "Open tasks", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.action.create-task": { "text": "Create task", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.action.new-task": { "text": "New task", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.action.back-to-task-details": { "text": "Back to task details", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.action.back-to-results": { "text": "Back to results", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.action.open-result": { "text": "Open result", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.action.open-task": { "text": "Open task", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.action.refresh-now": { "text": "Refresh now", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.action.retry-now": { "text": "Retry now", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.action.retry-result-lookup": { "text": "Retry result lookup", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.state.refreshing": { "text": "Refreshing…", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.state.unknown": { "text": "Unknown", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.error.unexpected-title": { "text": "JELICA encountered an unexpected error", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.error.unexpected-description": { "text": "The current page failed to render. You can retry or return to a safe route.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.error.service-unavailable": { "text": "The service is temporarily unavailable. Please try again later.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.error.access-denied": { "text": "You do not have permission to perform this action.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.error.not-found": { "text": "The requested resource was not found.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.error.conflict": { "text": "The requested change conflicts with the current state.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.error.invalid-request": { "text": "Please check the submitted information and try again.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.error.rate-limited": { "text": "Too many requests. Please try again later.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.error.generic": { "text": "The operation could not be completed.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"nav.home": { "text": "Home", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"nav.news": { "text": "News", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"nav.about": { "text": "About", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"nav.download": { "text": "Download", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"nav.documentation": { "text": "Documentation", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"nav.support": { "text": "Support", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"nav.run-online": { "text": "Run online", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"locale.en": { "text": "English", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"locale.ru": { "text": "Russian", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"locale.sr-Latn": { "text": "Serbian (Latin)", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"locale.sr-Cyrl": { "text": "Serbian (Cyrillic)", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"theme.selector-label": { "text": "Theme selector", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"theme.label.system": { "text": "System", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"theme.label.light": { "text": "Light", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"theme.label.dark": { "text": "Dark", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"theme.label.mono": { "text": "Monochrome", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.status.unknown": { "text": "Unknown", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.label.task-prefix": { "text": "Task {task}", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.detail.trace-id": { "text": "Trace ID: {trace}", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.detail.status": { "text": "Status:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.detail.current-stage": { "text": "Current stage:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.detail.active-job-state": { "text": "Active job state:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.detail.progress": { "text": "Progress:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.detail.source": { "text": "Source:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.detail.authoritative": { "text": "Authoritative:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.detail.command-id": { "text": "Command ID:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.detail.projection-updated": { "text": "Projection updated at:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.detail.authoritative-yes": { "text": "yes", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.detail.authoritative-no": { "text": "no", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.detail.stale-warning": { "text": "State may be stale because backend returned cached projection data.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.polling.terminal": { "text": "Terminal state reached. Automatic polling stopped.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.polling.active": { "text": "Automatic polling is active (every {seconds} seconds).", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.polling.last-update": { "text": " Last update: {time}.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.polling.refreshing": { "text": " Refreshing…", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.page.title": { "text": "Results", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.page.table-label": { "text": "Completed task results", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.page.no-results": { "text": "No completed task results yet", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.page.no-results-description": { "text": "Result list uses completed tasks from projection storage. Complete a task to inspect its result package.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.page.data-unavailable": { "text": "Result data unavailable", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.page.data-load-failed": { "text": "Cannot load result data for task {task}.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.page.api-description": { "text": "Response is loaded via GET /api/tasks/{task_id}/result.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"support.field.name": { "text": "Name", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"support.field.email": { "text": "Email", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"support.field.subject": { "text": "Subject", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"support.field.message": { "text": "Message", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"support.placeholder.name": { "text": "Jane Researcher", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"support.placeholder.email": { "text": "jane@example.org", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"support.placeholder.subject": { "text": "Question about analytical task status", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"support.placeholder.message": { "text": "Describe your issue or question.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"support.action.submitting": { "text": "Submitting…", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"support.action.send": { "text": "Send support request", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"support.created.title": { "text": "Support request created", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"support.created.id": { "text": "ID:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"support.created.status": { "text": "Status:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"support.created.created-at": { "text": "Created at:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"support.validation.name-required": { "text": "Name is required.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"support.validation.email-required": { "text": "Email is required.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"support.validation.email-invalid": { "text": "Email must contain '@'.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"support.validation.subject-required": { "text": "Subject is required.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"support.validation.message-required": { "text": "Message is required.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.hero.title": { "text": "Comparative genomics workflows with reproducible result packages", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.hero.description": { "text": "Build, track, and inspect analytical tasks across Web, Desktop, and CLI with a single runtime backbone.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.news.latest": { "text": "Latest news", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.news.all": { "text": "All news", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.sections.label": { "text": "Landing sections", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.section.comparative": { "text": "Comparative analysis", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.section.phylogenetics": { "text": "Phylogenetics", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.section.reproducibility": { "text": "Reproducibility", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.section.platforms": { "text": "Platforms", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.section.technical": { "text": "Technical", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.statistics.genomes": { "text": "Genomes analyzed", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.statistics.genomes-description": { "text": "Runtime-dependent, task-driven processing.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.statistics.formats": { "text": "Supported formats", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.statistics.formats-description": { "text": "FASTA and existing CLI-supported biological inputs.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.statistics.phases": { "text": "Analysis phases", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.statistics.phases-description": { "text": "Alignment, comparative analysis, phylogenetics, packaging.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.comparative.title": { "text": "Comparative analysis and variants", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.comparative.description": { "text": "Inspect sequence differences, mutation-aware comparisons, and analysis progress in a consistent flow.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.comparative.placeholder": { "text": "Placeholder for comparative and variant-oriented UI modules in later stages.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.phylogenetics.title": { "text": "Phylogenetics", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.phylogenetics.description": { "text": "Genetic distance metrics, tree generation, and clade-oriented outputs are represented through task result packages.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.phylogenetics.placeholder": { "text": "Placeholder for tree, clade, and distance matrix views (future stage).", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.reproducibility.title": { "text": "Reproducibility", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.reproducibility.packages": { "text": ".jelica packages", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.reproducibility.packages-description": { "text": "Result package references for reproducible output.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.reproducibility.tasks": { "text": "Background tasks", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.reproducibility.tasks-description": { "text": "Asynchronous lifecycle with status polling.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.reproducibility.partial": { "text": "Partial execution", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.reproducibility.partial-description": { "text": "Runtime state remains observable through projection-backed APIs.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.platforms.title": { "text": "CLI vs Desktop vs Web", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.platforms.cli-description": { "text": "Scriptable machine protocol integration surface.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.platforms.desktop-description": { "text": "Local UI workflows (future stage expansion).", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.platforms.web-description": { "text": "Public site plus /app analytical workflow area.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.technical.title": { "text": "Technical foundation", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.technical.description": { "text": "Core analytics stay in existing runtime architecture. Web frontend and backend remain thin adapters.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"public.about.title": { "text": "About JELICA", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"public.about.unavailable": { "text": "About content is currently unavailable.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"public.download.title": { "text": "Download", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"public.download.description": { "text": "Distribution channels are prepared for staged rollout.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"public.download.coming-soon": { "text": "Coming soon", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"public.support.title": { "text": "Support", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"public.support.description": { "text": "Submit your question or issue and receive a support request ID for follow-up.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"public.legal.terms-title": { "text": "Terms of Service", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"public.legal.privacy-title": { "text": "Privacy Policy", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"public.legal.license-title": { "text": "License", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"public.news.title": { "text": "News", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"public.news.description": { "text": "Product and architecture updates for JELICA development.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"public.news.read": { "text": "Read article", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"public.news.back": { "text": "Back to news", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"public.news.empty": { "text": "No news articles are available yet.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"desktop.task.detail.id": { "text": "ID", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"desktop.task.detail.state": { "text": "State", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"desktop.task.detail.stage": { "text": "Stage", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"desktop.task.detail.progress": { "text": "Progress", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"app.shell.title": { "text": "JELICA Application", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"app.shell.description": { "text": "Analytical task operations and reproducible result references.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"app.shell.footer": { "text": "JELICA application area.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"app.nav.tasks": { "text": "Tasks", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"app.nav.results": { "text": "Results", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.detail.progress-aria": { "text": "Task progress {progress}%", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.loading.title": { "text": "Loading task details", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.loading.description": { "text": "Fetching task state from backend and starting status polling.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.status.unavailable": { "text": "Task status is unavailable", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.lookup.unavailable": { "text": "Result lookup unavailable", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.action.open-page": { "text": "Open result page", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"common.error.not-found-description": { "text": "The requested page does not exist or has been moved.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.card.title": { "text": "Result package", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.card.task-id": { "text": "Task ID:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.card.trace-id": { "text": "Trace ID:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.card.task-state": { "text": "Task state:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.card.available": { "text": ".jelica available:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.card.status-command-id": { "text": "Status command ID:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.card.result-id": { "text": "Result ID:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.card.package-path": { "text": "Package path:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.card.command-id": { "text": "Command ID:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.card.yes": { "text": "yes", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.card.no": { "text": "no", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"public.download.desktop-label": { "text": "Desktop", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"public.download.cli-label": { "text": "CLI", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.page.task-id": { "text": "Task ID", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.page.state": { "text": "State", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.page.updated": { "text": "Updated", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.page.actions": { "text": "Actions", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.unavailable": { "text": "Task list is unavailable", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.empty-description": { "text": "Submit a new task to start tracking its lifecycle and result package status.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.list.create": { "text": "Create analytical task", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.loading.list-title": { "text": "Loading task list", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.loading.list-description": { "text": "Fetching latest tasks from backend...", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.loading.details-description": { "text": "Fetching current task state and initializing polling...", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.loading.title": { "text": "Loading results", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.loading.description": { "text": "Fetching completed tasks and result references...", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.loading.details-title": { "text": "Loading result package", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.loading.details-description": { "text": "Resolving .jelica package reference...", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.platforms.cli": { "text": "CLI", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.platforms.desktop": { "text": "Desktop", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"landing.platforms.web": { "text": "Web", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"project.navigation.sections": { "text": "Project sections", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+}

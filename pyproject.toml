@@ -1,0 +1,28 @@
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["packages/contracts", "packages/core", "apps/cli", "apps/api"]
+
+[dependency-groups]
+dev = ["pytest>=9.0.0,<10.0.0", "ruff>=0.15.0,<0.16.0", "mypy>=2.0.0,<3.0.0"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+minversion = "8.0"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+src = ["packages/contracts/src", "packages/core/src", "apps/cli/src", "apps/api/src", "tests"]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+python_version = "3.12"
+warn_unused_configs = true

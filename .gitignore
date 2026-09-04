@@ -1,0 +1,71 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments and local environment files
+.venv/
+venv/
+env/
+ENV/
+.env
+.env.*
+!deployment/env/
+deployment/env/*
+!deployment/env/.env.example
+
+# Build and packaging artifacts
+build/
+dist/
+dist-test/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+wheels/
+node_modules/
+.next/
+npm-debug.log*
+/apps/web/public/assets/notification.wav
+
+# uv
+.uv/
+
+# Test, lint, and type-check caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# General caches and temporary files
+.cache/
+tmp/
+temp/
+*.tmp
+*.log
+*.tsbuildinfo
+
+# Generated outputs
+generated/
+output/
+outputs/
+reports/
+/tasks/
+/docs/documentation/releases/
+/apps/desktop/resources/
+/packages/core/src/jelica_core/resources/notifications/notification.wav
+/packages/core/src/jelica_core/resources/macos/
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Local development workspace
+AGENTS.md
+docs/workspace/

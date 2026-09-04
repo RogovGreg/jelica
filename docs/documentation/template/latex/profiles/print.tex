@@ -1,0 +1,41 @@
+\JelicaScreenProfilefalse
+
+\definecolor{JelicaHeading}{HTML}{202624}
+\definecolor{JelicaAccent}{HTML}{202624}
+\definecolor{JelicaMuted}{HTML}{4D5552}
+
+\ifdefined\HCode
+\else
+  \ifJelicaCyrillicLocale
+    \setmainfont{DejaVu Serif}
+  \else
+    \IfFontExistsTF{TeX Gyre Pagella}{
+      \setmainfont{TeX Gyre Pagella}
+    }{
+      \setmainfont{Latin Modern Roman}
+    }
+  \fi
+  \IfFontExistsTF{Google Sans Flex}{
+    \setsansfont{Google Sans Flex}
+  }{
+    \ifJelicaCyrillicLocale
+      \setsansfont{DejaVu Sans}
+    \else
+      \IfFontExistsTF{TeX Gyre Heros}{
+        \setsansfont{TeX Gyre Heros}
+      }{
+        \setsansfont{Latin Modern Sans}
+      }
+    \fi
+  }
+\fi
+
+\setstocksize{297mm}{210mm}
+\settrimmedsize{\stockheight}{\stockwidth}{*}
+\setlrmarginsandblock{32mm}{24mm}{*}
+\setulmarginsandblock{28mm}{30mm}{*}
+
+\hypersetup{
+  hidelinks,
+  colorlinks=false
+}

@@ -1,0 +1,20 @@
+[project]
+name = "jelica-core"
+version = "0.1.0"
+license = "PolyForm-Noncommercial-1.0.0"
+description = "Interface-independent analytical core for JELICA."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "biopython>=1.85,<2.0.0",
+    "jelica-contracts",
+    "platformdirs>=4.3.8,<5.0.0",
+    "pydantic>=2.11.7,<3.0.0",
+    "tomli-w>=1.2.0,<2.0.0",
+]
+
+[tool.uv.sources]
+jelica-contracts = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.11.28,<0.12.0"]
+build-backend = "uv_build"

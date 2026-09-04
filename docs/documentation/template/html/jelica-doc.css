@@ -1,0 +1,53 @@
+:root {
+  color-scheme: light;
+  font-family: "Google Sans Flex", "TeX Gyre Heros", system-ui, sans-serif;
+  color: #17302a;
+  background: #f4f7f6;
+}
+
+body {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 2.5rem 1.4rem 4rem;
+  line-height: 1.65;
+  background: #ffffff;
+}
+
+h1,
+h2,
+h3 {
+  color: #174f46;
+  line-height: 1.2;
+}
+
+a {
+  color: #16745f;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.tableofcontents {
+  padding: 1rem 1.25rem;
+  border: 1px solid #dce6e2;
+  border-radius: 0.75rem;
+  background: #f8faf9;
+}
+
+.documentation-contents {
+  margin-top: 2.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid #dce6e2;
+  border-radius: 0.75rem;
+  background: #f8faf9;
+}
+
+.documentation-contents h1 {
+  margin-top: 0;
+}
+
+.documentation-contents li + li {
+  margin-top: 0.4rem;
+}

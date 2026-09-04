@@ -1,0 +1,15 @@
+{$DOMAIN:localhost} {
+    encode zstd gzip
+
+    header {
+        X-Content-Type-Options nosniff
+        ?Referrer-Policy strict-origin-when-cross-origin
+    }
+
+    @internal path /api/internal/*
+    respond @internal 404
+
+    @backend path /api* /ws*
+    reverse_proxy @backend {$WEB_BACKEND_UPSTREAM:web-backend:8000}
+    reverse_proxy {$WEB_FRONTEND_UPSTREAM:web-frontend:3000}
+}

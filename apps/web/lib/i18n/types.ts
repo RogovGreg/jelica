@@ -1,0 +1,15 @@
+export {
+  DEFAULT_LOCALE,
+  SUPPORTED_LOCALES,
+  type LoadedLocale,
+  type Locale,
+  type SourceEntry,
+  type TranslationCatalog,
+  type TranslationCatalogs,
+  type TranslationEntry,
+  type TranslationKey,
+  type TranslationMetadata,
+  type TranslationNamespace,
+  type TranslationValues,
+  type Translator,
+} from "../../../../packages/app-platform/src/i18n";

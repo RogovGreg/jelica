@@ -1,0 +1,1033 @@
+{
+  "common.action.save": {
+    "default-text": "Save",
+    "context": "Generic action label for saving current changes or form data"
+  },
+  "common.action.cancel": {
+    "default-text": "Cancel",
+    "context": "Generic action label for cancelling the current operation without applying changes"
+  },
+  "common.action.close": {
+    "default-text": "Close",
+    "context": "Generic action label for closing the current dialog, panel, or view"
+  },
+  "common.action.retry": {
+    "default-text": "Retry",
+    "context": "Generic action label for retrying a failed operation"
+  },
+  "common.action.download": {
+    "default-text": "Download",
+    "context": "Generic action label for downloading a file or generated result"
+  },
+  "common.state.loading": {
+    "default-text": "Loading",
+    "context": "Generic state shown while content or an operation is loading"
+  },
+  "common.state.error": {
+    "default-text": "Error",
+    "context": "Generic state shown when content or an operation cannot be completed"
+  },
+  "common.state.empty": {
+    "default-text": "No data",
+    "context": "Generic empty state shown when there is no content to display"
+  },
+  "common.state.success": {
+    "default-text": "Success",
+    "context": "Generic state shown when an operation completes successfully"
+  },
+  "auth.navigation.title": {
+    "default-text": "Account",
+    "context": "Heading for the Web account authentication area"
+  },
+  "auth.navigation.description": {
+    "default-text": "Sign in or create an account while guest analysis remains available.",
+    "context": "Short explanation in the authentication area that accounts extend rather than replace guest access"
+  },
+  "auth.login.title": {
+    "default-text": "Log in",
+    "context": "Heading on the Web login page"
+  },
+  "auth.register.title": {
+    "default-text": "Create account",
+    "context": "Heading on the Web account registration page"
+  },
+  "auth.verify.title": {
+    "default-text": "Verify email",
+    "context": "Heading on the Web email verification page"
+  },
+  "auth.verify.registration-created": {
+    "default-text": "Your account was created. Enter the verification token sent to your email.",
+    "context": "Message shown after registration before the user verifies their email address"
+  },
+  "auth.field.identifier": {
+    "default-text": "Username or email",
+    "context": "Label for the login identifier field that accepts either a username or an email address"
+  },
+  "auth.field.username": {
+    "default-text": "Username",
+    "context": "Label for a user account username"
+  },
+  "auth.field.email": {
+    "default-text": "Email",
+    "context": "Label for a user account email address"
+  },
+  "auth.field.password": {
+    "default-text": "Password",
+    "context": "Label for a user account password field"
+  },
+  "auth.field.verification-token": {
+    "default-text": "Verification token",
+    "context": "Label for the email verification token field"
+  },
+  "auth.field.language": {
+    "default-text": "Language",
+    "context": "Label for the language stored on a user account"
+  },
+  "auth.action.login": {
+    "default-text": "Log in",
+    "context": "Action label for starting an authenticated Web session"
+  },
+  "auth.action.register": {
+    "default-text": "Create account",
+    "context": "Action label for registering a new Web account"
+  },
+  "auth.action.logout": {
+    "default-text": "Log out",
+    "context": "Action label for ending the current authenticated Web session"
+  },
+  "auth.action.verify-email": {
+    "default-text": "Verify email",
+    "context": "Action label for submitting an email verification token"
+  },
+  "auth.state.logging-in": {
+    "default-text": "Logging in…",
+    "context": "Pending state label while a Web login request is being processed"
+  },
+  "auth.state.registering": {
+    "default-text": "Creating account…",
+    "context": "Pending state label while a Web registration request is being processed"
+  },
+  "auth.state.verifying": {
+    "default-text": "Verifying…",
+    "context": "Pending state label while an email verification request is being processed"
+  },
+  "auth.state.signing-out": {
+    "default-text": "Logging out…",
+    "context": "Pending state label while the current Web session is being ended"
+  },
+  "auth.error.invalid-credentials": {
+    "default-text": "The username, email, or password is incorrect.",
+    "context": "Error shown when Web login credentials are not accepted"
+  },
+  "auth.error.email-verification-required": {
+    "default-text": "Verify your email before logging in.",
+    "context": "Error shown when a user tries to log in before verifying their email address"
+  },
+  "auth.error.login-failed": {
+    "default-text": "Login could not be completed. Try again.",
+    "context": "Generic error shown when a Web login request fails"
+  },
+  "auth.error.account-exists": {
+    "default-text": "An account with that username or email already exists.",
+    "context": "Error shown when a registration conflicts with an existing account"
+  },
+  "auth.error.registration-failed": {
+    "default-text": "Account creation could not be completed. Check the fields and try again.",
+    "context": "Generic error shown when a Web registration request fails"
+  },
+  "auth.error.invalid-verification-token": {
+    "default-text": "The verification token is invalid, expired, or already used.",
+    "context": "Error shown when an email verification token cannot be accepted"
+  },
+  "auth.error.verification-failed": {
+    "default-text": "Email verification could not be completed. Try again.",
+    "context": "Generic error shown when an email verification request fails"
+  },
+  "auth.error.logout-failed": {
+    "default-text": "Logout could not be completed.",
+    "context": "Error shown when the current Web session cannot be ended"
+  },
+  "auth.error.service-unavailable": {
+    "default-text": "The authentication service is unavailable.",
+    "context": "Error shown when a protected Web page cannot reach the authentication service"
+  },
+  "auth.email.check": { "default-text": "Check your email to verify your account.", "context": "Registration email verification success state" },
+  "auth.email.delivery-failed": { "default-text": "Your account was created, but the verification email could not be sent right now.", "context": "Registration email delivery failure state" },
+  "auth.email.resend": { "default-text": "Resend verification email", "context": "Resend verification action" },
+  "auth.email.sent": { "default-text": "If an account requires verification, a message will be sent.", "context": "Enumeration-safe verification resend response" },
+  "auth.email.delivery-unavailable": { "default-text": "Email delivery is temporarily unavailable. Try again later.", "context": "Email delivery failure hint" },
+  "auth.action.forgot-password": { "default-text": "Forgot password?", "context": "Forgot password link" },
+  "auth.forgot.title": { "default-text": "Forgot password", "context": "Forgot password page heading" },
+  "auth.forgot.description": { "default-text": "Enter your email and we will send reset instructions if an account matches.", "context": "Forgot password page description" },
+  "auth.forgot.submit": { "default-text": "Send reset instructions", "context": "Forgot password submit action" },
+  "auth.forgot.sent": { "default-text": "If an account matches, check your email for reset instructions.", "context": "Enumeration-safe forgot password success" },
+  "auth.reset.title": { "default-text": "Reset password", "context": "Reset password page heading" },
+  "auth.reset.new-password": { "default-text": "New password", "context": "New password field" },
+  "auth.reset.confirm-password": { "default-text": "Confirm password", "context": "Confirm password field" },
+  "auth.reset.submit": { "default-text": "Reset password", "context": "Reset password submit action" },
+  "auth.reset.success": { "default-text": "Your password was reset. Please log in with your new password.", "context": "Reset password success state" },
+  "auth.reset.invalid": { "default-text": "This reset link is invalid or expired.", "context": "Invalid password reset link state" },
+  "auth.reset.request-new": { "default-text": "Request a new reset link", "context": "Request new password reset link" },
+  "auth.error.password-mismatch": { "default-text": "Passwords do not match.", "context": "Password confirmation validation" },
+  "auth.error.password-reset-failed": { "default-text": "Password reset could not be completed. Try again.", "context": "Generic password reset error" },
+  "page.projects.title": {
+    "default-text": "Projects",
+    "context": "Heading and navigation label for the authenticated projects area"
+  },
+  "page.projects.empty": {
+    "default-text": "No projects are available yet.",
+    "context": "Empty state in the authenticated projects area before project functionality is implemented"
+  },
+  "project.page.subtitle": { "default-text": "Organize analytical work and collaborate with your team.", "context": "Subtitle for the Projects page" },
+  "project.tab.projects": { "default-text": "Projects", "context": "Projects list tab" },
+  "project.tab.invitations": { "default-text": "Invitations", "context": "Received invitations tab" },
+  "project.action.create": { "default-text": "Create project", "context": "Action to create a Project" },
+  "project.action.edit": { "default-text": "Edit", "context": "Action to edit a Project" },
+  "project.action.save": { "default-text": "Save", "context": "Action to save Project changes" },
+  "project.action.cancel": { "default-text": "Cancel", "context": "Action to cancel Project editing" },
+  "project.action.freeze": { "default-text": "Freeze project", "context": "Action to freeze a Project" },
+  "project.action.unfreeze": { "default-text": "Unfreeze project", "context": "Action to unfreeze a Project" },
+  "project.action.leave": { "default-text": "Leave project", "context": "Action to leave a Project" },
+  "project.action.delete": { "default-text": "Delete project", "context": "Action to delete a Project" },
+  "project.action.accept": { "default-text": "Accept", "context": "Action to accept an invitation" },
+  "project.action.decline": { "default-text": "Decline", "context": "Action to decline an invitation" },
+  "project.status.active": { "default-text": "Active", "context": "Active Project status" },
+  "project.status.frozen": { "default-text": "Frozen", "context": "Frozen Project status" },
+  "project.status.banner": { "default-text": "This project is frozen. Changes to tasks and collaboration are disabled.", "context": "Read-only banner for frozen Projects" },
+  "project.empty": { "default-text": "No projects yet", "context": "Empty Projects list title" },
+  "project.empty.description": { "default-text": "Create a project to organize your analytical work.", "context": "Empty Projects list description" },
+  "project.invitation.empty": { "default-text": "No pending invitations", "context": "Empty received invitations title" },
+  "project.invitation.empty.description": { "default-text": "Invitations to Projects will appear here.", "context": "Empty received invitations description" },
+  "project.invitation.invited-by": { "default-text": "Invited by", "context": "Invitation inviter label" },
+  "project.invitation.expires": { "default-text": "Expires", "context": "Invitation expiration label" },
+  "project.form.name": { "default-text": "Name", "context": "Project name field label" },
+  "project.form.description": { "default-text": "Description", "context": "Project description field label" },
+  "project.form.required": { "default-text": "Project name is required.", "context": "Project name validation message" },
+  "project.form.creating": { "default-text": "Creating…", "context": "Project creation pending label" },
+  "project.overview.back": { "default-text": "Projects", "context": "Back link from Project overview" },
+  "project.overview.info": { "default-text": "Project information", "context": "Project information summary card" },
+  "project.overview.tasks": { "default-text": "Tasks", "context": "Tasks summary card" },
+  "project.overview.members": { "default-text": "Members", "context": "Members summary card" },
+  "project.overview.created-at": { "default-text": "Created at", "context": "Project creation timestamp label" },
+  "project.overview.created-by": { "default-text": "Created by", "context": "Project creator label" },
+  "project.overview.owner": { "default-text": "Current owner", "context": "Project owner label" },
+  "project.overview.total": { "default-text": "Total", "context": "Summary total label" },
+  "project.overview.view-tasks": { "default-text": "View tasks", "context": "Link to Project tasks" },
+  "project.overview.view-members": { "default-text": "View members", "context": "Link to Project members" },
+  "project.activity": { "default-text": "Activity", "context": "Project activity timeline heading" },
+  "project.activity.empty": { "default-text": "No activity yet.", "context": "Empty Project activity timeline" },
+  "project.activity.created": { "default-text": "Project created", "context": "Project created activity label" },
+  "project.activity.updated": { "default-text": "Project updated", "context": "Project updated activity label" },
+  "project.activity.frozen": { "default-text": "Project frozen", "context": "Project frozen activity label" },
+  "project.activity.unfrozen": { "default-text": "Project unfrozen", "context": "Project unfrozen activity label" },
+  "project.activity.member-joined": { "default-text": "Member joined the project", "context": "Member joined activity label" },
+  "project.activity.member-removed": { "default-text": "Member removed", "context": "Member removed activity label" },
+  "project.activity.role-changed": { "default-text": "Member role changed", "context": "Member role changed activity label" },
+  "project.activity.ownership-transferred": { "default-text": "Ownership transferred", "context": "Ownership transfer activity label" },
+  "project.activity.task-attached": { "default-text": "Task attached", "context": "Task attached activity label" },
+  "project.activity.task-detached": { "default-text": "Task detached", "context": "Task detached activity label" },
+  "project.action.confirm": { "default-text": "Confirm action", "context": "Confirmation dialog title fallback" },
+  "project.action.working": { "default-text": "Working…", "context": "Confirmation action pending label" },
+  "project.action.freeze.confirm": { "default-text": "Freeze project?", "context": "Freeze confirmation title" },
+  "project.action.unfreeze.confirm": { "default-text": "Unfreeze project?", "context": "Unfreeze confirmation title" },
+  "project.action.leave.confirm": { "default-text": "Leave project?", "context": "Leave confirmation title" },
+  "project.action.delete.confirm": { "default-text": "Delete project?", "context": "Delete confirmation title" },
+  "project.action.freeze.description": { "default-text": "The Project will become read-only for collaboration and task changes.", "context": "Freeze confirmation description" },
+  "project.action.unfreeze.description": { "default-text": "The Project will become active again.", "context": "Unfreeze confirmation description" },
+  "project.action.leave.description": { "default-text": "You will lose access to this Project. Tasks will not be deleted.", "context": "Leave confirmation description" },
+  "project.action.delete.description": { "default-text": "The Project will be deleted. Its Tasks will remain and be detached.", "context": "Delete confirmation description" },
+  "project.action.transfer-first": { "default-text": "Transfer ownership before leaving.", "context": "Owner leave guidance" },
+  "project.error.unavailable": { "default-text": "Project unavailable", "context": "Project overview error title" },
+  "project.error.details-unavailable": { "default-text": "Some overview details are unavailable.", "context": "Partial Project overview error" },
+  "members.tab.members": { "default-text": "Members", "context": "Project members tab" },
+  "members.tab.invitations": { "default-text": "Invitations", "context": "Project outgoing invitations tab" },
+  "members.username": { "default-text": "Username", "context": "Project member username label" },
+  "members.role": { "default-text": "Role", "context": "Project member role label" },
+  "members.role.viewer": { "default-text": "Viewer", "context": "Viewer Project role label" },
+  "members.role.commenter": { "default-text": "Commenter", "context": "Commenter Project role label" },
+  "members.role.member": { "default-text": "Member", "context": "Member Project role label" },
+  "members.role.supervisor": { "default-text": "Supervisor", "context": "Supervisor Project role label" },
+  "members.joined": { "default-text": "Joined", "context": "Project member join date label" },
+  "members.email": { "default-text": "Email", "context": "Project member email label" },
+  "members.actions": { "default-text": "Actions", "context": "Project member actions label" },
+  "members.you": { "default-text": "You", "context": "Current user member badge" },
+  "members.owner": { "default-text": "Owner", "context": "Project owner badge" },
+  "members.search": { "default-text": "Search members", "context": "Project member username search label" },
+  "members.search.placeholder": { "default-text": "Filter by username", "context": "Project member search placeholder" },
+  "members.empty.filter": { "default-text": "No members match this search.", "context": "Filtered members empty state" },
+  "members.action.apply": { "default-text": "Apply", "context": "Apply a member role change" },
+  "members.action.remove": { "default-text": "Remove", "context": "Remove a Project member" },
+  "members.action.transfer": { "default-text": "Transfer ownership", "context": "Transfer Project ownership action" },
+  "members.action.revoke": { "default-text": "Revoke", "context": "Revoke a Project invitation" },
+  "members.invite.title": { "default-text": "Invite member", "context": "Outgoing invitation form heading" },
+  "members.invite.send": { "default-text": "Send invitation", "context": "Send Project invitation action" },
+  "members.invite.pending": { "default-text": "Pending invitations", "context": "Pending outgoing invitations heading" },
+  "members.invite.frozen": { "default-text": "This Project is frozen. New invitations cannot be sent.", "context": "Frozen Project invitation form message" },
+  "members.confirm.remove.title": { "default-text": "Remove member?", "context": "Remove member confirmation title" },
+  "members.confirm.remove.description": { "default-text": "This user will leave the Project. Their Tasks will be detached, not deleted, and ownership will not change.", "context": "Remove member confirmation description" },
+  "members.confirm.transfer.title": { "default-text": "Transfer ownership?", "context": "Transfer ownership confirmation title" },
+  "members.confirm.transfer.description": { "default-text": "This user will become Project owner. They will be promoted to Supervisor if needed, and you will remain a Supervisor.", "context": "Transfer ownership confirmation description" },
+  "members.confirm.revoke.title": { "default-text": "Revoke invitation?", "context": "Revoke invitation confirmation title" },
+  "members.confirm.revoke.description": { "default-text": "This pending invitation will be revoked and the user may be invited again later.", "context": "Revoke invitation confirmation description" },
+  "page.profile.title": {
+    "default-text": "Profile",
+    "context": "Heading and navigation label for the authenticated profile page"
+  },
+  "page.settings.title": {
+    "default-text": "Settings",
+    "context": "Heading and navigation label for the authenticated settings page"
+  },
+  "page.settings.unavailable": {
+    "default-text": "Personal settings are not editable yet.",
+    "context": "State shown while authenticated personal settings are reserved for a later stage"
+  },
+  "page.notifications.title": {
+    "default-text": "Notifications",
+    "context": "Heading and navigation label for the authenticated notifications page"
+  },
+  "page.notifications.empty": {
+    "default-text": "No notifications are available.",
+    "context": "Empty state in the authenticated notifications area"
+  },
+  "docs.navigation.overview": {
+    "default-text": "Documentation overview",
+    "context": "Navigation link from a documentation page to the documentation overview"
+  },
+  "docs.navigation.download": {
+    "default-text": "Downloads",
+    "context": "Navigation link to the documentation download page"
+  },
+  "docs.section.list": {
+    "default-text": "Sections",
+    "context": "Heading above the documentation section navigation"
+  },
+  "docs.search.label": {
+    "default-text": "Search documentation",
+    "context": "Label for the client-side documentation search field"
+  },
+  "docs.search.placeholder": {
+    "default-text": "Search titles, headings, and content",
+    "context": "Placeholder in the client-side documentation search field"
+  },
+  "docs.search.results": {
+    "default-text": "Search results",
+    "context": "Heading above matching documentation pages"
+  },
+  "docs.search.no-results": {
+    "default-text": "No documentation pages match your search.",
+    "context": "Empty state for a documentation search with no matching pages"
+  },
+  "docs.metadata.version": {
+    "default-text": "Documentation version",
+    "context": "Label for the documentation content version read from release metadata"
+  },
+  "docs.metadata.artifact-format": {
+    "default-text": "Artifact format",
+    "context": "Label for the documentation artifact contract version"
+  },
+  "docs.metadata.locale": {
+    "default-text": "Documentation language",
+    "context": "Label for the effective locale of the selected documentation release"
+  },
+  "docs.metadata.profile": {
+    "default-text": "Presentation profile",
+    "context": "Label for the documentation presentation profile"
+  },
+  "docs.metadata.text-size": {
+    "default-text": "Text size",
+    "context": "Label for the documentation body text size profile"
+  },
+  "docs.viewer.current-page": {
+    "default-text": "Current page",
+    "context": "Accessible label for the current documentation page in the viewer"
+  },
+  "docs.viewer.open-standalone": {
+    "default-text": "Open standalone page",
+    "context": "Link that opens the generated documentation HTML page outside the viewer frame"
+  },
+  "docs.download.title": {
+    "default-text": "Documentation downloads",
+    "context": "Heading on the documentation download page"
+  },
+  "docs.download.pdf": {
+    "default-text": "PDF manual",
+    "context": "Label for the downloadable documentation PDF"
+  },
+  "docs.download.release-metadata": {
+    "default-text": "Release metadata",
+    "context": "Heading above documentation release metadata on the download page"
+  },
+  "docs.unavailable.title": {
+    "default-text": "Documentation unavailable",
+    "context": "Title shown when the Web viewer cannot load a documentation release bundle"
+  },
+  "docs.unavailable.description": {
+    "default-text": "The documentation release bundle is missing or cannot be read. Build or mount a validated release and try again.",
+    "context": "Explanation shown when documentation release artifacts are absent or invalid"
+  },
+  "task.action.start": {
+    "default-text": "Start task",
+    "context": "Button on an analytical task form that creates and starts the configured task"
+  },
+  "task.action.pause": {
+    "default-text": "Pause task",
+    "context": "Action label for pausing a running analytical task"
+  },
+  "task.action.resume": {
+    "default-text": "Resume task",
+    "context": "Action label for resuming a paused analytical task"
+  },
+  "task.action.cancel": {
+    "default-text": "Cancel task",
+    "context": "Action label for cancelling an analytical task"
+  },
+  "task.status.created": {
+    "default-text": "Created",
+    "context": "Status label for an analytical task that has been created but not queued"
+  },
+  "task.status.queued": {
+    "default-text": "Queued",
+    "context": "Status label for an analytical task waiting to start execution"
+  },
+  "task.status.running": {
+    "default-text": "Running",
+    "context": "Status label for an analytical task that is currently executing"
+  },
+  "task.status.paused": {
+    "default-text": "Paused",
+    "context": "Status label for an analytical task whose execution is paused"
+  },
+  "task.status.completed": {
+    "default-text": "Completed",
+    "context": "Status label for an analytical task that completed successfully"
+  },
+  "task.status.failed": {
+    "default-text": "Failed",
+    "context": "Status label for an analytical task whose execution failed"
+  },
+  "task.status.cancelled": {
+    "default-text": "Cancelled",
+    "context": "Status label for an analytical task whose execution was cancelled"
+  },
+  "page.tasks.title": {
+    "default-text": "Tasks",
+    "context": "Main heading of the analytical tasks list page"
+  },
+  "error.task.not-found": {
+    "default-text": "Task not found",
+    "context": "Error shown when an analytical task identifier does not exist"
+  },
+  "report.section.statistics": {
+    "default-text": "Statistics",
+    "context": "Heading for the statistics section of an analytical report or product overview"
+  },
+  "notification.task.completed.title": {
+    "default-text": "Task completed",
+    "context": "Title of a notification emitted after an analytical task completes successfully"
+  },
+  "notification.email.subject": {
+    "default-text": "JELICA — {title}",
+    "context": "Subject wrapper for plaintext notification emails"
+  },
+  "notification.email.body-fallback": {
+    "default-text": "You have a new JELICA notification: {title}.",
+    "context": "Fallback body for a notification email without event-specific body text"
+  },
+  "notification.email.open": {
+    "default-text": "Open in JELICA:",
+    "context": "Label before a safe internal notification deep link in an email"
+  },
+  "notification.badge.unread": { "default-text": "{count} unread notifications", "context": "Accessible unread notification badge label" },
+  "notification.center.globally-disabled": { "default-text": "Notifications are disabled. Your existing notification history remains available.", "context": "Notification Center global-disabled notice" },
+  "notification.center.action-failed": { "default-text": "The notification could not be updated.", "context": "Notification Center action error" },
+  "notification.center.load-failed": { "default-text": "Notifications could not be loaded.", "context": "Notification Center load error" },
+  "notification.center.list-label": { "default-text": "Notifications", "context": "Accessible notification list label" },
+  "notification.filter.status": { "default-text": "Notification status", "context": "Accessible notification status filter label" },
+  "notification.filter.all": { "default-text": "All", "context": "All notifications filter" },
+  "notification.filter.unread": { "default-text": "Unread", "context": "Unread notifications filter" },
+  "notification.filter.event": { "default-text": "Event type", "context": "Notification event filter label" },
+  "notification.filter.any-event": { "default-text": "All event types", "context": "Notification event filter all option" },
+  "notification.action.open": { "default-text": "Open", "context": "Open notification resource action" },
+  "notification.action.dismiss": { "default-text": "Dismiss", "context": "Dismiss notification toast action" },
+  "notification.action.mark-read": { "default-text": "Mark as read", "context": "Mark notification read action" },
+  "notification.action.mark-unread": { "default-text": "Mark as unread", "context": "Mark notification unread action" },
+  "notification.action.mark-all-read": { "default-text": "Mark all as read", "context": "Mark all notifications read action" },
+  "notification.state.read": { "default-text": "Read", "context": "Read notification state" },
+  "notification.state.unread": { "default-text": "Unread", "context": "Unread notification state" },
+  "notification.empty.none-yet": { "default-text": "No notifications yet.", "context": "Notification Center empty history state" },
+  "notification.empty.no-unread": { "default-text": "No unread notifications.", "context": "Notification Center no-unread state" },
+  "notification.empty.no-event-match": { "default-text": "No notifications match this event filter.", "context": "Notification Center event-filter empty state" },
+  "notification.actor.system": { "default-text": "JELICA", "context": "System actor fallback for notifications" },
+  "notification.resource.fallback": { "default-text": "JELICA resource", "context": "Notification resource fallback" },
+  "notification.settings.title": { "default-text": "Notifications", "context": "Notification settings section heading" },
+  "notification.settings.description": { "default-text": "Choose future notification delivery for each event and channel.", "context": "Notification settings description" },
+  "notification.settings.load-failed": { "default-text": "Notification settings could not be loaded.", "context": "Notification settings load error" },
+  "notification.settings.global": { "default-text": "Notifications", "context": "Global notification preference" },
+  "notification.settings.sound": { "default-text": "Notification sound", "context": "Realtime in-app sound preference" },
+  "notification.settings.channels": { "default-text": "Channel settings", "context": "Notification channel master controls" },
+  "notification.settings.matrix-caption": { "default-text": "Notification events and channels", "context": "Notification preference matrix caption" },
+  "notification.settings.event": { "default-text": "Event", "context": "Notification preference matrix event column" },
+  "notification.settings.not-applicable": { "default-text": "Not available for this event", "context": "Non-applicable notification matrix cell" },
+  "notification.settings.saved": { "default-text": "Notification settings saved.", "context": "Notification settings save success" },
+  "notification.settings.save-failed": { "default-text": "Notification settings could not be saved. Your edits are preserved.", "context": "Notification settings save error" },
+  "notification.channel.in-app": { "default-text": "In-app", "context": "In-app notification channel" },
+  "notification.channel.device": { "default-text": "Device", "context": "Web Push notification channel" },
+  "notification.channel.email": { "default-text": "Email", "context": "Email notification channel" },
+  "notification.channel.telegram": { "default-text": "Telegram", "context": "Telegram notification channel" },
+  "notification.channel.available": { "default-text": "Available", "context": "Notification channel availability" },
+  "notification.channel.unavailable": { "default-text": "Unavailable", "context": "Notification channel unavailable state" },
+  "notification.channel.email-unavailable": { "default-text": "Delivery is not configured yet.", "context": "Email notification availability notice" },
+  "notification.channel.telegram-unavailable": { "default-text": "Not connected and not available yet.", "context": "Telegram notification availability notice" },
+  "notification.telegram.connection": { "default-text": "Telegram connection", "context": "Telegram integration settings heading" },
+  "notification.telegram.connect": { "default-text": "Connect Telegram", "context": "Start Telegram account linking action" },
+  "notification.telegram.disconnect": { "default-text": "Disconnect", "context": "Disconnect Telegram account action" },
+  "notification.telegram.refresh": { "default-text": "Refresh", "context": "Refresh Telegram connection state action" },
+  "notification.telegram.server-unavailable": { "default-text": "Telegram is not configured on this server.", "context": "Telegram server-unavailable notice" },
+  "notification.telegram.not-connected": { "default-text": "Available, but not connected.", "context": "Telegram available but unlinked notice" },
+  "notification.telegram.connected": { "default-text": "Connected as {account}.", "context": "Telegram connected account notice" },
+  "notification.telegram.action-failed": { "default-text": "Telegram connection could not be updated.", "context": "Telegram settings action error" },
+  "notification.telegram.bot.linked": { "default-text": "Telegram is now connected to JELICA.", "context": "Telegram successful linking response" },
+  "notification.telegram.bot.invalid-link": { "default-text": "This connection link is invalid or expired. Create a new one in JELICA Settings.", "context": "Telegram invalid linking token response" },
+  "notification.telegram.bot.link-conflict": { "default-text": "This Telegram account cannot be connected with that link.", "context": "Telegram identity ownership conflict response" },
+  "notification.telegram.bot.connected": { "default-text": "Telegram is connected to JELICA. Use /help for commands.", "context": "Telegram linked start response" },
+  "notification.telegram.bot.connect-in-settings": { "default-text": "Open JELICA Settings to connect this Telegram account.", "context": "Telegram unlinked guidance" },
+  "notification.telegram.bot.not-connected": { "default-text": "Telegram is not connected to JELICA. Open JELICA Settings to connect it.", "context": "Telegram unlinked command response" },
+  "notification.telegram.bot.unknown-command": { "default-text": "Unknown command. Use /help for supported commands.", "context": "Telegram unknown command response" },
+  "notification.telegram.bot.usage-active-tasks": { "default-text": "Usage: /active_tasks", "context": "Telegram active tasks usage response" },
+  "notification.telegram.bot.usage-project-command": { "default-text": "Usage: /{command} [\"Project name\" UUID ...] (maximum 10)", "context": "Telegram project command usage response" },
+  "notification.telegram.bot.disconnected": { "default-text": "Telegram has been disconnected from JELICA.", "context": "Telegram disconnect response" },
+  "notification.telegram.bot.status": { "default-text": "JELICA connection: connected\nTelegram notifications: {notifications}\nYour active tasks: {tasks}\nActive accessible projects: {projects}", "context": "Telegram status response" },
+  "notification.telegram.bot.enabled": { "default-text": "enabled", "context": "Telegram enabled status word" },
+  "notification.telegram.bot.disabled": { "default-text": "disabled", "context": "Telegram disabled status word" },
+  "notification.telegram.bot.own-active-heading": { "default-text": "Your active tasks ({count}):", "context": "Telegram own active task heading" },
+  "notification.telegram.bot.no-active-tasks": { "default-text": "No active tasks.", "context": "Telegram empty own active task response" },
+  "notification.telegram.bot.showing-limit": { "default-text": "Showing {limit}; open JELICA to view all.", "context": "Telegram bounded output notice" },
+  "notification.telegram.bot.open-task": { "default-text": "Open {name}", "context": "Telegram task URL button" },
+  "notification.telegram.bot.open-tasks": { "default-text": "Open Tasks", "context": "Telegram Tasks URL button" },
+  "notification.telegram.bot.active-project-tasks-heading": { "default-text": "Active project tasks ({count}):", "context": "Telegram active project tasks heading" },
+  "notification.telegram.bot.no-active-project-tasks": { "default-text": "No active tasks in the selected accessible projects.", "context": "Telegram empty project task response" },
+  "notification.telegram.bot.project-unavailable": { "default-text": "Project not found or unavailable", "context": "Telegram secure unresolved project response" },
+  "notification.telegram.bot.ambiguous-project": { "default-text": "ambiguous; use UUID", "context": "Telegram ambiguous project response" },
+  "notification.telegram.bot.projects-heading": { "default-text": "Projects ({count}):", "context": "Telegram project status heading" },
+  "notification.telegram.bot.no-projects": { "default-text": "No accessible projects selected.", "context": "Telegram empty project status response" },
+  "notification.telegram.bot.open-project": { "default-text": "Open {name}", "context": "Telegram project URL button" },
+  "notification.telegram.bot.open-projects": { "default-text": "Open Projects", "context": "Telegram Projects URL button" },
+  "notification.telegram.bot.support": { "default-text": "Support", "context": "Telegram discussion support reaction button" },
+  "notification.telegram.bot.oppose": { "default-text": "Oppose", "context": "Telegram discussion oppose reaction button" },
+  "notification.telegram.bot.open-discussion": { "default-text": "Open discussion", "context": "Telegram discussion URL button" },
+  "notification.telegram.bot.own-task-item": { "default-text": "• {name} — {status}{project}", "context": "Telegram own active task list item" },
+  "notification.telegram.bot.project-suffix": { "default-text": " · {project}", "context": "Telegram task project label suffix" },
+  "notification.telegram.bot.project-task-item": { "default-text": "• {project}{frozen}: {name} — {status}{owner}", "context": "Telegram active project task list item" },
+  "notification.telegram.bot.frozen-suffix": { "default-text": " (frozen)", "context": "Telegram frozen project label suffix" },
+  "notification.telegram.bot.owner-suffix": { "default-text": " · owner: {owner}", "context": "Telegram project task owner label suffix" },
+  "notification.telegram.bot.project-status-item": { "default-text": "• {name} — {status}; role: {role}; active tasks: {active}; total: {total}", "context": "Telegram project status list item" },
+  "notification.telegram.bot.reply-context-unavailable": { "default-text": "This message is not an active JELICA discussion context.", "context": "Telegram reply without valid durable context" },
+  "notification.telegram.bot.text-only": { "default-text": "Text replies only; open JELICA for attachments.", "context": "Telegram unsupported reply media response" },
+  "notification.telegram.bot.reply-denied": { "default-text": "This discussion is no longer available for replies. Open JELICA to review access.", "context": "Telegram current authorization denial for reply" },
+  "notification.telegram.bot.reply-added": { "default-text": "Your reply was added to the JELICA discussion.", "context": "Telegram discussion reply success" },
+  "notification.telegram.bot.action-unavailable": { "default-text": "Action unavailable.", "context": "Telegram invalid callback response" },
+  "notification.telegram.bot.action-connect": { "default-text": "Connect Telegram in JELICA Settings.", "context": "Telegram unlinked callback response" },
+  "notification.telegram.bot.action-stale": { "default-text": "Action no longer available.", "context": "Telegram stale callback response" },
+  "notification.telegram.bot.reaction-updated": { "default-text": "Reaction updated.", "context": "Telegram reaction success response" },
+  "notification.telegram.bot.help": { "default-text": "JELICA commands:\n/start — connect or check connection\n/status — connection and activity summary\n/active_tasks — your active tasks\n/active_project_tasks [selectors] — active tasks in accessible projects\n/project_status [selectors] — accessible project summaries\n/disconnect — disconnect Telegram\n/help — this help\n\nQuote names containing spaces, for example: /project_status \"Project Alpha\" \"Project Beta\"", "context": "Telegram command help" },
+  "notification.device.current-browser": { "default-text": "This browser", "context": "Current browser Web Push heading" },
+  "notification.device.enable-current": { "default-text": "Enable on this device", "context": "Explicit current-browser Web Push enable action" },
+  "notification.device.disable-current": { "default-text": "Disable on this device", "context": "Current-browser Web Push disable action" },
+  "notification.device.safari-ios-unsupported": { "default-text": "Web Device Notifications for Safari, iPhone, and iPad are not supported at this time and are under development.", "context": "Safari and iOS Web Push deferral notice" },
+  "notification.device.secure-context-required": { "default-text": "Web Push requires a secure browser context.", "context": "Web Push secure-context notice" },
+  "notification.device.browser-unsupported": { "default-text": "This browser does not support Web Push.", "context": "Web Push browser capability notice" },
+  "notification.device.config-failed": { "default-text": "Web Push status could not be loaded.", "context": "Web Push config load error" },
+  "notification.device.server-unavailable": { "default-text": "Web Push is not configured on this server.", "context": "Web Push server-unavailable notice" },
+  "notification.device.permission-denied": { "default-text": "Notification permission is blocked. Change it in your browser site settings to enable this device.", "context": "Web Push denied-permission notice" },
+  "notification.device.action-failed": { "default-text": "This device could not be updated.", "context": "Web Push device action error" },
+  "notification.device.enabled-current": { "default-text": "Enabled on this device", "context": "Current browser Web Push enabled state" },
+  "notification.device.not-enabled-current": { "default-text": "Not enabled on this device", "context": "Current browser Web Push disabled state" },
+  "notification.device.active-count": { "default-text": "Active browser subscriptions: {count}", "context": "Active Web Push subscription count" },
+  "notification.category.task.lifecycle": { "default-text": "My tasks", "context": "Notification event group" },
+  "notification.category.project.tasks": { "default-text": "Project tasks", "context": "Notification event group" },
+  "notification.category.project.membership": { "default-text": "Project invitations and membership", "context": "Notification event group" },
+  "notification.category.project.lifecycle": { "default-text": "Projects", "context": "Notification event group" },
+  "notification.category.project.discussion": { "default-text": "Project Discussion", "context": "Notification event group" },
+  "notification.category.task.discussion": { "default-text": "Task Discussion", "context": "Notification event group" },
+  "notification.event.task.started.label": { "default-text": "Task started", "context": "Notification event label" },
+  "notification.event.task.started.description": { "default-text": "{resource} started running.", "context": "Notification event description" },
+  "notification.event.task.scheduler_paused.label": { "default-text": "Task paused by scheduler", "context": "Notification event label" },
+  "notification.event.task.scheduler_paused.description": { "default-text": "{resource} was paused by the scheduler.", "context": "Notification event description" },
+  "notification.event.task.completed.label": { "default-text": "Task completed", "context": "Notification event label" },
+  "notification.event.task.completed.description": { "default-text": "{resource} completed successfully.", "context": "Notification event description" },
+  "notification.event.task.failed.label": { "default-text": "Task failed", "context": "Notification event label" },
+  "notification.event.task.failed.description": { "default-text": "{resource} failed.", "context": "Notification event description" },
+  "notification.event.project.invitation.received.label": { "default-text": "Invitation received", "context": "Notification event label" },
+  "notification.event.project.invitation.received.description": { "default-text": "{actor} invited you to {resource}.", "context": "Notification event description" },
+  "notification.event.project.invitation.accepted.label": { "default-text": "Invitation accepted", "context": "Notification event label" },
+  "notification.event.project.invitation.accepted.description": { "default-text": "{actor} accepted the invitation to {resource}.", "context": "Notification event description" },
+  "notification.event.project.invitation.declined.label": { "default-text": "Invitation declined", "context": "Notification event label" },
+  "notification.event.project.invitation.declined.description": { "default-text": "{actor} declined the invitation to {resource}.", "context": "Notification event description" },
+  "notification.event.project.invitation.revoked.label": { "default-text": "Invitation revoked", "context": "Notification event label" },
+  "notification.event.project.invitation.revoked.description": { "default-text": "Your invitation to {resource} was revoked.", "context": "Notification event description" },
+  "notification.event.project.member.role_changed.label": { "default-text": "Project role changed", "context": "Notification event label" },
+  "notification.event.project.member.role_changed.description": { "default-text": "Your role in {resource} changed.", "context": "Notification event description" },
+  "notification.event.project.member.removed.label": { "default-text": "Removed from project", "context": "Notification event label" },
+  "notification.event.project.member.removed.description": { "default-text": "You were removed from {resource}.", "context": "Notification event description" },
+  "notification.event.project.ownership.transferred.label": { "default-text": "Project ownership transferred", "context": "Notification event label" },
+  "notification.event.project.ownership.transferred.description": { "default-text": "Ownership of {resource} was transferred to you.", "context": "Notification event description" },
+  "notification.event.project.deleted.label": { "default-text": "Project deleted", "context": "Notification event label" },
+  "notification.event.project.deleted.description": { "default-text": "{resource} was deleted.", "context": "Notification event description" },
+  "notification.event.project.frozen.label": { "default-text": "Project frozen", "context": "Notification event label" },
+  "notification.event.project.frozen.description": { "default-text": "{resource} was frozen.", "context": "Notification event description" },
+  "notification.event.project.unfrozen.label": { "default-text": "Project unfrozen", "context": "Notification event label" },
+  "notification.event.project.unfrozen.description": { "default-text": "{resource} was unfrozen.", "context": "Notification event description" },
+  "notification.event.project.task.attached.label": { "default-text": "Task attached", "context": "Notification event label" },
+  "notification.event.project.task.attached.description": { "default-text": "{resource} was attached to the project.", "context": "Notification event description" },
+  "notification.event.project.task.detached.label": { "default-text": "Task detached", "context": "Notification event label" },
+  "notification.event.project.task.detached.description": { "default-text": "{resource} was detached from the project.", "context": "Notification event description" },
+  "notification.event.project.task.started.label": { "default-text": "Project task started", "context": "Notification event label" },
+  "notification.event.project.task.started.description": { "default-text": "{resource} started running.", "context": "Notification event description" },
+  "notification.event.project.task.completed.label": { "default-text": "Project task completed", "context": "Notification event label" },
+  "notification.event.project.task.completed.description": { "default-text": "{resource} completed successfully.", "context": "Notification event description" },
+  "notification.event.project.task.failed.label": { "default-text": "Project task failed", "context": "Notification event label" },
+  "notification.event.project.task.failed.description": { "default-text": "{resource} failed.", "context": "Notification event description" },
+  "notification.event.project_discussion.comment.created.label": { "default-text": "New Project Discussion comment", "context": "Notification event label" },
+  "notification.event.project_discussion.comment.created.description": { "default-text": "{actor} added a comment in {resource}.", "context": "Notification event description" },
+  "notification.event.project_discussion.comment.mentioned.label": { "default-text": "Mentioned in Project Discussion", "context": "Notification event label" },
+  "notification.event.project_discussion.comment.mentioned.description": { "default-text": "{actor} mentioned you in {resource}.", "context": "Notification event description" },
+  "notification.event.project_discussion.comment.reacted.label": { "default-text": "Project comment reaction", "context": "Notification event label" },
+  "notification.event.project_discussion.comment.reacted.description": { "default-text": "{actor} reacted to your comment in {resource}.", "context": "Notification event description" },
+  "notification.event.project_discussion.comment.removed_by_admin.label": { "default-text": "Project comment removed", "context": "Notification event label" },
+  "notification.event.project_discussion.comment.removed_by_admin.description": { "default-text": "Your comment in {resource} was removed by an administrator.", "context": "Notification event description" },
+  "notification.event.task_discussion.comment.created.label": { "default-text": "New Task Discussion comment", "context": "Notification event label" },
+  "notification.event.task_discussion.comment.created.description": { "default-text": "{actor} added a comment in {resource}.", "context": "Notification event description" },
+  "notification.event.task_discussion.comment.mentioned.label": { "default-text": "Mentioned in Task Discussion", "context": "Notification event label" },
+  "notification.event.task_discussion.comment.mentioned.description": { "default-text": "{actor} mentioned you in {resource}.", "context": "Notification event description" },
+  "notification.event.task_discussion.comment.reacted.label": { "default-text": "Task comment reaction", "context": "Notification event label" },
+  "notification.event.task_discussion.comment.reacted.description": { "default-text": "{actor} reacted to your comment in {resource}.", "context": "Notification event description" },
+  "notification.event.task_discussion.comment.removed_by_admin.label": { "default-text": "Task comment removed", "context": "Notification event label" },
+  "notification.event.task_discussion.comment.removed_by_admin.description": { "default-text": "Your comment in {resource} was removed by an administrator.", "context": "Notification event description" },
+  "notification.auth.verification.subject": { "default-text": "Verify your JELICA account", "context": "Email verification subject" },
+  "notification.auth.verification.body": { "default-text": "Welcome to JELICA.\n\nVerify your email address to activate your account:\n{link}\n\nThis link expires in 24 hours. If you did not request this account, you can ignore this message.", "context": "Email verification body" },
+  "notification.auth.reset.subject": { "default-text": "Reset your JELICA password", "context": "Password reset subject" },
+  "notification.auth.reset.body": { "default-text": "A request was made to reset your JELICA password.\n\nUse this link to choose a new password:\n{link}\n\nThis link expires in 60 minutes. If you did not request this, you can ignore this message.", "context": "Password reset body" },
+  "project.navigation.label": { "default-text": "Project navigation", "context": "Accessible label for Project navigation" },
+  "project.navigation.overview": { "default-text": "Overview", "context": "Project overview navigation link" },
+  "project.navigation.tasks": { "default-text": "Tasks", "context": "Project tasks navigation link" },
+  "project.navigation.members": { "default-text": "Members", "context": "Project members navigation link" },
+  "project.tasks.subtitle": { "default-text": "Tasks organized in this Project.", "context": "Project Tasks page subtitle" },
+  "project.tasks.summary": { "default-text": "Project task summary", "context": "Accessible label for Project task summary" },
+  "project.tasks.total": { "default-text": "Total", "context": "Project task total metric" },
+  "project.tasks.empty": { "default-text": "No tasks in this Project yet.", "context": "Empty Project Tasks state" },
+  "project.tasks.back-overview": { "default-text": "Back to overview", "context": "Project Tasks overview link" },
+  "breadcrumbs.label": { "default-text": "Breadcrumbs", "context": "Accessible label for breadcrumbs" },
+  "breadcrumbs.projects": { "default-text": "Projects", "context": "Projects breadcrumb label" },
+  "breadcrumbs.tasks": { "default-text": "Tasks", "context": "Tasks breadcrumb label" },
+  "task.routing.redirecting": { "default-text": "Opening task…", "context": "Task canonical route redirect state" },
+  "task.project.assignment": { "default-text": "Project assignment", "context": "Task Project assignment heading" },
+  "task.project.label": { "default-text": "Project", "context": "Task Project selector label" },
+  "task.project.none": { "default-text": "No project", "context": "Task Project selector standalone option" },
+  "task.project.loading": { "default-text": "Projects are loading…", "context": "Task Project selector loading state" },
+  "task.project.unavailable": { "default-text": "Project assignment is unavailable right now; you can still create a standalone task.", "context": "Project selector unavailable state" },
+  "task.project.apply": { "default-text": "Apply", "context": "Task Project assignment apply button" },
+  "task.project.applying": { "default-text": "Applying…", "context": "Task Project assignment progress label" },
+  "task.project.attaching": { "default-text": "Attaching task to Project…", "context": "Task creation attach progress label" },
+  "task.project.partial-failure": { "default-text": "Task was created, but it could not be attached to the Project.", "context": "Partial success after task creation and Project attach failure" },
+  "task.project.partial-success": { "default-text": "The task exists as a standalone task. You can retry attaching it or open it.", "context": "Partial task creation success explanation" },
+  "task.project.retry": { "default-text": "Retry attaching", "context": "Retry Project task attach action" },
+  "task.project.open-task": { "default-text": "Open task", "context": "Open standalone task after attach failure" }
+  ,"error.resourceUnavailable.title": { "default-text": "Resource unavailable", "context": "Safe title for an absent or inaccessible protected resource" }
+  ,"error.resourceUnavailable.description": { "default-text": "This resource does not exist or you do not have access to it.", "context": "Neutral anti-enumeration description for a protected resource" }
+  ,"error.accessDenied.title": { "default-text": "Access denied", "context": "Title for a resource whose access was revoked during the current page lifecycle" }
+  ,"error.accessDenied.projectDescription": { "default-text": "You no longer have access to this project.", "context": "Access revoked description for a Project" }
+  ,"error.accessDenied.taskDescription": { "default-text": "You no longer have access to this task.", "context": "Access revoked description for a Task" }
+  ,"error.accessDenied.resultDescription": { "default-text": "You no longer have access to this result.", "context": "Access revoked description for a Result" }
+  ,"project.action.backToProjects": { "default-text": "Back to Projects", "context": "Safe navigation action from restricted Project state" }
+  ,"task.action.backToTasks": { "default-text": "Back to Tasks", "context": "Safe navigation action from restricted Task state" }
+  ,"result.action.backToResults": { "default-text": "Back to Results", "context": "Safe navigation action from restricted Result state" }
+  ,"project.navigation.discussion": { "default-text": "Discussion", "context": "Project Discussion navigation link" }
+  ,"discussion.title": { "default-text": "Discussion", "context": "Project Discussion heading" }
+  ,"discussion.subtitle": { "default-text": "Project-wide conversation for current members", "context": "Project Discussion page subtitle" }
+  ,"discussion.connection.connecting": { "default-text": "Connecting…", "context": "Initial Discussion WebSocket connection state" }
+  ,"discussion.connection.connected": { "default-text": "Connected", "context": "Healthy Discussion WebSocket connection state" }
+  ,"discussion.connection.reconnecting": { "default-text": "Reconnecting…", "context": "Discussion WebSocket recovery state" }
+  ,"discussion.reconnecting.description": { "default-text": "Live updates are reconnecting. Messages remain readable, but changes are temporarily disabled.", "context": "Read-only explanation during Discussion reconnect" }
+  ,"discussion.presence.label": { "default-text": "Members currently online", "context": "Accessible Discussion presence label" }
+  ,"discussion.presence.online": { "default-text": "Online:", "context": "Discussion online members prefix" }
+  ,"discussion.presence.none": { "default-text": "none", "context": "No current Discussion presence" }
+  ,"discussion.typing": { "default-text": "Typing:", "context": "Discussion typing members prefix" }
+  ,"discussion.loading": { "default-text": "Loading discussion…", "context": "Discussion snapshot loading state" }
+  ,"discussion.empty.title": { "default-text": "No comments yet", "context": "Empty Project Discussion title" }
+  ,"discussion.empty.description": { "default-text": "Start the Project discussion with the first comment.", "context": "Empty Project Discussion prompt for commenting members" }
+  ,"discussion.empty.readonly": { "default-text": "The discussion is empty. You currently have read-only access.", "context": "Empty Project Discussion viewer description" }
+  ,"discussion.messages.label": { "default-text": "Project discussion comments", "context": "Accessible Project Comment list label" }
+  ,"discussion.comment.edited": { "default-text": "Edited", "context": "Edited Project Comment marker" }
+  ,"discussion.edit.label": { "default-text": "Edit comment", "context": "Inline Project Comment edit textarea label" }
+  ,"discussion.composer.label": { "default-text": "New comment", "context": "Project Discussion composer label" }
+  ,"discussion.composer.placeholder": { "default-text": "Write a plain-text comment. Use @username to mention a Project member.", "context": "Project Discussion composer placeholder" }
+  ,"discussion.composer.send": { "default-text": "Send", "context": "Send Project Comment action" }
+  ,"discussion.readonly.viewer": { "default-text": "You have read-only access to this discussion.", "context": "Project Discussion viewer hint" }
+  ,"discussion.delete.title": { "default-text": "Delete comment?", "context": "Project Comment hard-delete confirmation title" }
+  ,"discussion.delete.description": { "default-text": "This comment will be permanently deleted.", "context": "Own Project Comment delete confirmation" }
+  ,"discussion.delete.moderationDescription": { "default-text": "This member's comment will be permanently deleted as a moderation action.", "context": "Supervisor Project Comment moderation delete confirmation" }
+  ,"discussion.reactions.label": { "default-text": "Comment reactions", "context": "Accessible Project Comment reaction group label" }
+  ,"discussion.reaction.support": { "default-text": "Support this comment", "context": "Accessible support reaction action" }
+  ,"discussion.reaction.oppose": { "default-text": "Oppose this comment", "context": "Accessible oppose reaction action" }
+  ,"discussion.mentions.label": { "default-text": "Mention suggestions", "context": "Accessible Project member Mention suggestion list label" }
+  ,"discussion.mentions.noMatches": { "default-text": "No matching Project members", "context": "Empty Mention autocomplete state" }
+  ,"discussion.newMessages": { "default-text": "New messages", "context": "Scroll to new Discussion Comments action" }
+  ,"discussion.error.validation": { "default-text": "The comment text is invalid. Check its length and try again.", "context": "Discussion command validation error" }
+  ,"discussion.error.forbidden": { "default-text": "Your current Project permissions do not allow this action.", "context": "Discussion command permission error" }
+  ,"discussion.error.frozen": { "default-text": "This Project is frozen, so the discussion is read-only.", "context": "Discussion frozen mutation error" }
+  ,"discussion.error.commentNotFound": { "default-text": "This comment is no longer available.", "context": "Discussion missing Comment error" }
+  ,"discussion.error.selfReaction": { "default-text": "You cannot react to your own comment.", "context": "Discussion self-reaction error" }
+  ,"discussion.error.resourceUnavailable": { "default-text": "The requested discussion resource is unavailable.", "context": "Discussion resource unavailable command error" }
+  ,"discussion.error.accessRevoked": { "default-text": "Your Project access was revoked.", "context": "Discussion access revoked command error" }
+  ,"discussion.error.protocol": { "default-text": "A realtime protocol error occurred. Reconnect and try again.", "context": "Discussion realtime protocol error" }
+  ,"discussion.error.realtimeUnavailable": { "default-text": "Live updates are unavailable. Your text has been preserved; try again after reconnecting.", "context": "Discussion disconnected command error" }
+  ,"discussion.error.generic": { "default-text": "The discussion action could not be completed.", "context": "Unknown safe Discussion command error" }
+  ,"task.discussion.unavailable": { "default-text": "Discussion is not available for this task yet.", "context": "Task Discussion unavailable-yet state" }
+  ,"task.discussion.detached": { "default-text": "This task is not attached to a Project. Discussion is read-only.", "context": "Detached Task Discussion banner" }
+  ,"task.discussion.detached.owner": { "default-text": " As task owner, you can still moderate history.", "context": "Detached Task owner moderation note" }
+  ,"task.discussion.frozen": { "default-text": "This Project is frozen, so discussion changes are disabled.", "context": "Frozen Task Discussion banner" }
+  ,"task.discussion.reconnecting": { "default-text": "Live updates are reconnecting. Changes are temporarily disabled.", "context": "Task Discussion reconnecting state" }
+  ,"task.discussion.clear.title": { "default-text": "Clear discussion history?", "context": "Task Discussion clear confirmation title" }
+  ,"task.discussion.clear.description": { "default-text": "All task discussion comments will be permanently deleted.", "context": "Task Discussion clear confirmation description" }
+  ,"task.discussion.clear.action": { "default-text": "Clear history", "context": "Task Discussion clear action" }
+  ,"task.discussion.mentions": { "default-text": "Mention current members: {members}", "context": "Task Discussion mention candidates hint" }
+  ,"task.discussion.open": { "default-text": "Open discussion", "context": "Open Task Discussion action" }
+  ,"task.discussion.attach.title": { "default-text": "Attach task to Project?", "context": "Task history exposure confirmation title" }
+  ,"task.discussion.reattach.title": { "default-text": "Reattach task to Project?", "context": "Task history exposure reattach confirmation title" }
+  ,"task.discussion.attach.description": { "default-text": "Attaching makes existing discussion history available to Project members.", "context": "Task history exposure attach confirmation" }
+  ,"task.discussion.reattach.description": { "default-text": "Reattaching makes existing discussion history available to Project members.", "context": "Task history exposure reattach confirmation" }
+  ,"task.discussion.online": { "default-text": "Online:", "context": "Task Discussion presence prefix" }
+  ,"task.discussion.online.none": { "default-text": "none", "context": "Task Discussion no presence" }
+  ,"task.name": { "default-text": "Task name (optional)", "context": "Optional task name field" }
+  ,"task.trace-id": { "default-text": "Trace ID (optional)", "context": "Optional task trace identifier" }
+  ,"task.upload.sources": { "default-text": "Analysis sources", "context": "Upload source section heading" }
+  ,"task.upload.add-files": { "default-text": "Add files", "context": "Add analysis files action" }
+  ,"task.upload.add-folder": { "default-text": "Add folder", "context": "Add analysis folder action" }
+  ,"task.upload.folder": { "default-text": "Folder", "context": "Fallback folder name" }
+  ,"task.upload.ncbi": { "default-text": "NCBI sources", "context": "NCBI source fields" }
+  ,"task.upload.ncbi-placeholder": { "default-text": "Accession or supported NCBI URL", "context": "NCBI source placeholder" }
+  ,"task.upload.add-ncbi": { "default-text": "Add NCBI source", "context": "Add NCBI source action" }
+  ,"task.upload.configuration": { "default-text": "Configuration (optional)", "context": "Configuration upload section" }
+  ,"task.upload.choose-config": { "default-text": "Choose configuration", "context": "Choose config action" }
+  ,"task.upload.replace-config": { "default-text": "Replace configuration", "context": "Replace config action" }
+  ,"task.upload.remove": { "default-text": "Remove", "context": "Remove uploaded item" }
+  ,"task.upload.uploading": { "default-text": "Uploading", "context": "Upload progress status" }
+  ,"task.upload.submitting": { "default-text": "Submitting…", "context": "Task submission status" }
+  ,"task.upload.no-sources": { "default-text": "Add at least one file, folder, or NCBI source.", "context": "No source validation" }
+  ,"task.upload.already-submitted": { "default-text": "This upload was already submitted.", "context": "Consumed upload session state" }
+  ,"task.upload.retry": { "default-text": "Retry", "context": "Retry failed upload" }
+  ,"task.analysis-settings": { "default-text": "Analysis settings", "context": "Structured analytical override section" }
+  ,"task.analysis-settings-hint": { "default-text": "Unchanged settings inherit from the uploaded config or JELICA defaults.", "context": "Override inheritance explanation" }
+  ,"task.analysis.inherit": { "default-text": "From config/default", "context": "Inherited override state" }
+  ,"task.analysis.enabled": { "default-text": "Enabled", "context": "Explicit enabled state" }
+  ,"task.analysis.disabled": { "default-text": "Disabled", "context": "Explicit disabled state" }
+  ,"task.analysis.reset": { "default-text": "Reset", "context": "Reset an explicit override" }
+  ,"task.analysis.alignment-mode": { "default-text": "Alignment mode", "context": "Alignment mode override" }
+  ,"task.analysis.alignment-construction": { "default-text": "Alignment construction", "context": "Alignment construction override" }
+  ,"task.analysis.mafft-strategy": { "default-text": "MAFFT strategy", "context": "MAFFT strategy override" }
+  ,"task.analysis.comparative": { "default-text": "Comparative analysis", "context": "Comparative analysis override" }
+  ,"task.analysis.distance": { "default-text": "Distance matrix", "context": "Distance matrix override" }
+  ,"task.analysis.tree": { "default-text": "Phylogenetic tree", "context": "Phylogenetic tree override" }
+  ,"task.analysis.clades": { "default-text": "Clade detection", "context": "Clade detection override" }
+  ,"task.analysis.kmers": { "default-text": "K-mers (comma-separated)", "context": "K-mer list override" }
+  ,"task.analysis.kmer-strand": { "default-text": "K-mer strand", "context": "K-mer strand override" }
+  ,"task.analysis.reference": { "default-text": "Reference selector", "context": "Logical reference selector" }
+  ,"task.analysis.reference-placeholder": { "default-text": "Logical source or record selector", "context": "Reference selector placeholder" }
+  ,"task.analysis.clade-threshold": { "default-text": "Clade distance threshold", "context": "Clade threshold override" }
+  ,"task.lifecycle.title": { "default-text": "Lifecycle controls", "context": "Task lifecycle actions" }
+  ,"task.lifecycle.start": { "default-text": "Start", "context": "Start task action" }
+  ,"task.lifecycle.pause": { "default-text": "Pause", "context": "Pause task action" }
+  ,"task.lifecycle.resume": { "default-text": "Resume", "context": "Resume task action" }
+  ,"task.lifecycle.starting": { "default-text": "Starting…", "context": "Start pending state" }
+  ,"task.lifecycle.pausing": { "default-text": "Pausing…", "context": "Pause pending state" }
+  ,"task.lifecycle.resuming": { "default-text": "Resuming…", "context": "Resume pending state" }
+  ,"task.status.pausing": { "default-text": "Pausing", "context": "Pausing task state" }
+  ,"task.status.resuming": { "default-text": "Resuming", "context": "Resuming task state" }
+  ,"task.status.interrupted": { "default-text": "Interrupted", "context": "Interrupted task state" }
+  ,"task.status.waiting": { "default-text": "Waiting", "context": "Waiting task state" }
+  ,"task.list.empty": { "default-text": "No tasks", "context": "Empty task list" }
+  ,"task.list.task-id": { "default-text": "Task", "context": "Task list identifier column" }
+  ,"task.list.trace-id": { "default-text": "Trace ID", "context": "Task list trace column" }
+  ,"task.list.state": { "default-text": "State", "context": "Task list state column" }
+  ,"task.list.stage": { "default-text": "Stage", "context": "Task list stage column" }
+  ,"task.list.progress": { "default-text": "Progress", "context": "Task list progress column" }
+  ,"task.list.updated": { "default-text": "Updated", "context": "Task list updated column" }
+  ,"task.list.source": { "default-text": "Source", "context": "Task list state source column" }
+  ,"task.list.owner": { "default-text": "Owner", "context": "Task list owner column" }
+  ,"task.list.owner-present": { "default-text": "Owner available", "context": "Task owner indication" }
+  ,"task.list.actions": { "default-text": "Actions", "context": "Task list actions column" }
+  ,"task.list.open": { "default-text": "Open task", "context": "Open task action" }
+  ,"task.list.open-result": { "default-text": "Open result", "context": "Open task result action" }
+  ,"task.list.cached": { "default-text": "cached", "context": "Cached task state hint" }
+  ,"task.list.stale": { "default-text": "stale", "context": "Stale task state hint" }
+  ,"task.list.latest-known": { "default-text": "Showing the latest known task state from projection storage. Open a task for live runtime status.", "context": "Projection-backed task list hint" }
+  ,"task.list.filters": { "default-text": "Filters", "context": "Task list filters heading" }
+  ,"task.list.all-visible": { "default-text": "All visible tasks", "context": "Task owner filter option" }
+  ,"task.list.mine": { "default-text": "My tasks", "context": "Task owner filter option" }
+  ,"task.list.project": { "default-text": "Project", "context": "Task project filter" }
+  ,"task.list.all-projects": { "default-text": "All projects", "context": "Task project filter option" }
+  ,"task.list.no-project": { "default-text": "No project", "context": "Task project filter option" }
+  ,"task.list.all-states": { "default-text": "All states", "context": "Task state filter option" }
+  ,"task.list.apply-filters": { "default-text": "Apply filters", "context": "Task list filter action" }
+  ,"task.list.refresh": { "default-text": "Refresh", "context": "Task list manual refresh action" }
+  ,"task.list.unavailable": { "default-text": "Task list is unavailable", "context": "Task list error heading" }
+  ,"task.list.empty-description": { "default-text": "Submit a new task to start tracking its lifecycle and result package status.", "context": "Empty task list description" }
+  ,"task.list.create": { "default-text": "Create analytical task", "context": "Create task action" }
+  ,"task.results.latest-known": { "default-text": "Results are listed from completed tasks in projection storage.", "context": "Projection-backed results hint" }
+  ,"profile.account-information": { "default-text": "Account information", "context": "Profile heading" }
+  ,"profile.email-verified": { "default-text": "Email verified", "context": "Verified email status" }
+  ,"profile.email-unverified": { "default-text": "Email not verified", "context": "Unverified email status" }
+  ,"profile.created": { "default-text": "Created", "context": "Account creation timestamp" }
+  ,"profile.open-settings": { "default-text": "Open settings", "context": "Profile settings link" }
+  ,"settings.language-preference": { "default-text": "Language preference", "context": "Account language setting" }
+  ,"settings.appearance": { "default-text": "Appearance", "context": "Appearance setting" }
+  ,"settings.interface-scale": { "default-text": "Interface scale", "context": "Web interface scale control" }
+  ,"settings.appearance-local": { "default-text": "Appearance is stored on this device.", "context": "Local appearance hint" }
+  ,"settings.appearance-account": { "default-text": "Appearance is saved to your account and available on your signed-in devices.", "context": "Authenticated appearance hint" }
+  ,"settings.security": { "default-text": "Security", "context": "Security settings heading" }
+  ,"settings.active-sessions": { "default-text": "Active sessions", "context": "Session management heading" }
+  ,"settings.current-session": { "default-text": "Current session", "context": "Current session marker" }
+  ,"settings.last-active": { "default-text": "Last active", "context": "Session last activity label" }
+  ,"settings.expires": { "default-text": "Expires", "context": "Session expiry label" }
+  ,"settings.sign-out-session": { "default-text": "Sign out session", "context": "Revoke one session" }
+  ,"settings.sign-out-other-sessions": { "default-text": "Sign out other sessions", "context": "Revoke other sessions" }
+  ,"settings.no-other-sessions": { "default-text": "No other active sessions.", "context": "No other sessions state" }
+  ,"settings.sessions-error": { "default-text": "Unable to load sessions.", "context": "Session list error" }
+  ,"settings.session-revoked": { "default-text": "Session revoked.", "context": "Session revoke success" }
+  ,"settings.session-revoke-failed": { "default-text": "Unable to revoke session.", "context": "Session revoke error" }
+  ,"settings.other-sessions-revoked": { "default-text": "Other sessions revoked.", "context": "Revoke others success" }
+  ,"settings.language-save-failed": { "default-text": "Unable to save language.", "context": "Language update error" }
+  ,"auth.error.rate-limited": { "default-text": "Too many attempts. Try again later.", "context": "Authentication rate limit error" }
+  ,"desktop.shell.title": { "default-text": "JELICA Desktop", "context": "Desktop application shell title" }
+  ,"desktop.shell.description": { "default-text": "Local analysis foundation", "context": "Desktop shell subtitle" }
+  ,"desktop.shell.platform-label": { "default-text": "Desktop platform", "context": "Label for Desktop platform information" }
+  ,"desktop.shell.platform-unavailable": { "default-text": "Desktop bridge unavailable", "context": "Controlled Desktop preload bridge error state" }
+  ,"desktop.shell.foundation-title": { "default-text": "Desktop foundation is ready", "context": "Desktop foundation status heading" }
+  ,"desktop.shell.foundation-description": { "default-text": "The secure desktop shell is connected through the platform adapter.", "context": "Desktop foundation status description" }
+  ,"desktop.shell.analysis-title": { "default-text": "Local analysis", "context": "Future local analysis area heading" }
+  ,"desktop.shell.analysis-description": { "default-text": "Local task workflows will be added in the next desktop stage.", "context": "Intentional empty state for future Desktop tasks" }
+  ,"desktop.shell.theme-label": { "default-text": "Theme", "context": "Desktop theme control label" }
+  ,"desktop.shell.locale-label": { "default-text": "Language", "context": "Desktop locale control label" }
+  ,"desktop.theme.system": { "default-text": "System", "context": "System appearance theme" }
+  ,"desktop.theme.light": { "default-text": "Light", "context": "Light appearance theme" }
+  ,"desktop.theme.dark": { "default-text": "Dark", "context": "Dark appearance theme" }
+  ,"desktop.theme.monochrome": { "default-text": "Monochrome", "context": "Monochrome appearance theme" }
+  ,"desktop.nav.home": { "default-text": "Home", "context": "Desktop navigation home" }
+  ,"desktop.nav.tasks": { "default-text": "Tasks", "context": "Desktop navigation tasks" }
+  ,"desktop.nav.new-analysis": { "default-text": "New analysis", "context": "Desktop navigation new analysis" }
+  ,"desktop.nav.results": { "default-text": "Results", "context": "Desktop navigation results" }
+  ,"desktop.nav.documentation": { "default-text": "Documentation", "context": "Desktop navigation documentation" }
+  ,"desktop.nav.settings": { "default-text": "Settings", "context": "Desktop navigation settings" }
+  ,"desktop.docs.unavailable": { "default-text": "Documentation unavailable", "context": "Offline documentation unavailable heading" }
+  ,"desktop.docs.unavailable-description": { "default-text": "The packaged documentation release could not be loaded.", "context": "Offline documentation unavailable description" }
+  ,"desktop.docs.open-pdf": { "default-text": "Open PDF", "context": "Open packaged documentation PDF" }
+  ,"desktop.settings.title": { "default-text": "Desktop settings", "context": "Local Desktop settings heading" }
+  ,"desktop.settings.scale": { "default-text": "Interface scale", "context": "Desktop interface scale control" }
+  ,"desktop.settings.reset-scale": { "default-text": "Reset to 100%", "context": "Reset Desktop interface scale" }
+  ,"desktop.tasks.title": { "default-text": "Local tasks", "context": "Desktop task list title" }
+  ,"desktop.tasks.refresh": { "default-text": "Refresh", "context": "Refresh local task list" }
+  ,"desktop.tasks.empty": { "default-text": "No local tasks yet.", "context": "Empty local task list" }
+  ,"desktop.tasks.new": { "default-text": "Create analysis", "context": "Create local analysis CTA" }
+  ,"desktop.analysis.title": { "default-text": "New local analysis", "context": "Desktop analysis form title" }
+  ,"desktop.analysis.select-files": { "default-text": "Select files", "context": "Select local input files" }
+  ,"desktop.analysis.select-folder": { "default-text": "Select folder", "context": "Select local input folder" }
+  ,"desktop.analysis.select-config": { "default-text": "Select config", "context": "Select analysis config" }
+  ,"desktop.analysis.inputs": { "default-text": "Inputs", "context": "Analysis input selection label" }
+  ,"desktop.analysis.config": { "default-text": "Config", "context": "Analysis config label" }
+  ,"desktop.analysis.ncbi": { "default-text": "NCBI accessions or URLs", "context": "NCBI source input label" }
+  ,"desktop.analysis.name": { "default-text": "Task name", "context": "Analysis task name label" }
+  ,"desktop.analysis.create": { "default-text": "Start analysis", "context": "Submit analysis form" }
+  ,"desktop.analysis.no-inputs": { "default-text": "Select at least one local input.", "context": "Analysis validation" }
+  ,"desktop.task.title": { "default-text": "Task details", "context": "Desktop task details title" }
+  ,"desktop.task.reload": { "default-text": "Reload", "context": "Reload task details" }
+  ,"desktop.task.not-found": { "default-text": "Task not found.", "context": "Missing task details" }
+  ,"desktop.task.failure": { "default-text": "Task failed.", "context": "Task failure status" }
+  ,"desktop.result.title": { "default-text": "Results", "context": "Desktop results title" }
+  ,"desktop.result.no-results": { "default-text": "No completed task results yet.", "context": "Empty results list" }
+  ,"desktop.result.show-folder": { "default-text": "Show in folder", "context": "Reveal result file" }
+  ,"desktop.result.unavailable": { "default-text": "Result package is unavailable.", "context": "Unavailable result" }
+  ,"desktop.action.remove": { "default-text": "Remove", "context": "Remove selected input" }
+  ,"desktop.state.loading": { "default-text": "Loading…", "context": "Desktop loading state" }
+  ,"desktop.state.creating": { "default-text": "Creating…", "context": "Desktop create state" }
+  ,"desktop.error.generic": { "default-text": "The operation could not be completed.", "context": "Desktop generic error" }
+  ,"common.navigation.main-label": { "default-text": "Main navigation", "context": "Accessible name for the public site navigation" }
+  ,"common.navigation.application-label": { "default-text": "Application sections", "context": "Accessible name for the signed-in application navigation" }
+  ,"common.navigation.primary-label": { "default-text": "Primary navigation", "context": "Accessible name for the Desktop primary navigation" }
+  ,"common.action.home": { "default-text": "Home", "context": "Return to the public home page" }
+  ,"common.action.open-app": { "default-text": "Open app", "context": "Open the application area" }
+  ,"common.action.open-tasks": { "default-text": "Open tasks", "context": "Open the task list" }
+  ,"common.action.create-task": { "default-text": "Create task", "context": "Create an analytical task" }
+  ,"common.action.new-task": { "default-text": "New task", "context": "Start a new analytical task" }
+  ,"common.action.back-to-task-details": { "default-text": "Back to task details", "context": "Return from a result to task details" }
+  ,"common.action.back-to-results": { "default-text": "Back to results", "context": "Return to the result list" }
+  ,"common.action.open-result": { "default-text": "Open result", "context": "Open a task result" }
+  ,"common.action.open-task": { "default-text": "Open task", "context": "Open task details" }
+  ,"common.action.refresh-now": { "default-text": "Refresh now", "context": "Refresh current task data immediately" }
+  ,"common.action.retry-now": { "default-text": "Retry now", "context": "Retry an unavailable operation immediately" }
+  ,"common.action.retry-result-lookup": { "default-text": "Retry result lookup", "context": "Retry loading a task result" }
+  ,"common.state.refreshing": { "default-text": "Refreshing…", "context": "Current data refresh status" }
+  ,"common.state.unknown": { "default-text": "Unknown", "context": "Fallback label for an unknown state" }
+  ,"common.error.unexpected-title": { "default-text": "JELICA encountered an unexpected error", "context": "Unexpected application error heading" }
+  ,"common.error.unexpected-description": { "default-text": "The current page failed to render. You can retry or return to a safe route.", "context": "Unexpected application error description" }
+  ,"common.error.service-unavailable": { "default-text": "The service is temporarily unavailable. Please try again later.", "context": "Generic service availability error shown to users" }
+  ,"common.error.access-denied": { "default-text": "You do not have permission to perform this action.", "context": "Generic permission error shown to users" }
+  ,"common.error.not-found": { "default-text": "The requested resource was not found.", "context": "Generic not-found error shown to users" }
+  ,"common.error.not-found-description": { "default-text": "The requested page does not exist or has been moved.", "context": "Not-found page description" }
+  ,"common.error.conflict": { "default-text": "The requested change conflicts with the current state.", "context": "Generic conflict error shown to users" }
+  ,"common.error.invalid-request": { "default-text": "Please check the submitted information and try again.", "context": "Generic invalid-request error shown to users" }
+  ,"common.error.rate-limited": { "default-text": "Too many requests. Please try again later.", "context": "Generic rate-limit error shown to users" }
+  ,"common.error.generic": { "default-text": "The operation could not be completed.", "context": "Generic client operation error shown to users" }
+  ,"app.shell.title": { "default-text": "JELICA Application", "context": "Application area heading" }
+  ,"app.shell.description": { "default-text": "Analytical task operations and reproducible result references.", "context": "Application area description" }
+  ,"app.shell.footer": { "default-text": "JELICA application area.", "context": "Application area footer" }
+  ,"app.nav.tasks": { "default-text": "Tasks", "context": "Application tasks navigation link" }
+  ,"app.nav.results": { "default-text": "Results", "context": "Application results navigation link" }
+  ,"nav.home": { "default-text": "Home", "context": "Public site home navigation link" }
+  ,"nav.news": { "default-text": "News", "context": "Public site news navigation link" }
+  ,"nav.about": { "default-text": "About", "context": "Public site about navigation link" }
+  ,"nav.download": { "default-text": "Download", "context": "Public site download navigation link" }
+  ,"nav.documentation": { "default-text": "Documentation", "context": "Public site documentation navigation link" }
+  ,"nav.support": { "default-text": "Support", "context": "Public site support navigation link" }
+  ,"nav.run-online": { "default-text": "Run online", "context": "Public site link to the online application" }
+  ,"locale.en": { "default-text": "English", "context": "Native language name for English locale selector" }
+  ,"locale.ru": { "default-text": "Russian", "context": "Native language name for Russian locale selector" }
+  ,"locale.sr-Latn": { "default-text": "Serbian (Latin)", "context": "Native language name for Serbian Latin locale selector" }
+  ,"locale.sr-Cyrl": { "default-text": "Serbian (Cyrillic)", "context": "Native language name for Serbian Cyrillic locale selector" }
+  ,"theme.selector-label": { "default-text": "Theme selector", "context": "Accessible name for the public theme selector" }
+  ,"theme.label.system": { "default-text": "System", "context": "System appearance theme" }
+  ,"theme.label.light": { "default-text": "Light", "context": "Light appearance theme" }
+  ,"theme.label.dark": { "default-text": "Dark", "context": "Dark appearance theme" }
+  ,"theme.label.mono": { "default-text": "Monochrome", "context": "Monochrome appearance theme" }
+  ,"task.status.unknown": { "default-text": "Unknown", "context": "Unknown task status display label" }
+  ,"task.label.task-prefix": { "default-text": "Task {task}", "context": "Task identifier label in headings and breadcrumbs" }
+  ,"task.detail.trace-id": { "default-text": "Trace ID: {trace}", "context": "Task trace identifier display" }
+  ,"task.detail.progress-aria": { "default-text": "Task progress {progress}%", "context": "Accessible task progress label" }
+  ,"task.loading.title": { "default-text": "Loading task details", "context": "Task details loading heading" }
+  ,"task.loading.description": { "default-text": "Fetching task state from backend and starting status polling.", "context": "Task details loading description" }
+  ,"task.status.unavailable": { "default-text": "Task status is unavailable", "context": "Task status unavailable heading" }
+  ,"task.loading.list-title": { "default-text": "Loading task list", "context": "Task list loading heading" }
+  ,"task.loading.list-description": { "default-text": "Fetching latest tasks from backend...", "context": "Task list loading description" }
+  ,"task.loading.details-description": { "default-text": "Fetching current task state and initializing polling...", "context": "Task details loading description" }
+  ,"result.loading.title": { "default-text": "Loading results", "context": "Result list loading heading" }
+  ,"result.loading.description": { "default-text": "Fetching completed tasks and result references...", "context": "Result list loading description" }
+  ,"result.loading.details-title": { "default-text": "Loading result package", "context": "Result details loading heading" }
+  ,"result.loading.details-description": { "default-text": "Resolving .jelica package reference...", "context": "Result details loading description" }
+  ,"task.detail.status": { "default-text": "Status:", "context": "Task status field label" }
+  ,"task.detail.current-stage": { "default-text": "Current stage:", "context": "Task current stage field label" }
+  ,"task.detail.active-job-state": { "default-text": "Active job state:", "context": "Task active job state field label" }
+  ,"task.detail.progress": { "default-text": "Progress:", "context": "Task progress field label" }
+  ,"task.detail.source": { "default-text": "Source:", "context": "Task state source field label" }
+  ,"task.detail.authoritative": { "default-text": "Authoritative:", "context": "Task authoritative state field label" }
+  ,"task.detail.command-id": { "default-text": "Command ID:", "context": "Task command identifier field label" }
+  ,"task.detail.projection-updated": { "default-text": "Projection updated at:", "context": "Task projection timestamp field label" }
+  ,"task.detail.authoritative-yes": { "default-text": "yes", "context": "Affirmative task authoritative state value" }
+  ,"task.detail.authoritative-no": { "default-text": "no", "context": "Negative task authoritative state value" }
+  ,"task.detail.stale-warning": { "default-text": "State may be stale because backend returned cached projection data.", "context": "Task cached projection warning" }
+  ,"task.polling.terminal": { "default-text": "Terminal state reached. Automatic polling stopped.", "context": "Task polling stopped after terminal state" }
+  ,"task.polling.active": { "default-text": "Automatic polling is active (every {seconds} seconds).", "context": "Task polling status with interval" }
+  ,"task.polling.last-update": { "default-text": " Last update: {time}.", "context": "Task polling last update suffix" }
+  ,"task.polling.refreshing": { "default-text": " Refreshing…", "context": "Task polling refresh suffix" }
+  ,"result.page.title": { "default-text": "Results", "context": "Result list page title" }
+  ,"result.page.table-label": { "default-text": "Completed task results", "context": "Accessible name for completed results table" }
+  ,"result.page.no-results": { "default-text": "No completed task results yet", "context": "Empty result list heading" }
+  ,"result.page.no-results-description": { "default-text": "Result list uses completed tasks from projection storage. Complete a task to inspect its result package.", "context": "Empty result list description" }
+  ,"result.page.data-unavailable": { "default-text": "Result data unavailable", "context": "Result data error heading" }
+  ,"result.page.data-load-failed": { "default-text": "Cannot load result data for task {task}.", "context": "Result data error description" }
+  ,"result.page.api-description": { "default-text": "Response is loaded via GET /api/tasks/{task_id}/result.", "context": "Result API provenance description" }
+  ,"result.page.task-id": { "default-text": "Task ID", "context": "Result table task identifier heading" }
+  ,"result.page.state": { "default-text": "State", "context": "Result table state heading" }
+  ,"result.page.updated": { "default-text": "Updated", "context": "Result table update timestamp heading" }
+  ,"result.page.actions": { "default-text": "Actions", "context": "Result table actions heading" }
+  ,"result.lookup.unavailable": { "default-text": "Result lookup unavailable", "context": "Task result lookup error heading" }
+  ,"result.action.open-page": { "default-text": "Open result page", "context": "Open result page action" }
+  ,"result.card.title": { "default-text": "Result package", "context": "Result package card heading" }
+  ,"result.card.task-id": { "default-text": "Task ID:", "context": "Result package task identifier label" }
+  ,"result.card.trace-id": { "default-text": "Trace ID:", "context": "Result package trace identifier label" }
+  ,"result.card.task-state": { "default-text": "Task state:", "context": "Result package task state label" }
+  ,"result.card.available": { "default-text": ".jelica available:", "context": "Result package availability label" }
+  ,"result.card.status-command-id": { "default-text": "Status command ID:", "context": "Result package status command label" }
+  ,"result.card.result-id": { "default-text": "Result ID:", "context": "Result package result identifier label" }
+  ,"result.card.package-path": { "default-text": "Package path:", "context": "Result package path label" }
+  ,"result.card.command-id": { "default-text": "Command ID:", "context": "Result package command identifier label" }
+  ,"result.card.yes": { "default-text": "yes", "context": "Result package available affirmative value" }
+  ,"result.card.no": { "default-text": "no", "context": "Result package available negative value" }
+  ,"support.field.name": { "default-text": "Name", "context": "Support request name field label" }
+  ,"support.field.email": { "default-text": "Email", "context": "Support request email field label" }
+  ,"support.field.subject": { "default-text": "Subject", "context": "Support request subject field label" }
+  ,"support.field.message": { "default-text": "Message", "context": "Support request message field label" }
+  ,"support.placeholder.name": { "default-text": "Jane Researcher", "context": "Support request name example" }
+  ,"support.placeholder.email": { "default-text": "jane@example.org", "context": "Support request email example" }
+  ,"support.placeholder.subject": { "default-text": "Question about analytical task status", "context": "Support request subject example" }
+  ,"support.placeholder.message": { "default-text": "Describe your issue or question.", "context": "Support request message example" }
+  ,"support.action.submitting": { "default-text": "Submitting…", "context": "Support request submit pending label" }
+  ,"support.action.send": { "default-text": "Send support request", "context": "Support request submit action" }
+  ,"support.created.title": { "default-text": "Support request created", "context": "Support request success heading" }
+  ,"support.created.id": { "default-text": "ID:", "context": "Support request identifier label" }
+  ,"support.created.status": { "default-text": "Status:", "context": "Support request status label" }
+  ,"support.created.created-at": { "default-text": "Created at:", "context": "Support request creation timestamp label" }
+  ,"support.validation.name-required": { "default-text": "Name is required.", "context": "Support request name validation" }
+  ,"support.validation.email-required": { "default-text": "Email is required.", "context": "Support request email validation" }
+  ,"support.validation.email-invalid": { "default-text": "Email must contain '@'.", "context": "Support request email validation" }
+  ,"support.validation.subject-required": { "default-text": "Subject is required.", "context": "Support request subject validation" }
+  ,"support.validation.message-required": { "default-text": "Message is required.", "context": "Support request message validation" }
+  ,"landing.hero.title": { "default-text": "Comparative genomics workflows with reproducible result packages", "context": "Public landing page hero heading" }
+  ,"landing.hero.description": { "default-text": "Build, track, and inspect analytical tasks across Web, Desktop, and CLI with a single runtime backbone.", "context": "Public landing page hero description" }
+  ,"landing.news.latest": { "default-text": "Latest news", "context": "Public landing page latest news heading" }
+  ,"landing.news.all": { "default-text": "All news", "context": "Public landing page all news link" }
+  ,"landing.sections.label": { "default-text": "Landing sections", "context": "Accessible name for landing page section navigation" }
+  ,"landing.section.comparative": { "default-text": "Comparative analysis", "context": "Landing page comparative section link" }
+  ,"landing.section.phylogenetics": { "default-text": "Phylogenetics", "context": "Landing page phylogenetics section link" }
+  ,"landing.section.reproducibility": { "default-text": "Reproducibility", "context": "Landing page reproducibility section link" }
+  ,"landing.section.platforms": { "default-text": "Platforms", "context": "Landing page platforms section link" }
+  ,"landing.section.technical": { "default-text": "Technical", "context": "Landing page technical section link" }
+  ,"landing.statistics.genomes": { "default-text": "Genomes analyzed", "context": "Landing page statistics card heading" }
+  ,"landing.statistics.genomes-description": { "default-text": "Runtime-dependent, task-driven processing.", "context": "Landing page statistics card description" }
+  ,"landing.statistics.formats": { "default-text": "Supported formats", "context": "Landing page formats card heading" }
+  ,"landing.statistics.formats-description": { "default-text": "FASTA and existing CLI-supported biological inputs.", "context": "Landing page formats card description" }
+  ,"landing.statistics.phases": { "default-text": "Analysis phases", "context": "Landing page phases card heading" }
+  ,"landing.statistics.phases-description": { "default-text": "Alignment, comparative analysis, phylogenetics, packaging.", "context": "Landing page phases card description" }
+  ,"landing.comparative.title": { "default-text": "Comparative analysis and variants", "context": "Landing page comparative section heading" }
+  ,"landing.comparative.description": { "default-text": "Inspect sequence differences, mutation-aware comparisons, and analysis progress in a consistent flow.", "context": "Landing page comparative section description" }
+  ,"landing.comparative.placeholder": { "default-text": "Placeholder for comparative and variant-oriented UI modules in later stages.", "context": "Landing page deferred comparative module notice" }
+  ,"landing.phylogenetics.title": { "default-text": "Phylogenetics", "context": "Landing page phylogenetics section heading" }
+  ,"landing.phylogenetics.description": { "default-text": "Genetic distance metrics, tree generation, and clade-oriented outputs are represented through task result packages.", "context": "Landing page phylogenetics section description" }
+  ,"landing.phylogenetics.placeholder": { "default-text": "Placeholder for tree, clade, and distance matrix views (future stage).", "context": "Landing page deferred phylogenetics module notice" }
+  ,"landing.reproducibility.title": { "default-text": "Reproducibility", "context": "Landing page reproducibility section heading" }
+  ,"landing.reproducibility.packages": { "default-text": ".jelica packages", "context": "Landing page reproducibility card heading" }
+  ,"landing.reproducibility.packages-description": { "default-text": "Result package references for reproducible output.", "context": "Landing page reproducibility card description" }
+  ,"landing.reproducibility.tasks": { "default-text": "Background tasks", "context": "Landing page background task card heading" }
+  ,"landing.reproducibility.tasks-description": { "default-text": "Asynchronous lifecycle with status polling.", "context": "Landing page background task card description" }
+  ,"landing.reproducibility.partial": { "default-text": "Partial execution", "context": "Landing page partial execution card heading" }
+  ,"landing.reproducibility.partial-description": { "default-text": "Runtime state remains observable through projection-backed APIs.", "context": "Landing page partial execution card description" }
+  ,"landing.platforms.title": { "default-text": "CLI vs Desktop vs Web", "context": "Landing page platforms section heading" }
+  ,"landing.platforms.cli": { "default-text": "CLI", "context": "Landing page CLI card label" }
+  ,"landing.platforms.desktop": { "default-text": "Desktop", "context": "Landing page Desktop card label" }
+  ,"landing.platforms.web": { "default-text": "Web", "context": "Landing page Web card label" }
+  ,"landing.platforms.cli-description": { "default-text": "Scriptable machine protocol integration surface.", "context": "Landing page CLI card description" }
+  ,"landing.platforms.desktop-description": { "default-text": "Local UI workflows (future stage expansion).", "context": "Landing page Desktop card description" }
+  ,"landing.platforms.web-description": { "default-text": "Public site plus /app analytical workflow area.", "context": "Landing page Web card description" }
+  ,"landing.technical.title": { "default-text": "Technical foundation", "context": "Landing page technical section heading" }
+  ,"landing.technical.description": { "default-text": "Core analytics stay in existing runtime architecture. Web frontend and backend remain thin adapters.", "context": "Landing page technical section description" }
+  ,"public.about.title": { "default-text": "About JELICA", "context": "About page heading" }
+  ,"public.about.unavailable": { "default-text": "About content is currently unavailable.", "context": "Controlled state shown when the repository-authored About document cannot be loaded" }
+  ,"public.download.title": { "default-text": "Download", "context": "Download page heading" }
+  ,"public.download.description": { "default-text": "Distribution channels are prepared for staged rollout.", "context": "Download page description" }
+  ,"public.download.coming-soon": { "default-text": "Coming soon", "context": "Download page status for distribution channels not yet published" }
+  ,"public.download.desktop-label": { "default-text": "Desktop", "context": "Download page Desktop channel label" }
+  ,"public.download.cli-label": { "default-text": "CLI", "context": "Download page CLI channel label" }
+  ,"public.support.title": { "default-text": "Support", "context": "Support page heading" }
+  ,"public.support.description": { "default-text": "Submit your question or issue and receive a support request ID for follow-up.", "context": "Support page description" }
+  ,"public.legal.terms-title": { "default-text": "Terms of Service", "context": "Terms page heading" }
+  ,"public.legal.privacy-title": { "default-text": "Privacy Policy", "context": "Privacy page heading" }
+  ,"public.legal.license-title": { "default-text": "License", "context": "License page heading" }
+  ,"public.news.title": { "default-text": "News", "context": "News page heading" }
+  ,"public.news.description": { "default-text": "Product and architecture updates for JELICA development.", "context": "News page description" }
+  ,"public.news.read": { "default-text": "Read article", "context": "News article link" }
+  ,"public.news.back": { "default-text": "Back to news", "context": "Return from a news article to the news list" }
+  ,"public.news.empty": { "default-text": "No news articles are available yet.", "context": "News empty state when no repository-authored articles exist" }
+  ,"project.navigation.sections": { "default-text": "Project sections", "context": "Accessible name for project tabs" }
+  ,"desktop.task.detail.id": { "default-text": "ID", "context": "Desktop task ID field label" }
+  ,"desktop.task.detail.state": { "default-text": "State", "context": "Desktop task state field label" }
+  ,"desktop.task.detail.stage": { "default-text": "Stage", "context": "Desktop task stage field label" }
+  ,"desktop.task.detail.progress": { "default-text": "Progress", "context": "Desktop task progress field label" }
+}

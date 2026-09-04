@@ -1,0 +1,101 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{jelica-base}[2026/08/24 JELICA documentation base configuration]
+
+\RequirePackage{iftex}
+\ifPDFTeX
+  \PackageError{jelica-base}{LuaLaTeX or XeLaTeX is required}{Use the documented build command.}
+\fi
+
+\RequirePackage{fix-cm}
+\RequirePackage{etoolbox}
+\providecommand{\JelicaBuildLocale}{en}
+\newif\ifJelicaCyrillicLocale
+\JelicaCyrillicLocalefalse
+\RequirePackage{babel}
+\ifdefstring{\JelicaBuildLocale}{en}{
+  \babelprovide[main,import]{english}
+}{\ifdefstring{\JelicaBuildLocale}{ru}{
+  \JelicaCyrillicLocaletrue
+  \babelprovide[main,import]{russian}
+}{\ifdefstring{\JelicaBuildLocale}{sr-Latn}{
+  \babelprovide[main,import]{serbian-latn}
+}{\ifdefstring{\JelicaBuildLocale}{sr-Cyrl}{
+  \JelicaCyrillicLocaletrue
+  \babelprovide[main,import]{serbian-cyrl}
+}{
+  \PackageError{jelica-base}{Unsupported documentation locale `\JelicaBuildLocale'}
+    {Choose en, ru, sr-Latn, or sr-Cyrl.}
+}}}}
+\ifdefined\HCode
+  \newcommand{\JelicaBrandFont}{}
+\else
+  \RequirePackage{fontspec}
+\fi
+\RequirePackage{microtype}
+\RequirePackage{graphicx}
+\RequirePackage{xcolor}
+\RequirePackage{hyperref}
+\RequirePackage{bookmark}
+
+\providecommand{\JelicaProfile}{screen}
+\providecommand{\JelicaTextSize}{standard}
+
+\newif\ifJelicaScreenProfile
+\newif\ifJelicaGoogleSansAvailable
+
+\ifdefined\HCode
+\else
+  \IfFontExistsTF{Google Sans Flex}{
+    \JelicaGoogleSansAvailabletrue
+    \newfontfamily\JelicaBrandFont{Google Sans Flex}
+  }{
+    \JelicaGoogleSansAvailablefalse
+    \ifJelicaCyrillicLocale
+      \newfontfamily\JelicaBrandFont{DejaVu Sans}
+    \else
+      \IfFontExistsTF{TeX Gyre Heros}{
+        \newfontfamily\JelicaBrandFont{TeX Gyre Heros}
+      }{
+        \newfontfamily\JelicaBrandFont{Latin Modern Sans}
+      }
+    }
+  \fi
+\fi
+
+\InputIfFileExists{profiles/\JelicaProfile.tex}{}{
+  \PackageError{jelica-base}{Unknown presentation profile `\JelicaProfile'}
+    {Choose screen or print.}
+}
+\InputIfFileExists{profiles/size-\JelicaTextSize.tex}{}{
+  \PackageError{jelica-base}{Unknown text size `\JelicaTextSize'}
+    {Choose small, standard, or large.}
+}
+
+\setsecnumdepth{subsection}
+\settocdepth{subsection}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.65\baselineskip}
+\setlength{\headheight}{18pt}
+\hypersetup{unicode=true,plainpages=false}
+
+\makechapterstyle{jelica}{
+  \renewcommand*{\printchaptername}{}
+  \renewcommand*{\chapternamenum}{}
+  \renewcommand*{\printchapternum}{
+    {\JelicaBrandFont\fontsize{11}{13}\selectfont\color{JelicaMuted}
+      \MakeUppercase{Chapter}~\thechapter\par}
+  }
+  \renewcommand*{\afterchapternum}{\vskip 0.7\baselineskip}
+  \renewcommand*{\printchaptertitle}[1]{
+    {\JelicaBrandFont\fontsize{26}{30}\selectfont\color{JelicaHeading}##1\par}
+  }
+  \renewcommand*{\afterchaptertitle}{\vskip 1.4\baselineskip}
+}
+\chapterstyle{jelica}
+
+\setsecheadstyle{\JelicaBrandFont\fontsize{15.5}{19}\selectfont\color{JelicaHeading}}
+\setsubsecheadstyle{\JelicaBrandFont\fontsize{12.5}{16}\selectfont\color{JelicaHeading}}
+\setsecnumformat{\csname the#1\endcsname\hspace{0.75em}}
+\checkandfixthelayout
+
+\endinput

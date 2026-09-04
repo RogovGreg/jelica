@@ -1,0 +1,34 @@
+{
+  "name": "jelica-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "main": "dist/apps/desktop/src/main/index.js",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "start": "electron .",
+    "typecheck": "tsc -p tsconfig.main.json --noEmit && tsc -p tsconfig.renderer.json --noEmit",
+    "lint": "node scripts/lint.mjs",
+    "test": "npm run build:preload && npm run build:test && node --test dist-test/apps/desktop/tests/*.test.js",
+    "build:test": "tsc -p tsconfig.test.json",
+    "build:main": "tsc -p tsconfig.main.json && npm run build:preload",
+    "build:preload": "vite build --config vite.preload.config.mjs",
+    "build:renderer": "vite build",
+    "stage:resources": "node scripts/stage-resources.mjs",
+    "prebuild": "npm run stage:resources",
+    "build": "npm run build:main && npm run build:renderer"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "@vitejs/plugin-react": "^6.1.1",
+    "electron": "^44.0.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2"
+  }
+}

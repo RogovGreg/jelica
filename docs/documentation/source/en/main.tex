@@ -1,0 +1,24 @@
+\documentclass[11pt,oneside,openany]{memoir}
+\usepackage{jelica-doc}
+
+\JelicaSetLocale{en}
+\JelicaSetTitle{JELICA Documentation}
+\JelicaSetDisplayTitle{Documentation}
+\JelicaSetSubtitle{Documentation in preparation}
+\JelicaSetVersion{0.1}
+\JelicaSetYear{2026}
+\JelicaSetKeywords{JELICA, documentation}
+
+\title{\JelicaTitle}
+\author{JELICA}
+\date{\JelicaYear}
+
+\begin{document}
+\frontmatter
+\JelicaMakeTitle
+\JelicaTableOfContents
+
+\mainmatter
+\input{chapters/introduction}
+
+\end{document}

@@ -1,0 +1,159 @@
+name: jelica
+
+services:
+  web-frontend:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/web-frontend/Dockerfile
+    container_name: jelica-web-frontend
+    environment:
+      JELICA_API_BASE_URL: ${WEB_APP_API_BASE_URL:-http://web-backend:8000}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-/api}
+      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-JELICA Web}
+      NEXT_PUBLIC_DEFAULT_THEME: ${NEXT_PUBLIC_DEFAULT_THEME:-light}
+      JELICA_DOCUMENTATION_RELEASE_DIR: ${JELICA_DOCUMENTATION_RELEASE_DIR:-}
+      JELICA_DOCUMENTATION_RELEASES_ROOT: /opt/jelica/documentation-releases
+    expose:
+      - "3000"
+    depends_on:
+      web-backend:
+        condition: service_started
+    volumes:
+      - type: bind
+        source: ${JELICA_DOCUMENTATION_RELEASES_PATH:-../../docs/documentation/releases}
+        target: /opt/jelica/documentation-releases
+        read_only: true
+        bind:
+          create_host_path: false
+    restart: unless-stopped
+    networks:
+      - jelica-net
+
+  web-backend:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/web-backend/Dockerfile
+    container_name: jelica-web-backend
+    env_file:
+      - ../env/.env.example
+    environment:
+      JELICA_HOME: ${JELICA_RUNTIME_PATH:-/var/lib/jelica/service}
+      API_HOST: ${API_HOST:-0.0.0.0}
+      API_PORT: ${API_PORT:-8000}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
+      AUTH_EXPOSE_DEV_TOKENS: ${AUTH_EXPOSE_DEV_TOKENS:-false}
+      EMAIL_DELIVERY_MODE: ${EMAIL_DELIVERY_MODE:-development}
+      PUBLIC_WEB_BASE_URL: ${PUBLIC_WEB_BASE_URL:-http://localhost}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-JELICA Web Backend}
+      SMTP_TLS_MODE: ${SMTP_TLS_MODE:-starttls}
+      SMTP_TIMEOUT_SECONDS: ${SMTP_TIMEOUT_SECONDS:-15}
+      PASSWORD_RESET_TTL_SECONDS: ${PASSWORD_RESET_TTL_SECONDS:-3600}
+      INTERNAL_API_ENABLED: ${INTERNAL_API_ENABLED:-false}
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-}
+      WEB_PUSH_VAPID_PUBLIC_KEY: ${WEB_PUSH_VAPID_PUBLIC_KEY:-}
+      WEB_PUSH_VAPID_PRIVATE_KEY: ${WEB_PUSH_VAPID_PRIVATE_KEY:-}
+      WEB_PUSH_VAPID_SUBJECT: ${WEB_PUSH_VAPID_SUBJECT:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-}
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:-}
+      TELEGRAM_TIMEOUT_SECONDS: ${TELEGRAM_TIMEOUT_SECONDS:-10}
+      AUTH_RATE_LIMIT_ENABLED: ${AUTH_RATE_LIMIT_ENABLED:-true}
+      AUTH_RATE_LIMIT_WINDOW_SECONDS: ${AUTH_RATE_LIMIT_WINDOW_SECONDS:-900}
+      AUTH_RATE_LIMIT_LOGIN_CLIENT: ${AUTH_RATE_LIMIT_LOGIN_CLIENT:-60}
+      AUTH_RATE_LIMIT_LOGIN_IDENTITY_FAILURES: ${AUTH_RATE_LIMIT_LOGIN_IDENTITY_FAILURES:-10}
+      AUTH_RATE_LIMIT_REGISTER_CLIENT: ${AUTH_RATE_LIMIT_REGISTER_CLIENT:-10}
+      AUTH_RATE_LIMIT_RESEND_CLIENT: ${AUTH_RATE_LIMIT_RESEND_CLIENT:-30}
+      AUTH_RATE_LIMIT_RESEND_IDENTITY: ${AUTH_RATE_LIMIT_RESEND_IDENTITY:-5}
+      AUTH_RATE_LIMIT_FORGOT_CLIENT: ${AUTH_RATE_LIMIT_FORGOT_CLIENT:-30}
+      AUTH_RATE_LIMIT_FORGOT_IDENTITY: ${AUTH_RATE_LIMIT_FORGOT_IDENTITY:-5}
+      AUTH_RATE_LIMIT_VERIFY_CLIENT: ${AUTH_RATE_LIMIT_VERIFY_CLIENT:-30}
+      AUTH_RATE_LIMIT_RESET_CLIENT: ${AUTH_RATE_LIMIT_RESET_CLIENT:-30}
+      FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-*}
+      JELICA_WEB_UPLOAD_ROOT: ${JELICA_WEB_UPLOAD_ROOT:-/var/lib/jelica/web-storage/analysis-uploads}
+      JELICA_UPLOAD_MAX_FILE_BYTES: ${JELICA_UPLOAD_MAX_FILE_BYTES:-10737418240}
+      JELICA_UPLOAD_MAX_SESSION_BYTES: ${JELICA_UPLOAD_MAX_SESSION_BYTES:-107374182400}
+      JELICA_UPLOAD_MAX_SESSION_FILES: ${JELICA_UPLOAD_MAX_SESSION_FILES:-10000}
+      JELICA_UPLOAD_MAX_RELATIVE_PATH_LENGTH: ${JELICA_UPLOAD_MAX_RELATIVE_PATH_LENGTH:-1024}
+      JELICA_UPLOAD_SESSION_TTL_SECONDS: ${JELICA_UPLOAD_SESSION_TTL_SECONDS:-86400}
+    expose:
+      - "8000"
+    depends_on:
+      web-db:
+        condition: service_healthy
+      jelica-runtime:
+        condition: service_started
+    volumes:
+      - jelica-runtime-data:/var/lib/jelica
+      - web-storage:/var/lib/jelica/web-storage
+    restart: unless-stopped
+    networks:
+      - jelica-net
+
+  jelica-runtime:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/jelica-runtime/Dockerfile
+    container_name: jelica-runtime
+    environment:
+      JELICA_HOME: ${JELICA_RUNTIME_PATH:-/var/lib/jelica/service}
+    volumes:
+      - jelica-runtime-data:/var/lib/jelica
+      - web-storage:/var/lib/jelica/web-storage:ro
+    restart: unless-stopped
+    networks:
+      - jelica-net
+
+  web-db:
+    image: postgres:17-alpine
+    container_name: jelica-web-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jelica}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      POSTGRES_DB: ${POSTGRES_DB:-jelica_web}
+    volumes:
+      - web-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jelica} -d ${POSTGRES_DB:-jelica_web}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+    networks:
+      - jelica-net
+
+  caddy:
+    image: caddy:2.10-alpine
+    container_name: jelica-caddy
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    depends_on:
+      web-frontend:
+        condition: service_started
+      web-backend:
+        condition: service_started
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    restart: unless-stopped
+    networks:
+      - jelica-net
+
+volumes:
+  web-db-data:
+  web-storage:
+  jelica-runtime-data:
+  caddy-data:
+  caddy-config:
+
+networks:
+  jelica-net:
+    driver: bridge

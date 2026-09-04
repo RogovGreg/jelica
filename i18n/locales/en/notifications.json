@@ -1,0 +1,1086 @@
+{
+  "notification.task.completed.title": {
+    "text": "Task completed",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.email.subject": {
+    "text": "JELICA — {title}",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.email.body-fallback": {
+    "text": "You have a new JELICA notification: {title}.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.email.open": {
+    "text": "Open in JELICA:",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.auth.verification.subject": {
+    "text": "Verify your JELICA account",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.auth.verification.body": {
+    "text": "Welcome to JELICA.\n\nVerify your email address to activate your account:\n{link}\n\nThis link expires in 24 hours. If you did not request this account, you can ignore this message.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.auth.reset.subject": {
+    "text": "Reset your JELICA password",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.auth.reset.body": {
+    "text": "A request was made to reset your JELICA password.\n\nUse this link to choose a new password:\n{link}\n\nThis link expires in 60 minutes. If you did not request this, you can ignore this message.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.badge.unread": {
+    "text": "{count} unread notifications",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.center.globally-disabled": {
+    "text": "Notifications are disabled. Your existing notification history remains available.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.center.action-failed": {
+    "text": "The notification could not be updated.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.center.load-failed": {
+    "text": "Notifications could not be loaded.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.center.list-label": {
+    "text": "Notifications",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.filter.status": {
+    "text": "Notification status",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.filter.all": {
+    "text": "All",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.filter.unread": {
+    "text": "Unread",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.filter.event": {
+    "text": "Event type",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.filter.any-event": {
+    "text": "All event types",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.action.open": {
+    "text": "Open",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.action.dismiss": {
+    "text": "Dismiss",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.action.mark-read": {
+    "text": "Mark as read",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.action.mark-unread": {
+    "text": "Mark as unread",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.action.mark-all-read": {
+    "text": "Mark all as read",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.state.read": {
+    "text": "Read",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.state.unread": {
+    "text": "Unread",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.empty.none-yet": {
+    "text": "No notifications yet.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.empty.no-unread": {
+    "text": "No unread notifications.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.empty.no-event-match": {
+    "text": "No notifications match this event filter.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.actor.system": {
+    "text": "JELICA",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.resource.fallback": {
+    "text": "JELICA resource",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.settings.title": {
+    "text": "Notifications",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.settings.description": {
+    "text": "Choose future notification delivery for each event and channel.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.settings.load-failed": {
+    "text": "Notification settings could not be loaded.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.settings.global": {
+    "text": "Notifications",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.settings.sound": {
+    "text": "Notification sound",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.settings.channels": {
+    "text": "Channel settings",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.settings.matrix-caption": {
+    "text": "Notification events and channels",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.settings.event": {
+    "text": "Event",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.settings.not-applicable": {
+    "text": "Not available for this event",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.settings.saved": {
+    "text": "Notification settings saved.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.settings.save-failed": {
+    "text": "Notification settings could not be saved. Your edits are preserved.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.channel.in-app": {
+    "text": "In-app",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.channel.device": {
+    "text": "Device",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.channel.email": {
+    "text": "Email",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.channel.telegram": {
+    "text": "Telegram",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.channel.available": {
+    "text": "Available",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.channel.unavailable": {
+    "text": "Unavailable",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.channel.email-unavailable": {
+    "text": "Delivery is not configured yet.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.channel.telegram-unavailable": {
+    "text": "Not connected and not available yet.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.telegram.connection": {
+    "text": "Telegram connection",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.telegram.connect": {
+    "text": "Connect Telegram",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.telegram.disconnect": {
+    "text": "Disconnect",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.telegram.refresh": {
+    "text": "Refresh",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.telegram.server-unavailable": {
+    "text": "Telegram is not configured on this server.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.telegram.not-connected": {
+    "text": "Available, but not connected.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.telegram.connected": {
+    "text": "Connected as {account}.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.telegram.action-failed": {
+    "text": "Telegram connection could not be updated.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.telegram.bot.linked": { "text": "Telegram is now connected to JELICA.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.invalid-link": { "text": "This connection link is invalid or expired. Create a new one in JELICA Settings.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.link-conflict": { "text": "This Telegram account cannot be connected with that link.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.connected": { "text": "Telegram is connected to JELICA. Use /help for commands.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.connect-in-settings": { "text": "Open JELICA Settings to connect this Telegram account.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.not-connected": { "text": "Telegram is not connected to JELICA. Open JELICA Settings to connect it.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.unknown-command": { "text": "Unknown command. Use /help for supported commands.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.usage-active-tasks": { "text": "Usage: /active_tasks", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.usage-project-command": { "text": "Usage: /{command} [\"Project name\" UUID ...] (maximum 10)", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.disconnected": { "text": "Telegram has been disconnected from JELICA.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.status": { "text": "JELICA connection: connected\nTelegram notifications: {notifications}\nYour active tasks: {tasks}\nActive accessible projects: {projects}", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.enabled": { "text": "enabled", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.disabled": { "text": "disabled", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.own-active-heading": { "text": "Your active tasks ({count}):", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.no-active-tasks": { "text": "No active tasks.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.showing-limit": { "text": "Showing {limit}; open JELICA to view all.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.open-task": { "text": "Open {name}", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.open-tasks": { "text": "Open Tasks", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.active-project-tasks-heading": { "text": "Active project tasks ({count}):", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.no-active-project-tasks": { "text": "No active tasks in the selected accessible projects.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.project-unavailable": { "text": "Project not found or unavailable", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.ambiguous-project": { "text": "ambiguous; use UUID", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.projects-heading": { "text": "Projects ({count}):", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.no-projects": { "text": "No accessible projects selected.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.open-project": { "text": "Open {name}", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.open-projects": { "text": "Open Projects", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.support": { "text": "Support", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.oppose": { "text": "Oppose", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.open-discussion": { "text": "Open discussion", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.own-task-item": { "text": "• {name} — {status}{project}", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.project-suffix": { "text": " · {project}", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.project-task-item": { "text": "• {project}{frozen}: {name} — {status}{owner}", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.frozen-suffix": { "text": " (frozen)", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.owner-suffix": { "text": " · owner: {owner}", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.project-status-item": { "text": "• {name} — {status}; role: {role}; active tasks: {active}; total: {total}", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.reply-context-unavailable": { "text": "This message is not an active JELICA discussion context.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.text-only": { "text": "Text replies only; open JELICA for attachments.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.reply-denied": { "text": "This discussion is no longer available for replies. Open JELICA to review access.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.reply-added": { "text": "Your reply was added to the JELICA discussion.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.action-unavailable": { "text": "Action unavailable.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.action-connect": { "text": "Connect Telegram in JELICA Settings.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.action-stale": { "text": "Action no longer available.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.reaction-updated": { "text": "Reaction updated.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.telegram.bot.help": { "text": "JELICA commands:\n/start — connect or check connection\n/status — connection and activity summary\n/active_tasks — your active tasks\n/active_project_tasks [selectors] — active tasks in accessible projects\n/project_status [selectors] — accessible project summaries\n/disconnect — disconnect Telegram\n/help — this help\n\nQuote names containing spaces, for example: /project_status \"Project Alpha\" \"Project Beta\"", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null },
+  "notification.device.current-browser": {
+    "text": "This browser",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.device.enable-current": {
+    "text": "Enable on this device",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.device.disable-current": {
+    "text": "Disable on this device",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.device.safari-ios-unsupported": {
+    "text": "Web Device Notifications for Safari, iPhone, and iPad are not supported at this time and are under development.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.device.secure-context-required": {
+    "text": "Web Push requires a secure browser context.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.device.browser-unsupported": {
+    "text": "This browser does not support Web Push.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.device.config-failed": {
+    "text": "Web Push status could not be loaded.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.device.server-unavailable": {
+    "text": "Web Push is not configured on this server.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.device.permission-denied": {
+    "text": "Notification permission is blocked. Change it in your browser site settings to enable this device.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.device.action-failed": {
+    "text": "This device could not be updated.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.device.enabled-current": {
+    "text": "Enabled on this device",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.device.not-enabled-current": {
+    "text": "Not enabled on this device",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.device.active-count": {
+    "text": "Active browser subscriptions: {count}",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.category.task.lifecycle": {
+    "text": "My tasks",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.category.project.tasks": {
+    "text": "Project tasks",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.category.project.membership": {
+    "text": "Project invitations and membership",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.category.project.lifecycle": {
+    "text": "Projects",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.category.project.discussion": {
+    "text": "Project Discussion",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.category.task.discussion": {
+    "text": "Task Discussion",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.task.started.label": {
+    "text": "Task started",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.task.started.description": {
+    "text": "{resource} started running.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.task.scheduler_paused.label": {
+    "text": "Task paused by scheduler",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.task.scheduler_paused.description": {
+    "text": "{resource} was paused by the scheduler.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.task.completed.label": {
+    "text": "Task completed",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.task.completed.description": {
+    "text": "{resource} completed successfully.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.task.failed.label": {
+    "text": "Task failed",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.task.failed.description": {
+    "text": "{resource} failed.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.invitation.received.label": {
+    "text": "Invitation received",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.invitation.received.description": {
+    "text": "{actor} invited you to {resource}.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.invitation.accepted.label": {
+    "text": "Invitation accepted",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.invitation.accepted.description": {
+    "text": "{actor} accepted the invitation to {resource}.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.invitation.declined.label": {
+    "text": "Invitation declined",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.invitation.declined.description": {
+    "text": "{actor} declined the invitation to {resource}.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.invitation.revoked.label": {
+    "text": "Invitation revoked",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.invitation.revoked.description": {
+    "text": "Your invitation to {resource} was revoked.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.member.role_changed.label": {
+    "text": "Project role changed",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.member.role_changed.description": {
+    "text": "Your role in {resource} changed.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.member.removed.label": {
+    "text": "Removed from project",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.member.removed.description": {
+    "text": "You were removed from {resource}.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.ownership.transferred.label": {
+    "text": "Project ownership transferred",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.ownership.transferred.description": {
+    "text": "Ownership of {resource} was transferred to you.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.deleted.label": {
+    "text": "Project deleted",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.deleted.description": {
+    "text": "{resource} was deleted.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.frozen.label": {
+    "text": "Project frozen",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.frozen.description": {
+    "text": "{resource} was frozen.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.unfrozen.label": {
+    "text": "Project unfrozen",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.unfrozen.description": {
+    "text": "{resource} was unfrozen.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.task.attached.label": {
+    "text": "Task attached",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.task.attached.description": {
+    "text": "{resource} was attached to the project.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.task.detached.label": {
+    "text": "Task detached",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.task.detached.description": {
+    "text": "{resource} was detached from the project.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.task.started.label": {
+    "text": "Project task started",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.task.started.description": {
+    "text": "{resource} started running.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.task.completed.label": {
+    "text": "Project task completed",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.task.completed.description": {
+    "text": "{resource} completed successfully.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.task.failed.label": {
+    "text": "Project task failed",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project.task.failed.description": {
+    "text": "{resource} failed.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project_discussion.comment.created.label": {
+    "text": "New Project Discussion comment",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project_discussion.comment.created.description": {
+    "text": "{actor} added a comment in {resource}.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project_discussion.comment.mentioned.label": {
+    "text": "Mentioned in Project Discussion",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project_discussion.comment.mentioned.description": {
+    "text": "{actor} mentioned you in {resource}.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project_discussion.comment.reacted.label": {
+    "text": "Project comment reaction",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project_discussion.comment.reacted.description": {
+    "text": "{actor} reacted to your comment in {resource}.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project_discussion.comment.removed_by_admin.label": {
+    "text": "Project comment removed",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.project_discussion.comment.removed_by_admin.description": {
+    "text": "Your comment in {resource} was removed by an administrator.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.task_discussion.comment.created.label": {
+    "text": "New Task Discussion comment",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.task_discussion.comment.created.description": {
+    "text": "{actor} added a comment in {resource}.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.task_discussion.comment.mentioned.label": {
+    "text": "Mentioned in Task Discussion",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.task_discussion.comment.mentioned.description": {
+    "text": "{actor} mentioned you in {resource}.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.task_discussion.comment.reacted.label": {
+    "text": "Task comment reaction",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.task_discussion.comment.reacted.description": {
+    "text": "{actor} reacted to your comment in {resource}.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.task_discussion.comment.removed_by_admin.label": {
+    "text": "Task comment removed",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  },
+  "notification.event.task_discussion.comment.removed_by_admin.description": {
+    "text": "Your comment in {resource} was removed by an administrator.",
+    "verified": false,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "translatedBy": null,
+    "translatedAt": null
+  }
+}
