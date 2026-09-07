@@ -6,6 +6,9 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /workspace
 
 RUN pip install --no-cache-dir uv
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends mafft \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml /workspace/pyproject.toml
 COPY uv.lock /workspace/uv.lock
