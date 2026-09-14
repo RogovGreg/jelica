@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { ProjectNavigation } from "@/components/ProjectNavigation";
@@ -37,7 +36,6 @@ export function ProjectTasksClient({ projectId }: Readonly<{ projectId: string }
   const counts = countStates(loadedTasks);
 
   return <section className="stack">
-    <Breadcrumbs items={[{ label: t("breadcrumbs.projects"), href: "/app/projects" }, { label: project.name, href: `/app/projects/${encodeURIComponent(projectId)}` }, { label: t("project.navigation.tasks") }]} label={t("breadcrumbs.label")} />
     <header className="panel project-overview-header">
       <div className="project-card-heading"><div><h1>{project.name}</h1><p className="muted">{t("project.tasks.subtitle")}</p></div><span className={`status-badge project-status-${project.status}`}>{t(project.status === "active" ? "project.status.active" : "project.status.frozen")}</span></div>
       {project.status === "frozen" ? <div className="state-box state-warning" role="status">{t("project.status.banner")}</div> : null}

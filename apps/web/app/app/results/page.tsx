@@ -48,8 +48,7 @@ export default async function AppResultsPage() {
   return (
     <section className="panel stack">
       <div>
-        <h1 style={{ margin: 0 }}><TranslatedText id="result.page.title" /></h1>
-        <p className="muted" style={{ marginTop: "0.35rem" }}>
+        <p className="muted" style={{ margin: 0 }}>
           <TranslatedText id="task.results.latest-known" />
         </p>
       </div>

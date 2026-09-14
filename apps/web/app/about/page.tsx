@@ -19,7 +19,6 @@ export default function AboutPage() {
   const article = loadAbout(resolveLocale(cookies().get(JELICA_LOCALE_COOKIE)?.value));
   return (
     <section className="panel stack">
-      <h1 style={{ margin: 0 }}><TranslatedText id="public.about.title" /></h1>
       {article ? <MarkdownContent source={article} /> : <p className="state-box"><TranslatedText id="public.about.unavailable" /></p>}
     </section>
   );

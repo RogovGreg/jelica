@@ -1108,6 +1108,16 @@
   ,"app.shell.title": { "text": "JELICA Application", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
   ,"app.shell.description": { "text": "Analytical task operations and reproducible result references.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
   ,"app.shell.footer": { "text": "JELICA application area.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"shell.web-app": { "text": "Web App", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"shell.help": { "text": "Help", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"shell.help-placeholder": { "text": "Help is not available yet", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"shell.version": { "text": "Version {version}", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"shell.command-label": { "text": "Search or command", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"shell.command-placeholder": { "text": "Type / to search or enter a command", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"shell.open-navigation": { "text": "Menu", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"shell.close-navigation": { "text": "Close navigation", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"shell.collapse-unavailable": { "text": "Sidebar collapse is not available yet", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"shell.notifications-placeholder": { "text": "Notifications are not available from this control yet", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
   ,"app.nav.tasks": { "text": "Tasks", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
   ,"app.nav.results": { "text": "Results", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
   ,"task.detail.progress-aria": { "text": "Task progress {progress}%", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }

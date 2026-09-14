@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { AnalysisServiceUnavailable } from "@/components/AnalysisServiceUnavailable";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { ProjectNavigation } from "@/components/ProjectNavigation";
@@ -209,11 +208,10 @@ export function TaskDetailsClient({ taskId, routeProjectId }: TaskDetailsClientP
 
   return (
     <section className="panel stack">
-      {routeProjectId && project ? <><Breadcrumbs items={[{ label: t("breadcrumbs.projects"), href: "/app/projects" }, { label: project.name, href: `/app/projects/${encodeURIComponent(routeProjectId)}` }, { label: t("project.navigation.tasks"), href: `/app/projects/${encodeURIComponent(routeProjectId)}/tasks` }, { label: t("task.label.task-prefix", { task: taskStatus.task_id }) }]} label={t("breadcrumbs.label")} /><ProjectNavigation projectId={routeProjectId} active="tasks" /></> : <Breadcrumbs items={[{ label: t("breadcrumbs.tasks"), href: "/app/tasks" }, { label: t("task.label.task-prefix", { task: taskStatus.task_id }) }]} label={t("breadcrumbs.label")} />}
+      {routeProjectId && project ? <ProjectNavigation projectId={routeProjectId} active="tasks" /> : null}
       {routeProjectId && project?.status === "frozen" ? <div className="state-box state-warning" role="status">{t("project.status.banner")}</div> : null}
       {projectError ? <div className="state-box state-warning" role="status">{projectError}</div> : null}
       <div className="stack" style={{ gap: "0.45rem" }}>
-        <h1 style={{ margin: 0 }}>{t("task.label.task-prefix", { task: taskStatus.task_id })}</h1>
         <p className="muted" style={{ margin: 0 }}>
           {t("task.detail.trace-id", { trace: taskStatus.trace_id ?? "—" })}
         </p>

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { LoadingState } from "@/components/LoadingState";
 import { RestrictedResourceState } from "@/components/RestrictedResourceState";
@@ -75,7 +74,6 @@ export function TaskDiscussionClient({ taskId, currentUser, compact = false, rou
   const clear = () => { if (!ownerAdmin || busy) return; setBusy("clear"); setError(null); realtime.sendCommand({ command: "discussion.clear", payload: {} }, { onAck: () => { setBusy(null); setClearOpen(false); }, onError: (code) => { setBusy(null); setError(code); } }); };
 
   return <section className={compact ? "panel stack task-discussion-compact" : "stack discussion-page"}>
-    {!compact ? <Breadcrumbs items={[{ label: t("breadcrumbs.tasks"), href: "/app/tasks" }, ...(discussion.projectName && discussion.metadata.project_id ? [{ label: discussion.projectName, href: `/app/projects/${encodeURIComponent(discussion.metadata.project_id)}` }, { label: t("discussion.title") }] : [{ label: t("task.label.task-prefix", { task: taskId }), href: `/app/tasks/${encodeURIComponent(taskId)}` }, { label: t("discussion.title") }])]} label={t("breadcrumbs.label")} /> : null}
     <section className="panel discussion-panel">
       <header className="discussion-header"><div><h2>{t("discussion.title")}</h2><span className={`connection-status connection-${realtime.connectionStatus}`} role="status">{t(connectionStatusKey(realtime.connectionStatus))}</span></div><Presence users={realtime.presence} t={t} /></header>
       {detached ? <div className="state-box state-warning">{t("task.discussion.detached")}{ownerAdmin ? t("task.discussion.detached.owner") : ""}</div> : null}

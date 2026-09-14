@@ -10,7 +10,6 @@ import {
   type ReactNode,
 } from "react";
 
-import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { ErrorState } from "@/components/ErrorState";
 import { useI18n } from "@/components/I18nProvider";
@@ -268,17 +267,6 @@ function ProjectDiscussionSession({
 
   return (
     <section className={`stack discussion-page${compact ? " discussion-compact" : ""}`}>
-      {!compact ? <Breadcrumbs
-        items={[
-          { label: t("breadcrumbs.projects"), href: "/app/projects" },
-          {
-            label: project.name,
-            href: `/app/projects/${encodeURIComponent(projectId)}`,
-          },
-          { label: t("project.navigation.discussion") },
-        ]}
-        label={t("breadcrumbs.label")}
-      /> : null}
       {!compact ? <header className="panel project-overview-header">
         <div className="project-card-heading">
           <div>

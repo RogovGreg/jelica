@@ -880,6 +880,16 @@
   ,"app.shell.title": { "default-text": "JELICA Application", "context": "Application area heading" }
   ,"app.shell.description": { "default-text": "Analytical task operations and reproducible result references.", "context": "Application area description" }
   ,"app.shell.footer": { "default-text": "JELICA application area.", "context": "Application area footer" }
+  ,"shell.web-app": { "default-text": "Web App", "context": "Expandable application navigation group label" }
+  ,"shell.help": { "default-text": "Help", "context": "Sidebar help placeholder label" }
+  ,"shell.help-placeholder": { "default-text": "Help is not available yet", "context": "Accessible description for the non-interactive Help placeholder" }
+  ,"shell.version": { "default-text": "Version {version}", "context": "Application version shown at the bottom of the sidebar" }
+  ,"shell.command-label": { "default-text": "Search or command", "context": "Accessible label for the future search and command field" }
+  ,"shell.command-placeholder": { "default-text": "Type / to search or enter a command", "context": "Placeholder for the future search and command field" }
+  ,"shell.open-navigation": { "default-text": "Menu", "context": "Button label that opens the mobile navigation drawer" }
+  ,"shell.close-navigation": { "default-text": "Close navigation", "context": "Accessible label for the mobile navigation drawer backdrop" }
+  ,"shell.collapse-unavailable": { "default-text": "Sidebar collapse is not available yet", "context": "Description for the non-interactive desktop sidebar collapse affordance" }
+  ,"shell.notifications-placeholder": { "default-text": "Notifications are not available from this control yet", "context": "Accessible description for the non-interactive account notification icon" }
   ,"app.nav.tasks": { "default-text": "Tasks", "context": "Application tasks navigation link" }
   ,"app.nav.results": { "default-text": "Results", "context": "Application results navigation link" }
   ,"nav.home": { "default-text": "Home", "context": "Public site home navigation link" }

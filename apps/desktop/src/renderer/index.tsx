@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
 import "../../../../packages/app-platform/src/theme.css";
+import "../../../../packages/app-platform/src/select.css";
 import "./styles.css";
 import { App } from "./App";
 

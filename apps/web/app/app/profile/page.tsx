@@ -35,7 +35,7 @@ export default async function ProfilePage() {
         <div><dt><TranslatedText id="profile.email-verified" /></dt><dd><TranslatedText id={user.email_verified ? "profile.email-verified" : "profile.email-unverified"} /></dd></div>
         <div><dt><TranslatedText id="profile.created" /></dt><dd><time dateTime={user.created_at}>{new Date(user.created_at).toLocaleString()}</time></dd></div>
       </dl>
-      <Link href="/app/settings" className="secondary-button"><TranslatedText id="profile.open-settings" /></Link>
+      <Link href="/settings" className="secondary-button"><TranslatedText id="profile.open-settings" /></Link>
     </section>
   );
 }

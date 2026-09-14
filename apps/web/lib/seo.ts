@@ -4,7 +4,7 @@ export const SITE_NAME = "JELICA";
 export const SITE_URL = "https://jelica.bio";
 export const SITE_DESCRIPTION =
   "JELICA is a platform for comparative genomic analysis, combining sequence validation, alignment, genetic distances, phylogenetic analysis, and reproducible results.";
-export const HOME_TITLE = "JELICA — Comparative Genomics Analysis";
+export const HOME_TITLE = "JELICA";
 export const SOCIAL_IMAGE_PATH = "/social-preview.png";
 
 export function siteUrl(pathname: string): string {
@@ -12,7 +12,7 @@ export function siteUrl(pathname: string): string {
 }
 
 export function publicPageMetadata(title: string, description: string, pathname: string): Metadata {
-  const fullTitle = `${title} | ${SITE_NAME}`;
+  const fullTitle = `${SITE_NAME} | ${title}`;
   return {
     title,
     description,

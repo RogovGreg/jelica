@@ -1,18 +1,13 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import Image from "next/image";
-import Link from "next/link";
 import Script from "next/script";
 import type { ReactNode } from "react";
 
-import { AuthControls } from "@/components/auth/AuthControls";
+import packageMetadata from "../package.json";
+import { AppShell } from "@/components/AppShell";
 import { I18nProvider } from "@/components/I18nProvider";
-import { LocaleSwitcher } from "@/components/LocaleSwitcher";
-import { PublicNavigation } from "@/components/PublicNavigation";
-import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { JELICA_LOCALE_COOKIE } from "@/lib/documentation/request";
 import { DEFAULT_LOCALE, isSupportedLocale } from "@/lib/i18n";
-import { discoverUiLocales } from "@/lib/i18n/discovery";
 import { DevelopmentNoticeModal } from "@/components/DevelopmentNoticeModal";
 import { HOME_TITLE, SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOCIAL_IMAGE_PATH } from "@/lib/seo";
 
@@ -23,8 +18,8 @@ const defaultTheme = normalizeTheme(process.env.NEXT_PUBLIC_DEFAULT_THEME);
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: HOME_TITLE,
-    template: `%s | ${SITE_NAME}`,
+    default: SITE_NAME,
+    template: `${SITE_NAME} | %s`,
   },
   applicationName: "JELICA Web",
   description: SITE_DESCRIPTION,
@@ -58,11 +53,12 @@ type RootLayoutProps = Readonly<{
 export default function RootLayout({ children }: RootLayoutProps) {
   const storedLocale = cookies().get(JELICA_LOCALE_COOKIE)?.value;
   const initialLocale = storedLocale && isSupportedLocale(storedLocale) ? storedLocale : DEFAULT_LOCALE;
-  const availableLocales = discoverUiLocales();
+  const availableLocales = [DEFAULT_LOCALE] as const;
   return (
     <html lang={initialLocale} data-theme={defaultTheme} suppressHydrationWarning>
-      <Script id="jelica-preferences-bootstrap" strategy="beforeInteractive">
-        {`(() => {
+      <head>
+        <Script id="jelica-preferences-bootstrap" strategy="beforeInteractive">
+          {`(() => {
   try {
     const storedTheme = window.localStorage.getItem("jelica-web-theme");
     if (["system", "light", "dark", "mono"].includes(storedTheme || "")) {
@@ -76,28 +72,13 @@ export default function RootLayout({ children }: RootLayoutProps) {
     // The server-provided defaults remain the fallback when browser storage is unavailable.
   }
 })();`}
-      </Script>
+        </Script>
+      </head>
       <body>
         <I18nProvider initialLocale={initialLocale}>
-          <div className="app-shell">
-            <header className="app-header">
-              <Link href="/" className="brand">
-                <Image
-                  src="/jelica-app-lockup.svg"
-                  alt="JELICA"
-                  width={3840}
-                  height={2048}
-                  className="brand-logo jelica-app-lockup"
-                  priority
-                />
-              </Link>
-              <PublicNavigation />
-              <AuthControls />
-              <LocaleSwitcher locales={availableLocales} />
-              <ThemeSwitcher />
-            </header>
-            <main className="app-main">{children}</main>
-          </div>
+          <AppShell locales={availableLocales} version={packageMetadata.version}>
+            {children}
+          </AppShell>
           <DevelopmentNoticeModal />
         </I18nProvider>
       </body>

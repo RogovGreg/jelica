@@ -1,18 +1,9 @@
 import type { ReactNode } from "react";
-import type { Metadata } from "next";
 
 import { NotificationProvider } from "@/components/notifications/NotificationProvider";
 import { NotificationToastViewport } from "@/components/notifications/NotificationToastViewport";
 
-export const metadata: Metadata = {
-  robots: { index: false, follow: false },
-};
-
-type ApplicationLayoutProps = Readonly<{
-  children: ReactNode;
-}>;
-
-export default function ApplicationLayout({ children }: ApplicationLayoutProps) {
+export default function SettingsLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <NotificationProvider>
       <div className="stack">{children}</div>

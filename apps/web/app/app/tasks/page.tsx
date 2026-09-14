@@ -57,10 +57,7 @@ export default async function AppTasksPage({ searchParams }: Readonly<{ searchPa
   return (
     <section className="panel stack">
       <div>
-        <h1 style={{ margin: 0 }}>
-          <TranslatedText id="page.tasks.title" />
-        </h1>
-        <p className="muted" style={{ marginTop: "0.35rem" }}>
+        <p className="muted" style={{ margin: 0 }}>
           <TranslatedText id="task.list.latest-known" />
         </p>
         <div className="actions-row" style={{ marginTop: "0.8rem" }}>

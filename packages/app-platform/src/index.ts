@@ -6,3 +6,7 @@ export * from "./documentation";
 export * from "./documentation-ui";
 export * from "./notification-events";
 export * from "./theme";
+export * from "./shell";
+export * from "./shell-ui";
+export * from "./select";
+export * from "./select-ui";
