@@ -117,10 +117,16 @@ export function resumeTask(taskId: string): Promise<TaskStatusSnapshot> {
   return requestJson<TaskStatusSnapshot>(`/api/tasks/${encodeURIComponent(taskId)}/resume`, { method: "POST" });
 }
 
-export async function getTaskResult(taskId: string): Promise<TaskResultLookupResponse> {
+export async function getTaskResult(
+  taskId: string,
+  options?: ServerRequestOptions,
+): Promise<TaskResultLookupResponse> {
   return requestJson<TaskResultLookupResponse>(
     `/api/tasks/${encodeURIComponent(taskId)}/result`,
-    { method: "GET" },
+    {
+      method: "GET",
+      headers: options?.cookie ? { cookie: options.cookie } : undefined,
+    },
   );
 }
 
@@ -131,14 +137,24 @@ export type TaskListFilters = Readonly<{
   state?: string[];
 }>;
 
-export async function getTaskList(filters?: TaskListFilters): Promise<TaskListResponse> {
+export type ServerRequestOptions = Readonly<{
+  cookie?: string;
+}>;
+
+export async function getTaskList(
+  filters?: TaskListFilters,
+  options?: ServerRequestOptions,
+): Promise<TaskListResponse> {
   const query = new URLSearchParams();
   filters?.project_id?.forEach((projectId) => query.append("project_id", projectId));
   filters?.state?.forEach((state) => query.append("state", state));
   if (filters?.owner) query.set("owner", filters.owner);
   if (filters?.project) query.set("project", filters.project);
   const suffix = query.toString() ? `?${query.toString()}` : "";
-  return requestJson<TaskListResponse>(`/api/tasks${suffix}`, { method: "GET" });
+  return requestJson<TaskListResponse>(`/api/tasks${suffix}`, {
+    method: "GET",
+    headers: options?.cookie ? { cookie: options.cookie } : undefined,
+  });
 }
 
 export async function getTaskDiscussion(taskId: string): Promise<TaskDiscussionMetadata> {

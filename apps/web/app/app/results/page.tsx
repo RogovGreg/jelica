@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 
 import { AnalysisServiceUnavailable } from "@/components/AnalysisServiceUnavailable";
 import { EmptyState } from "@/components/EmptyState";
@@ -12,7 +13,7 @@ import { normalizeTaskState, type TaskListItem } from "@/types/api";
 export default async function AppResultsPage() {
   let completedTasks: TaskListItem[];
   try {
-    const response = await getTaskList();
+    const response = await getTaskList(undefined, { cookie: cookies().toString() });
     completedTasks = response.items.filter((item) => normalizeTaskState(item.state) === "completed");
   } catch (error) {
     return (

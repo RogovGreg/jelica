@@ -30,6 +30,7 @@ from jelica_api.cli import (
     MachineResponseEnvelope,
 )
 from jelica_api.contracts import (
+    TaskResultOverview,
     TaskResultPackageReference,
     TaskStatusSnapshot,
     TaskSubmissionRequest,
@@ -363,6 +364,45 @@ def test_cli_client_resolve_result_reference_extracts_payload(
     assert result.content_id == "sha256:abc"
     assert result.package_path == "/tmp/result.jelica"
     assert result.command_id == "cmd-4"
+
+
+def test_cli_client_reads_typed_result_overview(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _fake_run(
+        command: list[str],
+        *,
+        capture_output: bool,
+        text: bool,
+        check: bool,
+        timeout: float,
+    ) -> subprocess.CompletedProcess[str]:
+        _ = (capture_output, text, check, timeout)
+        assert command == ["jelica", "results", "overview", "task-123", "--machine"]
+        payload = {
+            "machine_protocol_version": "1",
+            "jelica_version": "0.1.0",
+            "trace_id": None,
+            "command_id": "cmd-overview",
+            "ok": True,
+            "data": {
+                "task_id": "task-123",
+                "content_id": "sha256:abc",
+                "input_processing": None,
+                "alignment": None,
+                "distance_matrix": None,
+                "phylogenetic_tree": None,
+            },
+        }
+        return subprocess.CompletedProcess(command, 0, stdout=json.dumps(payload), stderr="")
+
+    monkeypatch.setattr("jelica_api.cli.client.subprocess.run", _fake_run)
+    client = JelicaCliClient(command_prefix=("jelica",), default_timeout_seconds=30.0)
+    result = client.read_result_overview(task_reference="task-123")
+
+    assert result.task_id == "task-123"
+    assert result.content_id == "sha256:abc"
+    assert result.distance_matrix is None
 
 
 def test_cli_client_find_task_by_trace_id_returns_matching_active_task(
@@ -801,6 +841,7 @@ def test_get_task_result_endpoint_returns_reference_for_completed_task(
         package_path="/tmp/result.jelica",
         command_id="cmd-result",
     )
+    overview = TaskResultOverview(task_id="task-1", content_id="sha256:abc")
 
     class StubCli:
         def get_task_status(self, *, task_reference: str) -> TaskStatusSnapshot:
@@ -813,6 +854,10 @@ def test_get_task_result_endpoint_returns_reference_for_completed_task(
             assert task_reference == "task-1"
             return result_reference
 
+        def read_result_overview(self, *, task_reference: str) -> TaskResultOverview:
+            assert task_reference == "task-1"
+            return overview
+
     monkeypatch.setattr(
         "jelica_api.api.routes.tasks.get_app_state",
         lambda _request: _state_for_routes(cli_client=StubCli()),
@@ -822,6 +867,7 @@ def test_get_task_result_endpoint_returns_reference_for_completed_task(
     payload = get_task_result("task-1", request)
     assert payload.available is True
     assert payload.result_reference == result_reference
+    assert payload.overview == overview
 
 
 def test_get_task_result_endpoint_maps_result_task_not_found_to_404(

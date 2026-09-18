@@ -21,6 +21,7 @@ from jelica_cli.machine_protocol import (
 from jelica_cli.system_config import CliSystemConfigService
 from jelica_contracts import Event, EventComponent, EventType, PublicError
 from jelica_core.events import reset_command_id, run_initialize_analysis_task_from_inputs
+from jelica_core.reporting import ResultOverview
 from jelica_core.result_package import (
     ResolvedResultPackagePath,
     ResultPackageLibraryError,
@@ -229,6 +230,45 @@ def test_results_path_machine_returns_reference_payload(
         "content_id": "sha256:" + ("a" * 64),
         "path": str(expected_path.resolve(strict=False)),
     }
+
+
+def test_results_overview_machine_returns_structured_payload(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    jelica_home = tmp_path / "home"
+    _init_config(jelica_home)
+    expected_path = tmp_path / "sample-result.jelica"
+    expected_path.write_text("placeholder", encoding="utf-8")
+    content_id = "sha256:" + ("a" * 64)
+
+    monkeypatch.setattr(
+        cli_main,
+        "resolve_result_package_path",
+        lambda *, task_or_content_ref, core_config_service: ResolvedResultPackagePath(
+            content_id=content_id,
+            path=expected_path,
+        ),
+    )
+    monkeypatch.setattr(
+        cli_main,
+        "build_result_overview",
+        lambda *, package_path: ResultOverview(
+            task_id="task-1",
+            content_id=content_id,
+        ),
+    )
+
+    result = _invoke_cli(
+        args=["results", "overview", "task-1", "--machine"],
+        jelica_home=jelica_home,
+    )
+
+    assert result.exit_code == 0, result.stdout
+    payload = _parse_single_response(result.stdout)
+    assert payload["ok"] is True
+    assert payload["data"]["task_id"] == "task-1"
+    assert payload["data"]["distance_matrix"] is None
 
 
 def test_results_path_machine_returns_structured_error_for_library_failure(
@@ -630,7 +670,6 @@ def test_machine_flag_is_exposed_on_response_and_stream_commands(tmp_path: Path)
         result = _invoke_cli(args=[*command_path, "--help"], jelica_home=jelica_home)
         assert result.exit_code == 0, result.stdout
         assert "--machine" in result.stdout
-
 
 
 @pytest.mark.parametrize("use_name", (False, True))

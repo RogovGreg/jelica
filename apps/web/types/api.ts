@@ -1,6 +1,8 @@
 
 import type { AnalysisOverrides } from "../../../packages/app-platform/src/analysis";
 export type { AnalysisOverrides };
+import type { TaskResultOverview } from "../../../packages/app-platform/src/result-overview";
+export type { TaskResultOverview };
 
 export type ReconciliationDiagnostics = {
   scanned: number;
@@ -94,6 +96,7 @@ export type TaskResultLookupResponse = {
   available: boolean;
   status_command_id: string;
   result_reference: TaskResultPackageReference | null;
+  overview: TaskResultOverview | null;
   detail: string | null;
 };
 

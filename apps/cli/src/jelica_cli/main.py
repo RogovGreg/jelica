@@ -51,6 +51,7 @@ from jelica_core.events import (
     set_command_id,
 )
 from jelica_core.input_sources import InputSourceKind, classify_input_source
+from jelica_core.reporting import ResultOverviewBuildError, build_result_overview
 from jelica_core.result_package import (
     JelicaPackageValidator,
     ResultPackageLibraryError,
@@ -640,6 +641,56 @@ def results_path(
         raise typer.Exit(code=0)
 
     _TERMINAL.plain(str(resolved.path.resolve(strict=False)))
+    raise typer.Exit(code=0)
+
+
+@results_app.command(
+    "overview",
+    help="jelica results overview <task-id|content-id> — Read display-safe result data.",
+    rich_help_panel="Catalog",
+)
+def results_overview(
+    task_or_content_ref: str = typer.Argument(
+        ...,
+        help="Task ID, full content ID (sha256:<digest>), or bare 64-char digest.",
+    ),
+    machine: bool = typer.Option(
+        False,
+        "--machine",
+        help="Write one machine protocol JSON response.",
+    ),
+) -> None:
+    try:
+        resolved = resolve_result_package_path(
+            task_or_content_ref=task_or_content_ref,
+            core_config_service=_core_config_service(),
+        )
+        overview = build_result_overview(package_path=resolved.path)
+    except (ResultPackageLibraryError, ResultOverviewBuildError) as error:
+        if machine:
+            error_code = error.code.value
+            machine_error = _build_cli_public_error(
+                definition=CLI_RESULT_PACKAGE_RESOLUTION_FAILED,
+                message_params={"detail": f"[{error_code}] {error}"},
+                expected=True,
+            ).model_copy(
+                update={
+                    "safe_details": {
+                        "reference": task_or_content_ref,
+                        "result_package_error_code": error_code,
+                    }
+                }
+            )
+            _print_machine_error(error=machine_error)
+            raise typer.Exit(code=1) from error
+        _TERMINAL.plain(f"[{error.code.value}] {error}", style="red")
+        raise typer.Exit(code=1) from error
+
+    payload = overview.model_dump(mode="json")
+    if machine:
+        _print_machine_success(data=payload)
+        raise typer.Exit(code=0)
+    _TERMINAL.plain(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True))
     raise typer.Exit(code=0)
 
 

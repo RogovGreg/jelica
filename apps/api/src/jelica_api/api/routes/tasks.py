@@ -279,6 +279,7 @@ def get_task_result(task_id: str, request: Request) -> TaskResultLookupResponse:
         result_reference = state.cli_client.resolve_result_package_reference(
             task_reference=task_reference
         )
+        overview = state.cli_client.read_result_overview(task_reference=task_reference)
     except JelicaCliCommandError as error:
         result_code = _result_package_error_code(error)
         if result_code in _RESULT_NOT_FOUND_CODES:
@@ -316,6 +317,7 @@ def get_task_result(task_id: str, request: Request) -> TaskResultLookupResponse:
         available=True,
         status_command_id=status_snapshot.command_id,
         result_reference=result_reference,
+        overview=overview,
     )
 
 

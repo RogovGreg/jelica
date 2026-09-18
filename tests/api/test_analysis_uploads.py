@@ -26,6 +26,7 @@ from jelica_api.analysis_uploads import (
     UploadStorageError,
     UploadUnavailableError,
 )
+from jelica_api.api.authentication import AUTH_SESSION_COOKIE_NAME
 from jelica_api.api.routes.analysis_uploads import (
     create_upload_session as api_create_session,
 )
@@ -233,6 +234,39 @@ def test_guest_upload_smoke_materializes_files_directory_and_config(
         ),
     )
     assert not (upload_harness.root / session_id).exists()
+
+
+def test_invalid_auth_cookie_falls_back_to_guest_upload_session(
+    upload_harness: _UploadHarness,
+) -> None:
+    browser = _Browser(
+        app=upload_harness.app,
+        cookies={AUTH_SESSION_COOKIE_NAME: "expired-auth-token"},
+    )
+    response = Response()
+
+    session = api_create_session(
+        browser.request(path="/api/analysis-uploads", method="POST"),
+        response,
+    )
+
+    assert session.submission_status == "open"
+    set_cookie_headers = response.headers.getlist("set-cookie")
+    assert any(GUEST_SESSION_COOKIE_NAME in value for value in set_cookie_headers)
+    assert any(
+        value.startswith(f"{AUTH_SESSION_COOKIE_NAME}=") and "Max-Age=0" in value
+        for value in set_cookie_headers
+    )
+    raw_cookie = next(value for value in set_cookie_headers if GUEST_SESSION_COOKIE_NAME in value)
+    parsed = SimpleCookie()
+    parsed.load(raw_cookie)
+    browser.cookies[GUEST_SESSION_COOKIE_NAME] = parsed[GUEST_SESSION_COOKIE_NAME].value
+    uploaded = api_upload_files(
+        session.id,
+        browser.request(path=f"/api/analysis-uploads/{session.id}/files", method="POST"),
+        [_upload_file("sample.fasta", b">sample\nACGT\n")],
+    )
+    assert len(uploaded.items) == 1
 
 
 def test_actor_isolation_and_login_does_not_claim_guest_upload(
@@ -493,9 +527,10 @@ def test_stale_submission_reservation_can_be_reopened(upload_harness: _UploadHar
         actor=actor, session_id=session.id, trace_id="trace-1", now=created_at
     )
     assert acquired.status == "open"
-    assert service.get_session(
-        actor=actor, session_id=session.id, now=created_at
-    ).submission_status == "submitting"
+    assert (
+        service.get_session(actor=actor, session_id=session.id, now=created_at).submission_status
+        == "submitting"
+    )
 
     concurrent = service.reserve_submission(
         actor=actor,

@@ -716,6 +716,8 @@
   ,"task.upload.no-sources": { "default-text": "Add at least one file, folder, or NCBI source.", "context": "No source validation" }
   ,"task.upload.already-submitted": { "default-text": "This upload was already submitted.", "context": "Consumed upload session state" }
   ,"task.upload.retry": { "default-text": "Retry", "context": "Retry failed upload" }
+  ,"task.upload.session-initializing": { "default-text": "Preparing upload session…", "context": "Upload session initialization status" }
+  ,"task.upload.session-unavailable": { "default-text": "The upload session is unavailable. Reload the page and try again.", "context": "Upload session initialization or lifecycle error" }
   ,"task.analysis-settings": { "default-text": "Analysis settings", "context": "Structured analytical override section" }
   ,"task.analysis-settings-hint": { "default-text": "Unchanged settings inherit from the uploaded config or JELICA defaults.", "context": "Override inheritance explanation" }
   ,"task.analysis.inherit": { "default-text": "From config/default", "context": "Inherited override state" }
@@ -961,6 +963,38 @@
   ,"result.card.command-id": { "default-text": "Command ID:", "context": "Result package command identifier label" }
   ,"result.card.yes": { "default-text": "yes", "context": "Result package available affirmative value" }
   ,"result.card.no": { "default-text": "no", "context": "Result package available negative value" }
+  ,"result.overview.title": { "default-text": "Results overview", "context": "Analytical result overview heading" }
+  ,"result.overview.description": { "default-text": "Verified summary, phylogenetic tree, genetic distances, and sample statistics from the result package.", "context": "Analytical result overview description" }
+  ,"result.overview.unavailable-title": { "default-text": "Results overview unavailable", "context": "Heading when no structured result overview is available" }
+  ,"result.overview.unavailable-description": { "default-text": "This result package does not expose structured overview data.", "context": "Description when no structured result overview is available" }
+  ,"result.overview.unavailable-value": { "default-text": "Unavailable", "context": "Summary value when an analytical stage is unavailable" }
+  ,"result.overview.block-unavailable": { "default-text": "This analytical stage did not produce displayable data.", "context": "Unavailable analytical result block message" }
+  ,"result.overview.summary.sequences": { "default-text": "Sequences", "context": "Result summary analyzed unique sequence count label" }
+  ,"result.overview.summary.alignment-length": { "default-text": "Alignment length", "context": "Result summary alignment length label" }
+  ,"result.overview.summary.tree-method": { "default-text": "Tree method", "context": "Result summary phylogenetic method label" }
+  ,"result.overview.summary.distance-model": { "default-text": "Distance model", "context": "Result summary genetic distance model label" }
+  ,"result.overview.summary.pairs": { "default-text": "Pairwise comparisons", "context": "Result summary processed pair count label" }
+  ,"result.overview.tree.title": { "default-text": "Phylogenetic tree", "context": "Result phylogenetic tree heading" }
+  ,"result.overview.tree.description": { "default-text": "{method}, {rooting} rooted. Horizontal branch lengths are proportional to genetic distance.", "context": "Result phylogenetic tree description" }
+  ,"result.overview.tree.unavailable": { "default-text": "The phylogenetic stage did not produce a rooted tree.", "context": "Missing phylogenetic tree description" }
+  ,"result.overview.tree.accessible-label": { "default-text": "Rectangular phylogenetic tree", "context": "Accessible label for the phylogenetic tree graphic" }
+  ,"result.overview.tree.branch-tooltip": { "default-text": "Branch length: {length}", "context": "Phylogenetic branch tooltip" }
+  ,"result.overview.heatmap.title": { "default-text": "Genetic distance", "context": "Genetic distance heatmap heading" }
+  ,"result.overview.heatmap.description": { "default-text": "Pairwise {model} values. Focus or hover a cell for comparison details.", "context": "Genetic distance heatmap description" }
+  ,"result.overview.heatmap.unavailable": { "default-text": "The distance-matrix stage did not produce displayable data.", "context": "Missing distance matrix description" }
+  ,"result.overview.heatmap.accessible-label": { "default-text": "Pairwise genetic distance matrix", "context": "Accessible label for genetic distance matrix" }
+  ,"result.overview.heatmap.self-tooltip": { "default-text": "{sample} compared with itself: distance 0.", "context": "Diagonal genetic distance cell tooltip" }
+  ,"result.overview.heatmap.undefined-tooltip": { "default-text": "{left} and {right}: distance undefined because no comparable sites were available.", "context": "Undefined genetic distance tooltip" }
+  ,"result.overview.heatmap.distance-tooltip": { "default-text": "{left} and {right}: distance {distance}.", "context": "Genetic distance tooltip without pair counts" }
+  ,"result.overview.heatmap.pair-tooltip": { "default-text": "{left} and {right}: distance {distance}; {mismatches} mismatches across {comparable} comparable sites; {gaps} gap sites and {ambiguous} ambiguous sites excluded.", "context": "Genetic distance pair detail tooltip" }
+  ,"result.overview.samples.title": { "default-text": "Sample statistics", "context": "Result sample statistics heading" }
+  ,"result.overview.samples.description": { "default-text": "Input-derived sequence facts used by the completed analysis.", "context": "Result sample statistics description" }
+  ,"result.overview.sample": { "default-text": "Sample", "context": "Result sample label" }
+  ,"result.overview.samples.length": { "default-text": "Sequence length", "context": "Result sample sequence length heading" }
+  ,"result.overview.samples.gc": { "default-text": "GC content", "context": "Result sample GC content heading" }
+  ,"result.overview.samples.ambiguous": { "default-text": "Ambiguous bases", "context": "Result sample ambiguous base count heading" }
+  ,"result.overview.samples.status": { "default-text": "Validation", "context": "Result sample validation status heading" }
+  ,"result.overview.technical-details": { "default-text": "Technical package details", "context": "Expandable result package metadata summary" }
   ,"support.field.name": { "default-text": "Name", "context": "Support request name field label" }
   ,"support.field.email": { "default-text": "Email", "context": "Support request email field label" }
   ,"support.field.subject": { "default-text": "Subject", "context": "Support request subject field label" }

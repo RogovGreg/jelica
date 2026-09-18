@@ -14,6 +14,18 @@ from .models import (
     ReportMetric,
     ReportStage,
 )
+from .overview import (
+    ResultOverview,
+    ResultOverviewAlignment,
+    ResultOverviewBuilder,
+    ResultOverviewBuildError,
+    ResultOverviewBuildErrorCode,
+    ResultOverviewDistance,
+    ResultOverviewInput,
+    ResultOverviewSample,
+    ResultOverviewTree,
+    build_result_overview,
+)
 from .pdf import (
     AnalysisReportPdfExportOutcome,
     PdfReportRenderer,
@@ -36,6 +48,16 @@ __all__ = [
     "ReportMetadata",
     "ReportMetric",
     "ReportStage",
+    "ResultOverview",
+    "ResultOverviewAlignment",
+    "ResultOverviewBuildError",
+    "ResultOverviewBuildErrorCode",
+    "ResultOverviewBuilder",
+    "ResultOverviewDistance",
+    "ResultOverviewInput",
+    "ResultOverviewSample",
+    "ResultOverviewTree",
     "build_analysis_report_model",
+    "build_result_overview",
     "export_analysis_report_pdf",
 ]

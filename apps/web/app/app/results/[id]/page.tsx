@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 
 import { ErrorState } from "@/components/ErrorState";
 import { RestrictedResourceState } from "@/components/RestrictedResourceState";
 import { ResultCard } from "@/components/ResultCard";
+import { ResultOverview } from "@/components/ResultOverview";
 import { TranslatedText } from "@/components/TranslatedText";
 import { getTaskResult } from "@/lib/api/client";
 import { isResourceUnavailableError } from "@/lib/api/errors";
@@ -16,16 +18,14 @@ type AppResultDetailsPageProps = {
 export default async function AppResultDetailsPage({ params }: AppResultDetailsPageProps) {
   const taskId = decodeURIComponent(params.id);
   try {
-    const result = await getTaskResult(taskId);
+    const result = await getTaskResult(taskId, { cookie: cookies().toString() });
     return (
-      <section className="panel stack">
-        <div>
-          <h1 style={{ margin: 0 }}><TranslatedText id="task.label.task-prefix" values={{ task: taskId }} /></h1>
-          <p className="muted" style={{ marginTop: "0.35rem" }}>
-            <TranslatedText id="result.page.api-description" values={{ task_id: taskId }} />
-          </p>
-        </div>
-        <ResultCard result={result} />
+      <section className="stack result-details-page">
+        <ResultOverview overview={result.overview} />
+        <details className="panel result-technical-details">
+          <summary><TranslatedText id="result.overview.technical-details" /></summary>
+          <ResultCard result={result} />
+        </details>
         <div className="actions-row">
           <Link href={`/app/tasks/${encodeURIComponent(taskId)}`} className="secondary-button">
             <TranslatedText id="common.action.back-to-task-details" />

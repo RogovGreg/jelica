@@ -834,6 +834,8 @@
   ,"task.upload.no-sources": { "text": "Add at least one file, folder, or NCBI source.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
   ,"task.upload.already-submitted": { "text": "This upload was already submitted.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
   ,"task.upload.retry": { "text": "Retry", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.upload.session-initializing": { "text": "Preparing upload session…", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"task.upload.session-unavailable": { "text": "The upload session is unavailable. Reload the page and try again.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
   ,"task.analysis-settings": { "text": "Analysis settings", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
   ,"task.analysis-settings-hint": { "text": "Unchanged settings inherit from the uploaded config or JELICA defaults.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
   ,"task.analysis.inherit": { "text": "From config/default", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
@@ -1138,6 +1140,38 @@
   ,"result.card.command-id": { "text": "Command ID:", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
   ,"result.card.yes": { "text": "yes", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
   ,"result.card.no": { "text": "no", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.title": { "text": "Results overview", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.description": { "text": "Verified summary, phylogenetic tree, genetic distances, and sample statistics from the result package.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.unavailable-title": { "text": "Results overview unavailable", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.unavailable-description": { "text": "This result package does not expose structured overview data.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.unavailable-value": { "text": "Unavailable", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.block-unavailable": { "text": "This analytical stage did not produce displayable data.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.summary.sequences": { "text": "Sequences", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.summary.alignment-length": { "text": "Alignment length", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.summary.tree-method": { "text": "Tree method", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.summary.distance-model": { "text": "Distance model", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.summary.pairs": { "text": "Pairwise comparisons", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.tree.title": { "text": "Phylogenetic tree", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.tree.description": { "text": "{method}, {rooting} rooted. Horizontal branch lengths are proportional to genetic distance.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.tree.unavailable": { "text": "The phylogenetic stage did not produce a rooted tree.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.tree.accessible-label": { "text": "Rectangular phylogenetic tree", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.tree.branch-tooltip": { "text": "Branch length: {length}", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.heatmap.title": { "text": "Genetic distance", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.heatmap.description": { "text": "Pairwise {model} values. Focus or hover a cell for comparison details.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.heatmap.unavailable": { "text": "The distance-matrix stage did not produce displayable data.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.heatmap.accessible-label": { "text": "Pairwise genetic distance matrix", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.heatmap.self-tooltip": { "text": "{sample} compared with itself: distance 0.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.heatmap.undefined-tooltip": { "text": "{left} and {right}: distance undefined because no comparable sites were available.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.heatmap.distance-tooltip": { "text": "{left} and {right}: distance {distance}.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.heatmap.pair-tooltip": { "text": "{left} and {right}: distance {distance}; {mismatches} mismatches across {comparable} comparable sites; {gaps} gap sites and {ambiguous} ambiguous sites excluded.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.samples.title": { "text": "Sample statistics", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.samples.description": { "text": "Input-derived sequence facts used by the completed analysis.", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.sample": { "text": "Sample", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.samples.length": { "text": "Sequence length", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.samples.gc": { "text": "GC content", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.samples.ambiguous": { "text": "Ambiguous bases", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.samples.status": { "text": "Validation", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
+  ,"result.overview.technical-details": { "text": "Technical package details", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
   ,"public.download.desktop-label": { "text": "Desktop", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
   ,"public.download.cli-label": { "text": "CLI", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }
   ,"result.page.task-id": { "text": "Task ID", "verified": false, "verifiedBy": null, "verifiedAt": null, "translatedBy": null, "translatedAt": null }

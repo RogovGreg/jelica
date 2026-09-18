@@ -94,6 +94,7 @@ from .task_runtime import (
     TaskListItem,
     TaskListResponse,
     TaskResultLookupResponse,
+    TaskResultOverview,
     TaskResultPackageReference,
     TaskStatusSnapshot,
 )
@@ -160,6 +161,7 @@ __all__ = [
     "SupportRequestCreateRequest",
     "SupportRequestResponse",
     "TaskResultLookupResponse",
+    "TaskResultOverview",
     "TaskResultPackageReference",
     "TaskStatusSnapshot",
     "TaskListItem",

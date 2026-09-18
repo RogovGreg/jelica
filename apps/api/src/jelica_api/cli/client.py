@@ -9,6 +9,7 @@ from typing import TypeVar
 from pydantic import ValidationError
 
 from jelica_api.contracts import (
+    TaskResultOverview,
     TaskResultPackageReference,
     TaskStatusSnapshot,
     TaskSubmissionRequest,
@@ -255,6 +256,22 @@ class JelicaCliClient:
             content_id=payload.content_id,
             package_path=payload.path,
             command_id=envelope.command_id,
+        )
+
+    def read_result_overview(
+        self,
+        *,
+        task_reference: str,
+        timeout_seconds: float | None = None,
+    ) -> TaskResultOverview:
+        envelope = self.run_machine_command(
+            args=["results", "overview", task_reference],
+            timeout_seconds=timeout_seconds,
+        )
+        return _parse_machine_data(
+            envelope=envelope,
+            payload_type=TaskResultOverview,
+            payload_name="results overview payload",
         )
 
     def _resolve_timeout(self, *, timeout_seconds: float | None) -> float:

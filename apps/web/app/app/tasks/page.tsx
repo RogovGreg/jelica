@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 
 import { AnalysisServiceUnavailable } from "@/components/AnalysisServiceUnavailable";
 import { EmptyState } from "@/components/EmptyState";
@@ -21,7 +22,10 @@ export default async function AppTasksPage({ searchParams }: Readonly<{ searchPa
   const state = requestedState && VALID_TASK_STATES.has(requestedState) ? requestedState : undefined;
   let tasks: TaskListItem[];
   try {
-    const response = await getTaskList({ owner, project, project_id: projectIds.length ? projectIds : undefined, state: state ? [state] : undefined });
+    const response = await getTaskList(
+      { owner, project, project_id: projectIds.length ? projectIds : undefined, state: state ? [state] : undefined },
+      { cookie: cookies().toString() },
+    );
     tasks = response.items;
   } catch (error) {
     return (

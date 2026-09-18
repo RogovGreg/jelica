@@ -19,8 +19,9 @@ from jelica_api.analysis_uploads import (
     UploadStorageError,
     UploadUnavailableError,
 )
-from jelica_api.api.authentication import optional_current_user
+from jelica_api.api.authentication import AUTH_SESSION_COOKIE_NAME, optional_current_user
 from jelica_api.app_state import get_app_state
+from jelica_api.auth import UserRecord
 from jelica_api.contracts import (
     UploadItemResponse,
     UploadItemsResponse,
@@ -33,10 +34,18 @@ router = APIRouter(prefix="/api/analysis-uploads", tags=["analysis-uploads"])
 @router.post("", response_model=UploadSessionResponse, status_code=status.HTTP_201_CREATED)
 def create_upload_session(request: Request, response: Response) -> UploadSessionResponse:
     state = get_app_state(request)
-    current_user = optional_current_user(request)
+    current_user = _optional_upload_user(request)
     if current_user is not None:
         actor = WebActorIdentity(user_id=current_user.user_id)
     else:
+        if request.cookies.get(AUTH_SESSION_COOKIE_NAME, "").strip() != "":
+            response.delete_cookie(
+                key=AUTH_SESSION_COOKIE_NAME,
+                path="/",
+                secure=state.settings.auth_cookie_secure,
+                httponly=True,
+                samesite="lax",
+            )
         actor = WebActorIdentity(
             guest_session_hash=guest_identity_hash_for_creation(
                 request=request,
@@ -168,8 +177,17 @@ def delete_upload_item(session_id: str, item_id: str, request: Request) -> Respo
 def _actor_for_request(request: Request) -> WebActorIdentity:
     return actor_identity_for_request(
         request=request,
-        current_user=optional_current_user(request),
+        current_user=_optional_upload_user(request),
     )
+
+
+def _optional_upload_user(request: Request) -> UserRecord | None:
+    try:
+        return optional_current_user(request)
+    except HTTPException as error:
+        if error.status_code == status.HTTP_401_UNAUTHORIZED:
+            return None
+        raise
 
 
 def _http_upload_error(error: AnalysisUploadError) -> HTTPException:
