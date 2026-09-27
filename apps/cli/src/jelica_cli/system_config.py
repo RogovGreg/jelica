@@ -108,6 +108,21 @@ class CliSystemConfigService:
     def load_resolved_core_config(self) -> ResolvedCoreConfig:
         return self.load().resolved_core
 
+    def get_parameter(self, *, parameter: str) -> object:
+        """Read one semantic value using the same paths as config set."""
+
+        normalized_parameter = parameter.strip()
+        if normalized_parameter in _CLI_PARAMETERS:
+            loaded = self.load()
+            return getattr(loaded.cli, normalized_parameter.removeprefix("cli."))
+        return self._core_service.get_parameter(parameter=normalized_parameter)
+
+    def resolve_parameter_name(self, *, parameter: str) -> str:
+        normalized_parameter = parameter.strip()
+        if normalized_parameter in _CLI_PARAMETERS:
+            return normalized_parameter
+        return self._core_service.resolve_parameter_name(parameter=normalized_parameter)
+
     def show_document(self) -> dict[str, object]:
         document = deepcopy(self.load().document)
         raw_api_key = document.get("ncbi_api_key")

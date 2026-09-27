@@ -970,7 +970,9 @@ def test_run_reprioritize_analytical_task_rejects_invalid_requests(tmp_path: Pat
     assert invalid_priority.error.event.code == 2212
 
 
-def test_run_delete_analytical_tasks_batch_mixed_result_with_dedup(tmp_path: Path) -> None:
+def test_run_delete_analytical_tasks_prevalidates_all_ids_before_deletion(
+    tmp_path: Path,
+) -> None:
     service = _initialize_core(tmp_path / "home")
     sample = tmp_path / "sample.fasta"
     _write_sample(sample, sample_id="delete-batch")
@@ -985,19 +987,10 @@ def test_run_delete_analytical_tasks_batch_mixed_result_with_dedup(tmp_path: Pat
 
     assert result.ok is True
     assert result.value is not None
-    batch = result.value
-    assert batch.result.value == "partially_applied"
-    assert batch.requested_count == 3
-    assert batch.unique_count == 2
-    assert [item.task_id for item in batch.items] == [task_id, "missing-task"]
-    assert batch.items[0].result.value == "deleted"
-    assert batch.items[1].result.value == "not_found"
-    assert not task_dir.exists()
-
-    registry = AnalyticalTaskRegistryService(database_path=resolved.database_path)
-    with pytest.raises(AnalyticalTaskNotFoundError):
-        registry.get_task(task_id=task_id)
-
+    assert result.value.result.value == "rejected"
+    assert result.value.items[0].result.value == "rejected"
+    assert "not found" in (result.value.items[0].detail or "")
+    assert task_dir.exists()
 
 def test_run_delete_analytical_tasks_immediately_deletes_queued_paused_and_completed_tasks(
     tmp_path: Path,
@@ -1030,6 +1023,7 @@ def test_run_delete_analytical_tasks_immediately_deletes_queued_paused_and_compl
 
     delete_result = run_delete_analytical_tasks(
         task_ids=(queued_task_id, paused_task_id, completed_task_id),
+        force=True,
         core_config_service=service,
     )
     assert delete_result.ok is True

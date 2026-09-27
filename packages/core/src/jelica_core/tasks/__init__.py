@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+from .deletion import (
+    TaskDeletionSelection,
+    TaskDeletionValidationError,
+    select_tasks_for_deletion,
+)
 from .errors import (
     TaskConfigSaveError,
     TaskDirectoryAlreadyExistsError,
@@ -54,6 +59,8 @@ from .registry_repository import AnalyticalTaskRegistry
 from .registry_schema import (
     TASK_JOB_REGISTRY_EXPECTED_COLUMNS,
     TASK_JOB_REGISTRY_TABLE_NAME,
+    TASK_MAINTENANCE_STATE_EXPECTED_COLUMNS,
+    TASK_MAINTENANCE_STATE_TABLE_NAME,
     TASK_REGISTRY_APPLICATION_ID,
     TASK_REGISTRY_EXPECTED_COLUMNS,
     TASK_REGISTRY_EXPECTED_INDEXES,
@@ -76,6 +83,8 @@ __all__ = [
     "TASK_REGISTRY_EXPECTED_INDEXES",
     "TASK_RUNTIME_LEASE_REGISTRY_EXPECTED_COLUMNS",
     "TASK_RUNTIME_LEASE_REGISTRY_TABLE_NAME",
+    "TASK_MAINTENANCE_STATE_EXPECTED_COLUMNS",
+    "TASK_MAINTENANCE_STATE_TABLE_NAME",
     "TASK_REGISTRY_SCHEMA_VERSION",
     "TASK_REGISTRY_TABLE_NAME",
     "TASK_NAME_MAX_LENGTH",
@@ -117,6 +126,9 @@ __all__ = [
     "TaskStorageError",
     "TaskWorkspaceDeleteError",
     "TaskWorkspacePaths",
+    "TaskDeletionSelection",
+    "TaskDeletionValidationError",
+    "select_tasks_for_deletion",
     "generate_automatic_task_name",
     "is_uuid_task_reference",
     "normalize_human_readable_name",

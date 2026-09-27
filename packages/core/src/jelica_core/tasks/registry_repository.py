@@ -41,6 +41,8 @@ from .registry_schema import (
     MIGRATIONS,
     TASK_JOB_REGISTRY_EXPECTED_COLUMNS,
     TASK_JOB_REGISTRY_TABLE_NAME,
+    TASK_MAINTENANCE_STATE_EXPECTED_COLUMNS,
+    TASK_MAINTENANCE_STATE_TABLE_NAME,
     TASK_REGISTRY_APPLICATION_ID,
     TASK_REGISTRY_EXPECTED_COLUMNS,
     TASK_REGISTRY_EXPECTED_INDEXES,
@@ -621,6 +623,52 @@ class AnalyticalTaskRegistry:
         finally:
             connection.close()
 
+    def get_last_tasks_cleanup_at(self) -> datetime | None:
+        self.ensure_schema()
+        connection = self._open_connection()
+        try:
+            row = connection.execute(
+                f"SELECT last_tasks_cleanup_at FROM {TASK_MAINTENANCE_STATE_TABLE_NAME} "
+                "WHERE singleton_id = 1"
+            ).fetchone()
+            if row is None:
+                raise AnalyticalTaskRegistryIncompatibleSchemaError(
+                    database_path=self._database_path,
+                    detail="maintenance state singleton row is missing",
+                )
+            raw_timestamp = row["last_tasks_cleanup_at"]
+            return None if raw_timestamp is None else parse_utc_datetime(str(raw_timestamp))
+        except sqlite3.Error as error:
+            raise self._translate_sqlite_error(error) from error
+        finally:
+            connection.close()
+
+    def set_last_tasks_cleanup_at(self, timestamp: datetime | None) -> None:
+        self.ensure_schema()
+        connection = self._open_connection()
+        try:
+            self._begin_immediate(connection)
+            try:
+                result = connection.execute(
+                    f"UPDATE {TASK_MAINTENANCE_STATE_TABLE_NAME} "
+                    "SET last_tasks_cleanup_at = ? WHERE singleton_id = 1",
+                    (None if timestamp is None else serialize_utc_datetime(timestamp),),
+                )
+                if result.rowcount != 1:
+                    raise AnalyticalTaskRegistryIncompatibleSchemaError(
+                        database_path=self._database_path,
+                        detail="maintenance state singleton row is missing",
+                    )
+            except Exception:
+                self._rollback(connection)
+                raise
+            self._commit(connection)
+        except sqlite3.Error as error:
+            self._rollback(connection)
+            raise self._translate_sqlite_error(error) from error
+        finally:
+            connection.close()
+
     def attach_worker_pid(
         self,
         *,
@@ -903,6 +951,7 @@ class AnalyticalTaskRegistry:
         self,
         *,
         states: Sequence[AnalyticalTaskState] | None = None,
+        updated_before: datetime | None = None,
         limit: int | None = None,
         offset: int = 0,
         order: AnalyticalTaskSortOrder = (
@@ -921,6 +970,10 @@ class AnalyticalTaskRegistry:
             placeholders = ", ".join("?" for _ in states)
             query += f" WHERE state IN ({placeholders})"
             params.extend(state.value for state in states)
+        if updated_before is not None:
+            query += " AND" if " WHERE " in query else " WHERE"
+            query += " updated_at < ?"
+            params.append(serialize_utc_datetime(updated_before))
         query += f" ORDER BY {self._build_order_clause(order)}"
         if limit is not None:
             query += " LIMIT ?"
@@ -945,13 +998,20 @@ class AnalyticalTaskRegistry:
         self,
         *,
         states: Sequence[AnalyticalTaskState] | None = None,
+        updated_before: datetime | None = None,
         limit: int | None = None,
         offset: int = 0,
         order: AnalyticalTaskSortOrder = (
             AnalyticalTaskSortOrder.DEFAULT_PRIORITY_DESC_CREATED_AT_ASC
         ),
     ) -> Sequence[AnalyticalTaskSnapshot]:
-        tasks = self.list(states=states, limit=limit, offset=offset, order=order)
+        tasks = self.list(
+            states=states,
+            updated_before=updated_before,
+            limit=limit,
+            offset=offset,
+            order=order,
+        )
         if len(tasks) == 0:
             return []
         connection = self._open_connection()
@@ -2455,6 +2515,11 @@ class AnalyticalTaskRegistry:
             table_name=TASK_RUNTIME_LEASE_REGISTRY_TABLE_NAME,
             expected_columns=TASK_RUNTIME_LEASE_REGISTRY_EXPECTED_COLUMNS,
         )
+        self._assert_table_columns(
+            connection=connection,
+            table_name=TASK_MAINTENANCE_STATE_TABLE_NAME,
+            expected_columns=TASK_MAINTENANCE_STATE_EXPECTED_COLUMNS,
+        )
 
         task_indexes = self._list_indexes(connection, table_name=TASK_REGISTRY_TABLE_NAME)
         job_indexes = self._list_indexes(connection, table_name=TASK_JOB_REGISTRY_TABLE_NAME)
@@ -2988,6 +3053,8 @@ class AnalyticalTaskRegistry:
     def _build_order_clause(self, order: AnalyticalTaskSortOrder) -> str:
         if order is AnalyticalTaskSortOrder.UPDATED_AT_DESC:
             return "updated_at DESC, task_id ASC"
+        if order is AnalyticalTaskSortOrder.UPDATED_AT_ASC:
+            return "updated_at ASC, task_id ASC"
         return "default_priority DESC, created_at ASC, task_id ASC"
 
     def _translate_task_integrity_error(

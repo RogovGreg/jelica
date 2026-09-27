@@ -59,7 +59,10 @@ class WebTaskProjectionReconciler:
                 snapshot = self.cli_client.get_task_status(task_reference=projection.core_task_id)
             except JelicaCliCommandError as error:
                 if _is_task_not_found(error):
-                    unchanged += 1
+                    self.projection_store.delete_task(
+                        core_task_id=projection.core_task_id
+                    )
+                    updated += 1
                     continue
                 errors += 1
                 _LOGGER.warning(

@@ -28,6 +28,7 @@ DEFAULT_HEARTBEAT_INTERVAL_SECONDS: Final = 1.0
 DEFAULT_LEASE_TIMEOUT_SECONDS: Final = 5.0
 DEFAULT_PROGRESS_FLUSH_INTERVAL_SECONDS: Final = 1.0
 DEFAULT_MAX_RECOVERY_ATTEMPTS: Final = 3
+DEFAULT_TASKS_RETENTION_DAYS: Final[int | None] = None
 DEFAULT_INPUT_DIRECTORY_MAX_DEPTH: Final = 3
 DEFAULT_NCBI_API_KEY: Final = ""
 DEFAULT_NCBI_MAX_RETRIES: Final = 3
@@ -96,6 +97,7 @@ MUTABLE_CORE_CONFIG_PARAMETERS: Final[tuple[str, ...]] = (
     "input_directory_max_depth",
     "ncbi_api_key",
     "ncbi_max_retries",
+    "tasks_retention_days",
     "default_alignment_mode",
     "execution.max_parallel_tasks",
     "execution.scheduler_poll_interval_seconds",
@@ -195,12 +197,26 @@ class CoreConfigInput(BaseModel):
     input_directory_max_depth: StrictInt
     ncbi_api_key: StrictStr
     ncbi_max_retries: StrictInt
+    tasks_retention_days: StrictInt | None
     default_alignment_mode: AnalysisAlignmentMode
     data: CoreDataConfigInput
     execution: CoreExecutionConfigInput
     logging: CoreLoggingConfigInput
     tools: CoreToolsConfigInput
     _notification_document: dict[str, object] = PrivateAttr(default_factory=dict)
+
+    @field_validator("tasks_retention_days", mode="before")
+    @classmethod
+    def _validate_tasks_retention_days(cls, value: object) -> object:
+        # TOML has no null literal. The empty string is the canonical
+        # persisted representation of the disabled optional setting.
+        if value == "" or value is None:
+            return None
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise ValueError("value must be null or an integer >= 1")
+        if value < 1:
+            raise ValueError("value must be null or an integer >= 1")
+        return value
 
     @field_validator("default_alignment_mode", mode="before")
     @classmethod
@@ -230,6 +246,7 @@ class ResolvedCoreConfig(BaseModel):
     input_directory_max_depth: int = Field(ge=0)
     ncbi_api_key: str
     ncbi_max_retries: int = Field(ge=0)
+    tasks_retention_days: int | None = Field(default=None, ge=1)
     default_alignment_mode: AnalysisAlignmentMode
     log_level: str
     system_log_level: str
@@ -277,6 +294,7 @@ def build_default_core_config_document(
             "input_directory_max_depth": DEFAULT_INPUT_DIRECTORY_MAX_DEPTH,
             "ncbi_api_key": DEFAULT_NCBI_API_KEY,
             "ncbi_max_retries": DEFAULT_NCBI_MAX_RETRIES,
+            "tasks_retention_days": DEFAULT_TASKS_RETENTION_DAYS,
             "default_alignment_mode": DEFAULT_ALIGNMENT_MODE.value,
             DATA_SECTION_NAME: {"directory": data_directory},
             EXECUTION_SECTION_NAME: {
@@ -304,6 +322,13 @@ def to_toml_document(config: CoreConfigInput) -> dict[str, object]:
     """Convert a complete input model to a full canonical TOML document."""
 
     document = config.model_dump(mode="json", by_alias=False, exclude_none=True)
+    if config.tasks_retention_days is None:
+        document["tasks_retention_days"] = ""
+        document = {
+            field_name: document[field_name]
+            for field_name in CoreConfigInput.model_fields
+            if field_name in document
+        }
     notification_document = getattr(config, "_notification_document", {})
     if notification_document:
         document.update(notification_document)

@@ -49,6 +49,7 @@ _CORE_CONFIG_PARAMETER_ALIASES: Final[dict[str, str]] = {
     "input_directory_max_depth": "input_directory_max_depth",
     "ncbi_api_key": "ncbi_api_key",
     "ncbi_max_retries": "ncbi_max_retries",
+    "tasks_retention_days": "tasks_retention_days",
     "default_alignment_mode": "default_alignment_mode",
     "execution.max_parallel_tasks": "execution.max_parallel_tasks",
     "execution.max_workers": "execution.max_parallel_tasks",
@@ -70,6 +71,7 @@ _CORE_CONFIG_PARAMETER_ALIASES: Final[dict[str, str]] = {
     "input-directory-max-depth": "input_directory_max_depth",
     "ncbi-api-key": "ncbi_api_key",
     "ncbi-max-retries": "ncbi_max_retries",
+    "tasks-retention-days": "tasks_retention_days",
     "default-alignment-mode": "default_alignment_mode",
     "max_parallel_tasks": "execution.max_parallel_tasks",
     "max-parallel-tasks": "execution.max_parallel_tasks",
@@ -196,6 +198,31 @@ class CoreConfigService:
         self._validate_task_registry_database(database_path=resolved_config.database_path)
         return resolved_config
 
+    def get_parameter(self, *, parameter: str) -> object:
+        """Read one strictly validated semantic config value without writing."""
+
+        resolved_parameter = self._resolve_parameter_name(parameter=parameter)
+        current_input = self._loader.load(config_path=self.get_config_path())
+        if _is_notification_parameter(resolved_parameter):
+            document = to_toml_document(current_input)
+            return _get_parameter_from_document(
+                document=document,
+                parameter=resolved_parameter,
+            )
+
+        current: object = current_input
+        for component in resolved_parameter.split("."):
+            if isinstance(current, CoreConfigInput):
+                current = getattr(current, component)
+            else:
+                current = getattr(current, component)
+        return current
+
+    def resolve_parameter_name(self, *, parameter: str) -> str:
+        """Return the canonical path/alias target used by config mutations."""
+
+        return self._resolve_parameter_name(parameter=parameter)
+
     def set_parameter(self, *, parameter: str, value: str) -> ResolvedCoreConfig:
         resolved_parameter = self._resolve_parameter_name(parameter=parameter)
 
@@ -281,7 +308,7 @@ class CoreConfigService:
         *,
         document: dict[str, object],
         parameter: str,
-        value: str | int | float | bool,
+        value: str | int | float | bool | None,
     ) -> None:
         if _is_notification_parameter(parameter):
             parts = parameter.split(".")
@@ -311,6 +338,9 @@ class CoreConfigService:
             return
         if parameter == "ncbi_max_retries":
             document["ncbi_max_retries"] = value
+            return
+        if parameter == "tasks_retention_days":
+            document["tasks_retention_days"] = value if value is not None else ""
             return
         if parameter == "default_alignment_mode":
             document["default_alignment_mode"] = value
@@ -403,7 +433,9 @@ class CoreConfigService:
             value=default_value,
         )
 
-    def _coerce_parameter_value(self, *, parameter: str, value: str) -> str | int | float | bool:
+    def _coerce_parameter_value(
+        self, *, parameter: str, value: str
+    ) -> str | int | float | bool | None:
         if _is_notification_parameter(parameter):
             return _parse_bool_value(parameter=parameter, value=value)
         if parameter in {
@@ -421,6 +453,23 @@ class CoreConfigService:
                 raise CoreConfigInvalidValueError(
                     parameter=parameter,
                     detail="value must be an integer >= 0",
+                )
+            return int_value
+
+        if parameter == "tasks_retention_days":
+            if value.strip().lower() in {"none", "null", "disabled"}:
+                return None
+            try:
+                int_value = int(value)
+            except ValueError as error:
+                raise CoreConfigInvalidValueError(
+                    parameter=parameter,
+                    detail="value must be 'none' or an integer >= 1",
+                ) from error
+            if int_value < 1:
+                raise CoreConfigInvalidValueError(
+                    parameter=parameter,
+                    detail="value must be 'none' or an integer >= 1",
                 )
             return int_value
 

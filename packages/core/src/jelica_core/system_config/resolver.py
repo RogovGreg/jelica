@@ -86,6 +86,7 @@ class CoreConfigResolver:
             input_directory_max_depth=input_directory_max_depth,
             ncbi_api_key=ncbi_api_key,
             ncbi_max_retries=ncbi_max_retries,
+            tasks_retention_days=config_input.tasks_retention_days,
             default_alignment_mode=default_alignment_mode,
             log_level=log_level,
             system_log_level=system_log_level,

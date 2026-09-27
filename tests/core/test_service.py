@@ -228,6 +228,25 @@ def test_service_start_and_stop_are_idempotent_and_lease_authoritative(tmp_path:
     assert error_status.state is ServiceState.ERROR
 
 
+def test_enabled_task_retention_runs_inside_service_and_persists_success(
+    tmp_path: Path,
+) -> None:
+    service = _initialize_core(tmp_path / "home")
+    service.set_parameter(parameter="tasks_retention_days", value="1")
+    process, result_queue = _start_test_service(service=service)
+    registry = AnalyticalTaskRegistryService(
+        database_path=service.load_resolved_config().database_path
+    )
+    try:
+        _wait_until(
+            lambda: registry.get_last_tasks_cleanup_at() is not None,
+            description="automatic task retention pass",
+        )
+    finally:
+        stop_service(force=True, core_config_service=service)
+        _join_test_service(process, result_queue)
+
+
 def test_stale_service_runner_exits_after_registry_lease_replacement(tmp_path: Path) -> None:
     service = _initialize_core(tmp_path / "home")
     resolved = service.load_resolved_config()

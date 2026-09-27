@@ -18,10 +18,11 @@ from .storage import (
 )
 
 TASK_REGISTRY_APPLICATION_ID = 0x4A454C49
-TASK_REGISTRY_SCHEMA_VERSION = 4
+TASK_REGISTRY_SCHEMA_VERSION = 5
 TASK_REGISTRY_TABLE_NAME = "analytical_tasks"
 TASK_JOB_REGISTRY_TABLE_NAME = "analytical_task_jobs"
 TASK_RUNTIME_LEASE_REGISTRY_TABLE_NAME = "execution_runtime_lease"
+TASK_MAINTENANCE_STATE_TABLE_NAME = "maintenance_state"
 
 TASK_REGISTRY_EXPECTED_COLUMNS: tuple[str, ...] = (
     "task_id",
@@ -76,6 +77,11 @@ TASK_RUNTIME_LEASE_REGISTRY_EXPECTED_COLUMNS: tuple[str, ...] = (
     "heartbeat_at",
     "lease_expires_at",
     "record_version",
+)
+
+TASK_MAINTENANCE_STATE_EXPECTED_COLUMNS: tuple[str, ...] = (
+    "singleton_id",
+    "last_tasks_cleanup_at",
 )
 
 TASK_REGISTRY_EXPECTED_INDEXES: tuple[str, ...] = (
@@ -244,6 +250,13 @@ CREATE TABLE {TASK_RUNTIME_LEASE_REGISTRY_TABLE_NAME} (
 )
 """
 
+CREATE_MAINTENANCE_STATE_TABLE_SQL = f"""
+CREATE TABLE {TASK_MAINTENANCE_STATE_TABLE_NAME} (
+    singleton_id INTEGER PRIMARY KEY CHECK (singleton_id = 1),
+    last_tasks_cleanup_at TEXT
+)
+"""
+
 _LEGACY_STATE_VALUES_SQL = ", ".join(
     f"'{state}'"
     for state in [
@@ -405,6 +418,14 @@ def migrate_3_to_4(connection: sqlite3.Connection, _: Path) -> None:
     connection.execute(CREATE_UNIQUE_TASK_NAME_INDEX_SQL)
 
 
+def migrate_4_to_5(connection: sqlite3.Connection, _: Path) -> None:
+    connection.execute(CREATE_MAINTENANCE_STATE_TABLE_SQL)
+    connection.execute(
+        f"INSERT INTO {TASK_MAINTENANCE_STATE_TABLE_NAME} "
+        "(singleton_id, last_tasks_cleanup_at) VALUES (1, NULL)"
+    )
+
+
 def _ensure_initial_revision(*, task_id: str, task_dir: Path) -> tuple[str, str]:
     config_path = task_dir / TASK_CONFIG_FILENAME
     if not config_path.is_file():
@@ -456,4 +477,5 @@ MIGRATIONS: dict[int, MigrationCallable] = {
     1: migrate_1_to_2,
     2: migrate_2_to_3,
     3: migrate_3_to_4,
+    4: migrate_4_to_5,
 }

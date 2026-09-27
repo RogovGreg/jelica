@@ -508,6 +508,29 @@ def test_reconciler_makes_no_cli_calls_without_active_tasks() -> None:
     engine.dispose()
 
 
+def test_reconciler_removes_projection_when_core_task_was_deleted() -> None:
+    engine = create_engine("sqlite+pysqlite:///:memory:", future=True)
+    Base.metadata.create_all(engine)
+    sessions = sessionmaker(bind=engine, expire_on_commit=False, autoflush=False)
+    store = WebTaskProjectionStore(session_factory=sessions)
+    store.upsert_task(core_task_id="deleted-task", name="Deleted", status="running")
+
+    class DeletedTaskCli:
+        def get_task_status(self, *, task_reference: str) -> TaskStatusSnapshot:
+            assert task_reference == "deleted-task"
+            raise _command_error(name="CORE_ANALYTICAL_TASK_NOT_FOUND")
+
+    report = WebTaskProjectionReconciler(
+        cli_client=DeletedTaskCli(),
+        projection_store=store,
+    ).reconcile()
+
+    assert report.scanned == 1
+    assert report.updated == 1
+    assert store.get_task(core_task_id="deleted-task") is None
+    engine.dispose()
+
+
 def test_task_transition_notifications_are_once_and_owner_is_not_double_notified() -> None:
     engine = create_engine("sqlite+pysqlite:///:memory:", future=True)
     Base.metadata.create_all(engine)

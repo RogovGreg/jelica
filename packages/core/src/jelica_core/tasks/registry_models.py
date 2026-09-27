@@ -102,6 +102,7 @@ class AnalyticalTaskSortOrder(StrEnum):
     DEFAULT_PRIORITY_DESC_CREATED_AT_ASC = "default_priority_desc_created_at_asc"
     PRIORITY_DESC_CREATED_AT_ASC = "default_priority_desc_created_at_asc"
     UPDATED_AT_DESC = "updated_at_desc"
+    UPDATED_AT_ASC = "updated_at_asc"
 
 
 class AnalyticalTask(BaseModel):

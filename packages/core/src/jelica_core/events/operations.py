@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import threading
 from collections.abc import Sequence
 from pathlib import Path
 from time import sleep
@@ -29,6 +30,15 @@ from jelica_core.config import (
     apply_config_overrides,
     parse_cli_overrides,
     resolve_analysis_config,
+)
+from jelica_core.result_package import (
+    ResultPackageLibraryError,
+    TaskResultReferenceAnalysis,
+    analyze_task_result_references,
+    delete_result_package,
+)
+from jelica_core.result_package.artifacts import (
+    _resolve_result_packages_directory_from_core_config_service,
 )
 from jelica_core.runtime import (
     DEFAULT_BACKGROUND_RUNNER_MODULE,
@@ -59,6 +69,8 @@ from jelica_core.runtime import (
     RUNTIME_EVENT_WORKER_SAFELY_STOPPED_FOR_PREEMPTION,
     RUNTIME_EVENT_WORKER_STARTED,
     ExecutionRuntime,
+    RetentionDeletionOutcome,
+    RetentionDeletionResult,
     RuntimeConfig,
     RuntimeContinueResult,
     TaskConfigSynchronizationError,
@@ -68,6 +80,8 @@ from jelica_core.runtime import (
     TaskDeleteItemResultType,
     TaskReprioritizeResult,
     TaskResumeResult,
+    TaskRetentionMaintenance,
+    TaskRetentionWorker,
     TaskStartResult,
     TaskUpdateResult,
     TaskWatchResult,
@@ -110,7 +124,9 @@ from jelica_core.tasks import (
     AnalyticalTaskSortOrder,
     AnalyticalTaskState,
     InitializedAnalysisTask,
+    TaskDeletionValidationError,
     TaskWorkspaceDeleteError,
+    select_tasks_for_deletion,
 )
 from jelica_core.tasks.storage import (
     compute_config_hash,
@@ -1746,6 +1762,8 @@ def run_cancel_analytical_task(
 def run_delete_analytical_tasks(
     *,
     task_ids: Sequence[str],
+    force: bool = True,
+    with_results: bool = False,
     core_config_service: CoreConfigService | None = None,
 ) -> CoreOperationResult[TaskDeleteBatchResult]:
     service = core_config_service or CoreConfigService()
@@ -1776,6 +1794,45 @@ def run_delete_analytical_tasks(
         registry_service = AnalyticalTaskRegistryService(
             database_path=resolved_config.database_path
         )
+        try:
+            select_tasks_for_deletion(
+                registry_service=registry_service,
+                task_ids=normalized_task_ids,
+                force=force,
+            )
+        except TaskDeletionValidationError as error:
+            detail = str(error)
+            event = runtime.event_service.emit(
+                CORE_ANALYTICAL_TASK_DELETE_REJECTED,
+                execution_context=execution_context,
+                message_params={"task_id": "<batch>", "detail": detail},
+                context={"detail": detail, "prevalidation": True},
+            )
+            return CoreOperationResult.success(
+                event=event,
+                value=TaskDeleteBatchResult(
+                    result=TaskDeleteBatchResultType.REJECTED,
+                    items=(
+                        TaskDeleteItemResult(
+                            task_id="<batch>",
+                            result=TaskDeleteItemResultType.REJECTED,
+                            detail=detail,
+                        ),
+                    ),
+                    requested_count=len(task_ids),
+                    unique_count=len(normalized_task_ids),
+                ),
+                system_log_path=runtime.system_log_path,
+            )
+        result_reference_analysis = None
+        if with_results:
+            result_reference_analysis = analyze_task_result_references(
+                registry_service=registry_service,
+                tasks_dir=resolved_config.tasks_dir,
+                result_packages_dir=_resolve_result_packages_directory_from_core_config_service(
+                    core_config_service=service
+                ),
+            )
 
         item_results: list[TaskDeleteItemResult] = []
         for requested_task_id in normalized_task_ids:
@@ -1794,6 +1851,18 @@ def run_delete_analytical_tasks(
                 execution_context=execution_context,
                 item_result=item_result,
                 trace_id=item_trace_id,
+            )
+
+        result_packages_deleted = 0
+        shared_result_packages_preserved = 0
+        if with_results and result_reference_analysis is not None:
+            result_packages_deleted, shared_result_packages_preserved = (
+                _delete_task_result_packages_after_deletion(
+                    analysis=result_reference_analysis,
+                    item_results=item_results,
+                    selected_task_ids=set(normalized_task_ids),
+                    core_config_service=service,
+                )
             )
 
         applied_count = sum(
@@ -1839,6 +1908,8 @@ def run_delete_analytical_tasks(
             items=tuple(item_results),
             requested_count=len(task_ids),
             unique_count=len(normalized_task_ids),
+            result_packages_deleted=result_packages_deleted,
+            shared_result_packages_preserved=shared_result_packages_preserved,
         ),
         system_log_path=runtime.system_log_path,
     )
@@ -2639,6 +2710,8 @@ def run_service_runtime(
     runtime_instance_id = str(uuid4())
     runtime_lease_token = str(uuid4())
     monitor: ServiceRuntimeControlMonitor | None = None
+    retention_worker: TaskRetentionWorker | None = None
+    retention_stop_event: threading.Event | None = None
     lease_acquired = False
 
     def owns_runtime_lease() -> bool:
@@ -2710,6 +2783,68 @@ def run_service_runtime(
             event_callback=runtime_event_callback,
             shutdown_poll=monitor.poll,
         )
+        if resolved_config.tasks_retention_days is not None:
+            retention_stop_event = threading.Event()
+            retention_core_config_service = CoreConfigService(
+                jelica_home=service.get_jelica_home()
+            )
+            retention_registry_service = AnalyticalTaskRegistryService(
+                database_path=resolved_config.database_path
+            )
+
+            def delete_retention_task(task_id: str) -> RetentionDeletionOutcome:
+                if not retention_registry_service.task_exists(task_id=task_id):
+                    return RetentionDeletionOutcome(
+                        result=RetentionDeletionResult.ALREADY_SATISFIED
+                    )
+                deletion = run_delete_analytical_tasks(
+                    task_ids=(task_id,),
+                    force=False,
+                    with_results=False,
+                    core_config_service=retention_core_config_service,
+                )
+                if not deletion.ok:
+                    return RetentionDeletionOutcome(
+                        result=RetentionDeletionResult.FAILED,
+                        detail=str(deletion.error),
+                    )
+                batch = deletion.value
+                if batch is None or len(batch.items) == 0:
+                    if not retention_registry_service.task_exists(task_id=task_id):
+                        return RetentionDeletionOutcome(
+                            result=RetentionDeletionResult.ALREADY_SATISFIED
+                        )
+                    return RetentionDeletionOutcome(
+                        result=RetentionDeletionResult.FAILED,
+                        detail="task deletion returned no item result",
+                    )
+                item = batch.items[0]
+                if item.result is TaskDeleteItemResultType.DELETED:
+                    return RetentionDeletionOutcome(result=RetentionDeletionResult.DELETED)
+                if item.result in {
+                    TaskDeleteItemResultType.ALREADY_SATISFIED,
+                    TaskDeleteItemResultType.NOT_FOUND,
+                }:
+                    return RetentionDeletionOutcome(
+                        result=RetentionDeletionResult.ALREADY_SATISFIED
+                    )
+                return RetentionDeletionOutcome(
+                    result=RetentionDeletionResult.FAILED,
+                    detail=item.detail or item.result.value,
+                )
+
+            retention_maintenance = TaskRetentionMaintenance(
+                resolved_config=resolved_config,
+                registry_service=retention_registry_service,
+                delete_task=delete_retention_task,
+                stop_requested=retention_stop_event.is_set,
+            )
+            retention_worker = TaskRetentionWorker(
+                maintenance=retention_maintenance,
+                registry_service=retention_registry_service,
+                stop_event=retention_stop_event,
+            )
+            retention_worker.start()
         runtime_result = execution_runtime.run(
             auto_queue_waiting_jobs=False,
             persistent=True,
@@ -2740,6 +2875,9 @@ def run_service_runtime(
                 pass
         return _failure_result(error=error, runtime=runtime, execution_context=execution_context)
     finally:
+        if retention_worker is not None:
+            retention_worker.stop()
+            retention_worker.join()
         if lease_acquired:
             registry_service.release_execution_runtime_lease(
                 runtime_instance_id=runtime_instance_id,
@@ -2902,6 +3040,54 @@ def _delete_analytical_task_item(
             result=TaskDeleteItemResultType.REJECTED,
             detail=str(error),
         )
+
+
+def _delete_task_result_packages_after_deletion(
+    *,
+    analysis: TaskResultReferenceAnalysis,
+    item_results: Sequence[TaskDeleteItemResult],
+    selected_task_ids: set[str],
+    core_config_service: CoreConfigService,
+) -> tuple[int, int]:
+    """Remove only packages whose every local task reference was deleted now."""
+
+    # Keep this helper deliberately dependent on the public analysis shape; it
+    # is called only after task deletion and never guesses from package
+    # manifest provenance.
+    deleted_task_ids = {
+        item.task_id
+        for item in item_results
+        if item.result is TaskDeleteItemResultType.DELETED
+    }
+    deleted_content_ids: set[str] = set()
+    preserved_content_ids: set[str] = set()
+    for reference in analysis.references:
+        if reference.content_id is None:
+            continue
+        references = analysis.for_content_id(reference.content_id)
+        if reference.task_id in selected_task_ids and reference.task_id not in deleted_task_ids:
+            preserved_content_ids.add(reference.content_id)
+        if any(item.task_id not in deleted_task_ids for item in references):
+            continue
+        if reference.task_id not in deleted_task_ids:
+            continue
+        if reference.content_id in deleted_content_ids:
+            continue
+        if reference.package_path is None or reference.issue == "result package is missing":
+            continue
+        try:
+            outcome = delete_result_package(
+                package_path=reference.package_path,
+                core_config_service=core_config_service,
+                force=False,
+            )
+        except ResultPackageLibraryError:
+            # A corrupt or already-missing package must not turn successful
+            # task deletion into a second, unsafe deletion attempt.
+            continue
+        if not outcome.already_missing:
+            deleted_content_ids.add(reference.content_id)
+    return len(deleted_content_ids), len(preserved_content_ids)
 
 
 def _job_has_live_worker(job_record: AnalyticalTaskJobRecord) -> bool:
@@ -3743,10 +3929,14 @@ def _task_execution_context(
     registry_service: AnalyticalTaskRegistryService,
     task_id: str,
 ) -> CoreExecutionContext:
+    try:
+        trace_id = registry_service.get_task_trace_id(task_id=task_id)
+    except Exception:
+        trace_id = None
     return execution_context.model_copy(
         update={
             "task_id": task_id,
-            "trace_id": registry_service.get_task_trace_id(task_id=task_id),
+            "trace_id": trace_id,
         }
     )
 

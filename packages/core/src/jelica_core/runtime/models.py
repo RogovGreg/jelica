@@ -312,6 +312,8 @@ class TaskDeleteBatchResult(BaseModel):
     items: tuple[TaskDeleteItemResult, ...]
     requested_count: int = Field(ge=0)
     unique_count: int = Field(ge=0)
+    result_packages_deleted: int = Field(default=0, ge=0)
+    shared_result_packages_preserved: int = Field(default=0, ge=0)
 
 
 class TaskWatchResult(BaseModel):

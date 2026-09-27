@@ -76,6 +76,15 @@ from .service import (
     start_service,
     stop_service,
 )
+from .task_retention import (
+    TASK_RETENTION_FAILURE_RETRY_INTERVAL,
+    TASK_RETENTION_MAINTENANCE_INTERVAL,
+    RetentionDeletionOutcome,
+    RetentionDeletionResult,
+    TaskRetentionMaintenance,
+    TaskRetentionResult,
+    TaskRetentionWorker,
+)
 
 __all__ = [
     "DEFAULT_PIPELINE_NAME",
@@ -149,4 +158,11 @@ __all__ = [
     "start_service",
     "stop_service",
     "synchronize_task_config_before_start",
+    "TASK_RETENTION_FAILURE_RETRY_INTERVAL",
+    "TASK_RETENTION_MAINTENANCE_INTERVAL",
+    "RetentionDeletionOutcome",
+    "RetentionDeletionResult",
+    "TaskRetentionMaintenance",
+    "TaskRetentionResult",
+    "TaskRetentionWorker",
 ]

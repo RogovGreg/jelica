@@ -201,6 +201,12 @@ class ImportedResultPackage:
 
 
 @dataclass(frozen=True, slots=True)
+class DeletedResultPackage:
+    path: Path
+    already_missing: bool = False
+
+
+@dataclass(frozen=True, slots=True)
 class ParsedResultPackageFilename:
     result_name: str | None
     content_digest: str
@@ -2058,6 +2064,107 @@ def import_result_package(
     )
 
 
+def delete_result_package(
+    *,
+    package_path: Path,
+    core_config_service: CoreConfigService,
+    force: bool = False,
+) -> DeletedResultPackage:
+    """Delete one direct child of the central result-package store.
+
+    The same lock used by import/publication is held while the entry is
+    rechecked and removed.  Symlinks are never followed; with ``force`` a
+    symlink entry itself may be removed, which is useful for corrupt-store
+    cleanup.
+    """
+
+    result_packages_dir = _resolve_result_packages_directory_from_core_config_service(
+        core_config_service=core_config_service
+    )
+    candidate = _validate_result_store_entry_path(
+        result_packages_dir=result_packages_dir,
+        package_path=package_path,
+    )
+    if not candidate.exists() and not candidate.is_symlink():
+        raise ResultPackageLibraryError(
+            code=ResultPackageLibraryErrorCode.PACKAGE_NOT_FOUND,
+            message="Result package was not found",
+        )
+    _validate_deletable_result_package(
+        candidate=candidate,
+        force=force,
+    )
+
+    lock_fd: int | None = None
+    lock_path: Path | None = None
+    try:
+        lock_fd, lock_path = _acquire_result_package_store_lock(
+            directory=result_packages_dir
+        )
+        if not candidate.exists() and not candidate.is_symlink():
+            return DeletedResultPackage(path=candidate, already_missing=True)
+        _validate_deletable_result_package(candidate=candidate, force=force)
+        try:
+            candidate.unlink()
+        except FileNotFoundError:
+            return DeletedResultPackage(path=candidate, already_missing=True)
+        except OSError as error:
+            raise ResultPackageLibraryError(
+                code=ResultPackageLibraryErrorCode.IMPORT_IO_ERROR,
+                message=f"Result package could not be deleted: {error}",
+            ) from error
+        return DeletedResultPackage(path=candidate)
+    finally:
+        if lock_path is not None:
+            _release_result_package_store_lock(lock_fd=lock_fd, lock_path=lock_path)
+
+
+def delete_all_result_packages(
+    *,
+    core_config_service: CoreConfigService,
+) -> tuple[DeletedResultPackage, ...]:
+    """Delete every direct ``.jelica`` store entry, including invalid ones."""
+
+    result_packages_dir = _resolve_result_packages_directory_from_core_config_service(
+        core_config_service=core_config_service
+    )
+    if not result_packages_dir.exists():
+        return tuple()
+    if result_packages_dir.is_symlink() or not result_packages_dir.is_dir():
+        raise ResultPackageLibraryError(
+            code=ResultPackageLibraryErrorCode.IMPORT_IO_ERROR,
+            message="Result package store is not a regular directory",
+        )
+
+    lock_fd: int | None = None
+    lock_path: Path | None = None
+    deleted: list[DeletedResultPackage] = []
+    try:
+        lock_fd, lock_path = _acquire_result_package_store_lock(
+            directory=result_packages_dir
+        )
+        for entry in sorted(result_packages_dir.iterdir(), key=lambda item: item.name):
+            if entry.suffix != ".jelica":
+                continue
+            if entry.is_dir() and not entry.is_symlink():
+                continue
+            try:
+                entry.unlink()
+            except FileNotFoundError:
+                deleted.append(DeletedResultPackage(path=entry, already_missing=True))
+            except OSError as error:
+                raise ResultPackageLibraryError(
+                    code=ResultPackageLibraryErrorCode.IMPORT_IO_ERROR,
+                    message=f"Result package could not be deleted: {error}",
+                ) from error
+            else:
+                deleted.append(DeletedResultPackage(path=entry))
+    finally:
+        if lock_path is not None:
+            _release_result_package_store_lock(lock_fd=lock_fd, lock_path=lock_path)
+    return tuple(deleted)
+
+
 def list_result_packages(
     *,
     core_config_service: CoreConfigService,
@@ -2422,6 +2529,64 @@ def _find_prepared_root(*, prepared_path: Path) -> Path | None:
         if parent.name == RESULT_PACKAGE_PREPARED_DIRNAME:
             return parent
     return None
+
+
+def _validate_result_store_entry_path(
+    *,
+    result_packages_dir: Path,
+    package_path: Path,
+) -> Path:
+    if result_packages_dir.is_symlink():
+        raise ResultPackageLibraryError(
+            code=ResultPackageLibraryErrorCode.UNSAFE_RESULT_PACKAGE_LINK,
+            message="Result package store must not be a symbolic link",
+        )
+    store_root = result_packages_dir.resolve(strict=False)
+    candidate = Path(package_path)
+    if candidate.name == "" or candidate.name != candidate.stem + candidate.suffix:
+        raise ResultPackageLibraryError(
+            code=ResultPackageLibraryErrorCode.PACKAGE_NOT_FOUND,
+            message="Result package reference must identify one store entry",
+        )
+    if candidate.name == ".jelica" or candidate.suffix != ".jelica":
+        raise ResultPackageLibraryError(
+            code=ResultPackageLibraryErrorCode.PACKAGE_NOT_FOUND,
+            message="Result package filename must end with .jelica",
+        )
+    if candidate.parent.resolve(strict=False) != store_root:
+        raise ResultPackageLibraryError(
+            code=ResultPackageLibraryErrorCode.UNSAFE_RESULT_PACKAGE_LINK,
+            message="Result package deletion target must be a direct store entry",
+        )
+    if candidate.name != Path(candidate.name).name:
+        raise ResultPackageLibraryError(
+            code=ResultPackageLibraryErrorCode.UNSAFE_RESULT_PACKAGE_LINK,
+            message="Result package deletion target must not contain directories",
+        )
+    return store_root / candidate.name
+
+
+def _validate_deletable_result_package(*, candidate: Path, force: bool) -> None:
+    if candidate.is_symlink():
+        if not force:
+            raise ResultPackageLibraryError(
+                code=ResultPackageLibraryErrorCode.INVALID_EXISTING_PACKAGE,
+                message="Symbolic-link result package entries require --force",
+            )
+        return
+    if not candidate.is_file():
+        raise ResultPackageLibraryError(
+            code=ResultPackageLibraryErrorCode.INVALID_EXISTING_PACKAGE,
+            message="Result package is not a regular file",
+        )
+    try:
+        validate_result_package_file(path=candidate)
+    except ResultPackageValidationError as error:
+        if not force:
+            raise ResultPackageLibraryError(
+                code=ResultPackageLibraryErrorCode.INVALID_EXISTING_PACKAGE,
+                message="Result package is invalid; use --force to remove it",
+            ) from error
 
 
 def _resolve_result_packages_directory_from_core_config_service(

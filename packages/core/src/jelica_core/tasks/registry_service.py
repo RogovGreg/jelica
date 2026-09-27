@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Mapping, Sequence
+from datetime import datetime
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from uuid import UUID
 
@@ -175,22 +176,36 @@ class AnalyticalTaskRegistryService:
     def task_exists(self, *, task_id: str) -> bool:
         return self._registry.exists(task_id=task_id)
 
+    def get_last_tasks_cleanup_at(self) -> datetime | None:
+        return self._registry.get_last_tasks_cleanup_at()
+
+    def set_last_tasks_cleanup_at(self, timestamp: datetime | None) -> None:
+        self._registry.set_last_tasks_cleanup_at(timestamp)
+
     def list_tasks(
         self,
         *,
         states: Sequence[AnalyticalTaskState] | None = None,
+        updated_before: datetime | None = None,
         limit: int | None = None,
         offset: int = 0,
         order: AnalyticalTaskSortOrder = (
             AnalyticalTaskSortOrder.DEFAULT_PRIORITY_DESC_CREATED_AT_ASC
         ),
     ) -> list[AnalyticalTaskRecord]:
-        return self._registry.list(states=states, limit=limit, offset=offset, order=order)
+        return self._registry.list(
+            states=states,
+            updated_before=updated_before,
+            limit=limit,
+            offset=offset,
+            order=order,
+        )
 
     def list_task_snapshots(
         self,
         *,
         states: Sequence[AnalyticalTaskState] | None = None,
+        updated_before: datetime | None = None,
         limit: int | None = None,
         offset: int = 0,
         order: AnalyticalTaskSortOrder = (
@@ -200,6 +215,7 @@ class AnalyticalTaskRegistryService:
         return list(
             self._registry.list_task_snapshots(
                 states=states,
+                updated_before=updated_before,
                 limit=limit,
                 offset=offset,
                 order=order,

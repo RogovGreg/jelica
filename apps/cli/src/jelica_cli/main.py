@@ -6,7 +6,7 @@ import sys
 from collections.abc import Sequence
 from contextvars import Token
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from importlib.metadata import version
 from pathlib import Path
 from typing import Any, Callable, Final, NoReturn
@@ -55,10 +55,13 @@ from jelica_core.reporting import ResultOverviewBuildError, build_result_overvie
 from jelica_core.result_package import (
     JelicaPackageValidator,
     ListedResultPackage,
+    ResultPackageDeletionValidationError,
     ResultPackageLibraryError,
+    delete_result_packages,
     import_result_package,
     list_result_packages,
     resolve_result_package_path,
+    validate_result_package_deletion,
 )
 from jelica_core.runtime import (
     ServiceError,
@@ -76,6 +79,11 @@ from jelica_core.runtime import (
     start_service,
     stop_service,
 )
+from jelica_core.storage import (
+    StorageCategory,
+    StorageUsageReport,
+    analyze_storage_usage,
+)
 from jelica_core.system_config import (
     DEFAULT_DATA_DIRECTORY,
     DEFAULT_LOG_LEVEL,
@@ -90,6 +98,9 @@ from jelica_core.tasks import (
     AnalyticalTaskNotFoundError,
     AnalyticalTaskRegistryService,
     AnalyticalTaskSnapshot,
+    AnalyticalTaskState,
+    TaskDeletionValidationError,
+    select_tasks_for_deletion,
 )
 
 from .config_file import ConfigFileReadError, read_config_file_text
@@ -196,6 +207,7 @@ _TERMINAL = create_terminal_presenter(
 _SYSTEM_CONFIG: CliSystemConfigService | None = None
 _INVOCATION: MachineInvocation | None = None
 _MACHINE_RESPONSE_EMITTED = False
+_RAW_CLI_ARGS: tuple[str, ...] = ()
 
 
 def _start_cli_invocation() -> Token[UUID | None]:
@@ -308,22 +320,59 @@ def _resolve_task_references(
             trace_id = registry.get_task_trace_id(task_id=resolved_task_ids[0])
         except AnalyticalTaskNotFoundError:
             trace_id = None
-        except Exception as error:
-            _exit_with_cli_error(
-                definition=CLI_INTERNAL_ERROR,
-                message_params={
-                    "detail": f"Cannot resolve task trace metadata: {error}"
-                },
-                output_format=output_format,
-                verbose=False,
-                expected=False,
-            )
+        except Exception:
+            # Workspace/config metadata is optional for registry-backed list,
+            # show, and delete commands.
+            trace_id = None
         _set_cli_trace_id(trace_id)
     return tuple(resolved_task_ids)
 
 
 def _resolve_task_reference(*, task_reference: str, output_format: str = "text") -> str:
     return _resolve_task_references((task_reference,), output_format=output_format)[0]
+
+
+def _parse_task_delete_states(
+    values: list[str] | None,
+) -> tuple[AnalyticalTaskState, ...] | None:
+    if values is None:
+        return None
+    parsed: list[AnalyticalTaskState] = []
+    for value in values:
+        try:
+            state = AnalyticalTaskState(value)
+        except ValueError as error:
+            allowed = ", ".join(item.value for item in AnalyticalTaskState)
+            raise TaskDeletionValidationError(
+                f"Unknown task status '{value}'. Allowed values: {allowed}."
+            ) from error
+        if state not in parsed:
+            parsed.append(state)
+    return tuple(parsed)
+
+
+def _parse_older_than_days(value: str | None) -> int | None:
+    if value is None:
+        return None
+    normalized = value.strip()
+    if not normalized.isdigit() or int(normalized) < 1:
+        raise TaskDeletionValidationError(
+            "--older-than must be an integer greater than or equal to 1."
+        )
+    return int(normalized)
+
+
+def _validate_all_force_order(*, command_name: str) -> None:
+    try:
+        all_index = _RAW_CLI_ARGS.index("--all")
+    except ValueError:
+        return
+    if "--force" not in _RAW_CLI_ARGS:
+        return
+    if all_index + 1 >= len(_RAW_CLI_ARGS) or _RAW_CLI_ARGS[all_index + 1] != "--force":
+        raise typer.BadParameter(
+            f"{command_name} requires the canonical option order '--all --force'."
+        )
 
 
 def _exit_with_task_reference_resolution_error(
@@ -364,7 +413,34 @@ class MachineProtocolTyperGroup(TyperGroup):
         windows_expand_args: bool = True,
         **extra: Any,
     ) -> Any:
+        global _RAW_CLI_ARGS
         raw_args = sys.argv[1:] if args is None else list(args)
+        previous_raw_args = _RAW_CLI_ARGS
+        _RAW_CLI_ARGS = tuple(raw_args)
+        try:
+            return self._main_with_raw_args(
+                args=args,
+                raw_args=raw_args,
+                prog_name=prog_name,
+                complete_var=complete_var,
+                standalone_mode=standalone_mode,
+                windows_expand_args=windows_expand_args,
+                extra=extra,
+            )
+        finally:
+            _RAW_CLI_ARGS = previous_raw_args
+
+    def _main_with_raw_args(
+        self,
+        *,
+        args: Sequence[str] | None,
+        raw_args: list[str],
+        prog_name: str | None,
+        complete_var: str | None,
+        standalone_mode: bool,
+        windows_expand_args: bool,
+        extra: dict[str, Any],
+    ) -> Any:
         if "--machine" not in raw_args:
             return super().main(
                 args=args,
@@ -446,9 +522,14 @@ events_app = typer.Typer(
 results_app = typer.Typer(
     add_completion=False,
     help=(
-        "jelica results <command> — Validate, import, list, resolve, and export "
-        "JELICA result packages."
+        "jelica results <command> — Validate, import, list, resolve, export, and "
+        "delete JELICA result packages."
     ),
+    rich_markup_mode=None,
+)
+storage_app = typer.Typer(
+    add_completion=False,
+    help="jelica storage <command> — Inspect managed persistent storage.",
     rich_markup_mode=None,
 )
 app.add_typer(config_app, name="config", rich_help_panel="Configuration")
@@ -461,6 +542,7 @@ tasks_app.add_typer(
 app.add_typer(service_app, name="service", rich_help_panel="Service")
 app.add_typer(events_app, name="events", rich_help_panel="Events")
 app.add_typer(results_app, name="results", rich_help_panel="Result packages")
+app.add_typer(storage_app, name="storage", rich_help_panel="Storage")
 
 
 def _print_core_version() -> None:
@@ -739,10 +821,365 @@ def results_list(
     raise typer.Exit(code=0)
 
 
+@storage_app.command(
+    "usage",
+    help=(
+        "jelica storage usage [--short|--standard|--verbose] — Show managed "
+        "persistent storage usage."
+    ),
+)
+def storage_usage(
+    short: bool = typer.Option(False, "--short", help="Show one concise line per category."),
+    standard: bool = typer.Option(
+        False, "--standard", help="Show compact category totals (default)."
+    ),
+    verbose: bool = typer.Option(
+        False, "--verbose", help="Show detailed storage metrics and diagnostics."
+    ),
+    tasks: bool = typer.Option(False, "--tasks", help="Include task storage."),
+    results: bool = typer.Option(False, "--results", help="Include result-package storage."),
+    database: bool = typer.Option(False, "--database", help="Include SQLite storage."),
+    other: bool = typer.Option(False, "--other", help="Include other managed storage."),
+    total: bool = typer.Option(False, "--total", help="Include total managed storage."),
+    machine: bool = typer.Option(
+        False, "--machine", help="Write one machine protocol JSON response."
+    ),
+) -> None:
+    selected_views = sum((short, standard, verbose))
+    if selected_views > 1:
+        raise typer.BadParameter(
+            "Options --short, --standard, and --verbose are mutually exclusive."
+        )
+    view = "short" if short else "verbose" if verbose else "standard"
+    selected_categories = _storage_selected_categories(
+        tasks=tasks,
+        results=results,
+        database=database,
+        other=other,
+        total=total,
+    )
+    try:
+        report = analyze_storage_usage(core_config_service=_core_config_service())
+    except CoreConfigError:
+        result = run_config_show(core_config_service=_core_config_service())
+        _exit_with_core_failure(
+            result=result,
+            output_format="machine" if machine else "text",
+            verbose=verbose,
+            text_prefix=_CONFIG_COMMAND_ERROR_PREFIX,
+        )
+    except Exception as error:
+        _exit_with_cli_error(
+            definition=CLI_ANALYZE_ARGUMENT_INVALID,
+            message_params={"detail": f"Storage usage could not be calculated: {error}"},
+            output_format="machine" if machine else "text",
+            verbose=verbose,
+        )
+
+    if machine:
+        _print_machine_success(
+            data=report.to_dict(selected_categories=selected_categories)
+        )
+        return
+    _print_storage_usage_report(
+        report=report,
+        selected_categories=selected_categories,
+        view=view,
+    )
+    raise typer.Exit(code=0)
+
+
+@results_app.command(
+    "delete",
+    help="jelica results delete RESULT_REF... [--force] [--yes] — Delete stored result packages.",
+    rich_help_panel="Cleanup",
+)
+def results_delete(
+    result_references: list[str] | None = typer.Argument(
+        None,
+        help="Result name, filename, task reference, content ID, or digest.",
+    ),
+    all_packages: bool = typer.Option(
+        False,
+        "--all",
+        help="Delete every direct .jelica entry; requires --force.",
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        help="Allow deletion of shared or invalid result packages.",
+    ),
+    yes: bool = typer.Option(
+        False,
+        "--yes",
+        help="Confirm result deletion without an interactive prompt.",
+    ),
+    machine: bool = typer.Option(
+        False,
+        "--machine",
+        help="Write one machine protocol JSON response. Requires --yes.",
+    ),
+) -> None:
+    output_format = "machine" if machine else "text"
+    if all_packages:
+        _validate_all_force_order(command_name="results delete")
+    references = tuple(result_references or ())
+    try:
+        plan = validate_result_package_deletion(
+            references=references,
+            delete_all=all_packages,
+            force=force,
+            core_config_service=_core_config_service(),
+        )
+    except ResultPackageDeletionValidationError as error:
+        raise typer.BadParameter(str(error)) from error
+    if machine and not yes:
+        _exit_with_cli_error(
+            definition=CLI_ANALYZE_ARGUMENT_INVALID,
+            message_params={"detail": "results delete --machine requires --yes."},
+            output_format=output_format,
+            verbose=False,
+        )
+    if not yes:
+        confirmed = typer.confirm(
+            f"Delete {len(plan.targets)} result packages?",
+            default=False,
+        )
+        if not confirmed:
+            raise typer.Exit(code=1)
+
+    try:
+        batch = delete_result_packages(
+            references=references,
+            delete_all=all_packages,
+            force=force,
+            yes=yes,
+            core_config_service=_core_config_service(),
+        )
+    except ResultPackageDeletionValidationError as error:
+        raise typer.BadParameter(str(error)) from error
+
+    data = {
+        "deleted": batch.deleted_count,
+        "dangling_task_links": batch.dangling_task_links,
+        "failed": batch.failed_count,
+        "packages": [
+            {
+                "path": str(item.path),
+                "result": item.result,
+                "content_id": item.content_id,
+                "detail": item.detail,
+            }
+            for item in batch.items
+        ],
+    }
+    if machine:
+        if batch.failed_count > 0:
+            error = _build_cli_public_error(
+                definition=CLI_RESULT_PACKAGE_RESOLUTION_FAILED,
+                message_params={"detail": "One or more result package deletions failed."},
+                expected=True,
+            ).model_copy(update={"safe_details": data})
+            _print_machine_error(error=error)
+            raise typer.Exit(code=1)
+        _print_machine_success(data=data)
+        raise typer.Exit(code=0)
+
+    _TERMINAL.plain(f"Result packages deleted: {batch.deleted_count}")
+    _TERMINAL.plain(f"Task links left dangling: {batch.dangling_task_links}")
+    _TERMINAL.plain(f"Failed: {batch.failed_count}")
+    for item in batch.items:
+        if item.result == "failed":
+            _TERMINAL.error(f"{item.path.name}: {item.detail or item.result}")
+    raise typer.Exit(code=1 if batch.failed_count else 0)
+
+
 def _result_list_display_name(package: ListedResultPackage) -> str:
     if not package.valid:
         return "Invalid"
     return package.result_name or "Unnamed"
+
+
+_STORAGE_CATEGORY_ORDER: tuple[StorageCategory, ...] = (
+    StorageCategory.TASKS,
+    StorageCategory.RESULTS,
+    StorageCategory.DATABASE,
+    StorageCategory.OTHER,
+    StorageCategory.TOTAL,
+)
+
+
+def _storage_selected_categories(
+    *,
+    tasks: bool,
+    results: bool,
+    database: bool,
+    other: bool,
+    total: bool,
+) -> tuple[StorageCategory, ...]:
+    selected = {
+        category
+        for category, enabled in (
+            (StorageCategory.TASKS, tasks),
+            (StorageCategory.RESULTS, results),
+            (StorageCategory.DATABASE, database),
+            (StorageCategory.OTHER, other),
+            (StorageCategory.TOTAL, total),
+        )
+        if enabled
+    }
+    if not selected:
+        selected = set(_STORAGE_CATEGORY_ORDER)
+    return tuple(category for category in _STORAGE_CATEGORY_ORDER if category in selected)
+
+
+def _print_storage_usage_report(
+    *,
+    report: StorageUsageReport,
+    selected_categories: tuple[StorageCategory, ...],
+    view: str,
+) -> None:
+    lines: list[str] = []
+    for category in selected_categories:
+        if view == "verbose":
+            if lines:
+                lines.append("")
+            lines.extend(_format_storage_verbose_block(report=report, category=category))
+        else:
+            lines.append(
+                _format_storage_one_line(
+                    report=report,
+                    category=category,
+                    standard=view == "standard",
+                )
+            )
+    if not report.complete:
+        if lines:
+            lines.append("")
+        lines.append(
+            f"Warnings: {len(report.diagnostics)} storage entries could not be fully inspected."
+        )
+        if view == "verbose":
+            for diagnostic in report.diagnostics:
+                suffix = f" ({diagnostic.path})" if diagnostic.path is not None else ""
+                lines.append(f"  {diagnostic.message}{suffix}")
+    _TERMINAL.raw("\n".join(lines))
+
+
+def _format_storage_one_line(
+    *,
+    report: StorageUsageReport,
+    category: StorageCategory,
+    standard: bool,
+) -> str:
+    if category is StorageCategory.TASKS:
+        suffix = f" ({report.tasks.workspaces} workspaces)" if standard else ""
+        return f"Tasks: {_format_storage_bytes(report.tasks.bytes)}{suffix}"
+    if category is StorageCategory.RESULTS:
+        suffix = f" ({report.results.packages} packages)" if standard else ""
+        return f"Results: {_format_storage_bytes(report.results.bytes)}{suffix}"
+    if category is StorageCategory.DATABASE:
+        return f"Database: {_format_storage_bytes(report.database.bytes)}"
+    if category is StorageCategory.OTHER:
+        return f"Other: {_format_storage_bytes(report.other.bytes)}"
+    return f"Total: {_format_storage_bytes(report.total.bytes)}"
+
+
+def _format_storage_verbose_block(
+    *,
+    report: StorageUsageReport,
+    category: StorageCategory,
+) -> list[str]:
+    if category is StorageCategory.TASKS:
+        return [
+            "Tasks",
+            f"  Size: {_format_storage_bytes(report.tasks.bytes)} ({report.tasks.bytes} bytes)",
+            f"  Workspaces: {report.tasks.workspaces}",
+            f"  Registry tasks: {report.tasks.registry_tasks}",
+            f"  Missing workspaces: {report.tasks.missing_workspaces}",
+            f"  Orphan workspaces: {report.tasks.orphan_workspaces}",
+            *(
+                [f"  Trash: {_format_storage_bytes(report.tasks.trash_bytes)}"]
+                if report.tasks.trash_bytes
+                else []
+            ),
+        ]
+    if category is StorageCategory.RESULTS:
+        return [
+            "Results",
+            f"  Size: {_format_storage_bytes(report.results.bytes)} ({report.results.bytes} bytes)",
+            f"  Packages: {report.results.packages}",
+            f"  Referenced packages: {report.results.referenced_packages}",
+            f"  Standalone packages: {report.results.standalone_packages}",
+            f"  Invalid packages: {report.results.invalid_packages}",
+        ]
+    if category is StorageCategory.DATABASE:
+        lines = [
+            "Database",
+            (
+                f"  Total: {_format_storage_bytes(report.database.bytes)} "
+                f"({report.database.bytes} bytes)"
+            ),
+            f"  Main database: {_format_storage_bytes(report.database.main_bytes)}",
+        ]
+        if report.database.wal_bytes:
+            lines.append(f"  WAL: {_format_storage_bytes(report.database.wal_bytes)}")
+        if report.database.shm_bytes:
+            lines.append(f"  SHM: {_format_storage_bytes(report.database.shm_bytes)}")
+        if report.database.journal_bytes:
+            lines.append(f"  Journal: {_format_storage_bytes(report.database.journal_bytes)}")
+        return lines
+    if category is StorageCategory.OTHER:
+        return [
+            "Other",
+            f"  Size: {_format_storage_bytes(report.other.bytes)} ({report.other.bytes} bytes)",
+            *[
+                f"  {label}: {_format_storage_bytes(size)}"
+                for label, size in report.other.breakdown
+            ],
+        ]
+    return [
+        "Total",
+        f"  Size: {_format_storage_bytes(report.total.bytes)} ({report.total.bytes} bytes)",
+        *[f"  Managed root: {root}" for root in report.total.managed_roots],
+    ]
+
+
+def _format_storage_bytes(value: int) -> str:
+    """Format bytes using decimal SI units consistently across storage output."""
+
+    if value < 1000:
+        return f"{value} B"
+    units = ("KB", "MB", "GB", "TB", "PB")
+    scaled = float(value)
+    for unit in units:
+        scaled /= 1000.0
+        if scaled < 1000.0 or unit == units[-1]:
+            formatted = f"{scaled:.2f}".rstrip("0").rstrip(".")
+            return f"{formatted} {unit}"
+    return f"{value} B"
+
+
+def _format_config_value(value: object) -> str:
+    if value is None:
+        return "none"
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    return str(value)
+
+
+def _config_value_type_name(value: object) -> str:
+    if value is None:
+        return "null"
+    if isinstance(value, bool):
+        return "boolean"
+    if isinstance(value, int):
+        return "integer"
+    if isinstance(value, float):
+        return "float"
+    if isinstance(value, str):
+        return "string"
+    return type(value).__name__
 
 
 def _result_list_sort_key(package: ListedResultPackage) -> tuple[str, str, str, str]:
@@ -1860,9 +2297,34 @@ def tasks_start(
     rich_help_panel="Cleanup",
 )
 def tasks_delete(
-    task_references: list[str] = typer.Argument(
-        ...,
+    task_references: list[str] | None = typer.Argument(
+        None,
         help="One or more analytical task IDs or names.",
+    ),
+    status: list[str] | None = typer.Option(
+        None,
+        "--status",
+        help="Select tasks by state. Can be passed multiple times.",
+    ),
+    older_than: str | None = typer.Option(
+        None,
+        "--older-than",
+        help="Select tasks last updated more than N full days ago.",
+    ),
+    all_tasks: bool = typer.Option(
+        False,
+        "--all",
+        help="Select all tasks; requires --force.",
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        help="Allow deletion of non-terminal tasks.",
+    ),
+    with_results: bool = typer.Option(
+        False,
+        "--with-results",
+        help="Delete unshared result packages after task deletion.",
     ),
     yes: bool = typer.Option(
         False,
@@ -1876,11 +2338,50 @@ def tasks_delete(
     ),
 ) -> None:
     output_format = "machine" if machine else "text"
-    task_ids = _resolve_task_references(
-        tuple(task_references),
-        allow_missing=True,
-        output_format=output_format,
-    )
+    if all_tasks:
+        _validate_all_force_order(command_name="tasks delete")
+    requested_references = tuple(task_references or ())
+    if requested_references and (status or older_than is not None or all_tasks):
+        raise typer.BadParameter(
+            "Task references cannot be combined with --status, --older-than, or --all."
+        )
+    if all_tasks and (status or older_than is not None):
+        raise typer.BadParameter("--all cannot be combined with --status or --older-than.")
+
+    try:
+        parsed_states = _parse_task_delete_states(status)
+        older_than_days = _parse_older_than_days(older_than)
+        resolved_config = _core_config_service().require_initialized_config()
+        registry = AnalyticalTaskRegistryService(
+            database_path=resolved_config.database_path
+        )
+        if requested_references:
+            task_ids = _resolve_task_references(
+                requested_references,
+                output_format=output_format,
+            )
+            selection = select_tasks_for_deletion(
+                registry_service=registry,
+                task_ids=task_ids,
+                force=force,
+            )
+        else:
+            cutoff = (
+                datetime.now(UTC) - timedelta(days=older_than_days)
+                if older_than_days is not None
+                else None
+            )
+            selection = select_tasks_for_deletion(
+                registry_service=registry,
+                states=parsed_states,
+                updated_before=cutoff,
+                delete_all=all_tasks,
+                force=force,
+            )
+        task_ids = selection.task_ids
+    except (TaskDeletionValidationError, CoreConfigError) as error:
+        raise typer.BadParameter(str(error)) from error
+
     if machine and not yes:
         _exit_with_cli_error(
             definition=CLI_ANALYZE_ARGUMENT_INVALID,
@@ -1898,6 +2399,8 @@ def tasks_delete(
 
     result = run_delete_analytical_tasks(
         task_ids=task_ids,
+        force=force,
+        with_results=with_results,
         core_config_service=_core_config_service(),
     )
     if not result.ok:
@@ -3070,7 +3573,13 @@ def _task_snapshots_machine_payload(
         payloads: list[dict[str, JSONValue]] = []
         for snapshot in task_snapshots:
             payload: dict[str, JSONValue] = snapshot.task.model_dump(mode="json")
-            trace_id = registry.get_task_trace_id(task_id=snapshot.task.task_id)
+            try:
+                trace_id = registry.get_task_trace_id(task_id=snapshot.task.task_id)
+            except Exception:
+                # The registry remains authoritative when a workspace was
+                # manually removed.  Trace metadata is optional presentation
+                # data and must not make list/show fail.
+                trace_id = None
             payload["trace_id"] = str(trace_id) if trace_id is not None else None
             payload["active_or_latest_job"] = (
                 snapshot.active_or_latest_job.model_dump(mode="json")
@@ -3738,6 +4247,8 @@ def _print_task_delete_result(result: TaskDeleteBatchResult) -> None:
 
     for item in result.items:
         message = f"{item.task_id}: {item.result.value}"
+        if item.detail is not None:
+            message += f" ({item.detail})"
         if item.result in {
             TaskDeleteItemResultType.NOT_FOUND,
             TaskDeleteItemResultType.REJECTED,
@@ -3750,6 +4261,10 @@ def _print_task_delete_result(result: TaskDeleteBatchResult) -> None:
         f"{deleted_count} deleted, {deletion_requested_count} requested, "
         f"{already_satisfied_count} unchanged, {not_found_count} not found, "
         f"{rejected_count} rejected."
+    )
+    _TERMINAL.info(
+        f"Result packages: {result.result_packages_deleted} deleted, "
+        f"{result.shared_result_packages_preserved} shared preserved."
     )
 
 
@@ -4109,6 +4624,56 @@ def config_validate(
         )
         return
     _TERMINAL.success("System config is valid.")
+
+
+@config_app.command(
+    "get",
+    help="jelica config get CONFIG_PATH — Read one validated configuration value.",
+    rich_help_panel="Inspect",
+)
+def config_get(
+    parameter: str = typer.Argument(
+        ...,
+        metavar="CONFIG_PATH",
+        help="Configuration leaf path or existing config alias.",
+    ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        help="Show safe diagnostic fields when available.",
+    ),
+    machine: bool = typer.Option(
+        False,
+        "--machine",
+        help="Write one machine protocol JSON response.",
+    ),
+) -> None:
+    output_format = "machine" if machine else "text"
+    config_service = _cli_system_config_service()
+    try:
+        # Loading through the composed service performs the same strict Core +
+        # CLI validation as config set, without emitting a "config loaded"
+        # event or mutating logs/configuration during this read-only command.
+        config_service.load()
+        canonical_parameter = config_service.resolve_parameter_name(parameter=parameter)
+        value = config_service.get_parameter(parameter=parameter)
+    except CoreConfigError as error:
+        _exit_with_cli_error(
+            definition=CLI_ANALYZE_ARGUMENT_INVALID,
+            message_params={"detail": str(error)},
+            output_format=output_format,
+            verbose=verbose,
+        )
+    if machine:
+        _print_machine_success(
+            data={
+                "path": canonical_parameter,
+                "value": value,
+                "type": _config_value_type_name(value),
+            }
+        )
+        return
+    _TERMINAL.plain(_format_config_value(value))
 
 
 @config_app.command(

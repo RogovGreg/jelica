@@ -214,6 +214,20 @@ class WebTaskProjectionStore:
                 return None
             return _to_projection_record(projection=projection)
 
+    def delete_task(self, *, core_task_id: str) -> bool:
+        normalized_core_task_id = _require_non_empty_text(
+            value=core_task_id,
+            field_name="core_task_id",
+        )
+        with self.session_factory() as session, session.begin():
+            projection = session.scalar(
+                select(WebTask).where(WebTask.core_task_id == normalized_core_task_id)
+            )
+            if projection is None:
+                return False
+            session.delete(projection)
+            return True
+
     def get_visible_task(
         self,
         *,

@@ -14,6 +14,7 @@ from .artifacts import (
     RESULT_PACKAGE_PREPARED_DIRNAME,
     RESULT_PACKAGE_STAGE_ID,
     RESULT_PACKAGE_STAGE_MANIFEST_RELATIVE_PATH,
+    DeletedResultPackage,
     ImportedResultPackage,
     JelicaPackageManifest,
     JelicaPackageReader,
@@ -40,6 +41,8 @@ from .artifacts import (
     ValidatedResultPackage,
     compute_content_id,
     content_digest_from_content_id,
+    delete_all_result_packages,
+    delete_result_package,
     import_result_package,
     infer_media_type,
     list_result_packages,
@@ -58,6 +61,20 @@ from .artifacts import (
     write_model_json,
     write_result_package_link,
 )
+from .deletion import (
+    ResultDeletionBatch,
+    ResultDeletionItem,
+    ResultDeletionPlan,
+    ResultDeletionTarget,
+    ResultPackageDeletionValidationError,
+    delete_result_packages,
+    validate_result_package_deletion,
+)
+from .references import (
+    TaskResultReference,
+    TaskResultReferenceAnalysis,
+    analyze_task_result_references,
+)
 
 __all__ = [
     "JELICA_PACKAGE_CONFIGURATION_PATH",
@@ -70,6 +87,7 @@ __all__ = [
     "JELICA_PACKAGE_TASK_PATH",
     "RESULT_PACKAGE_DIRECTORY_NAME",
     "ImportedResultPackage",
+    "DeletedResultPackage",
     "ParsedResultPackageFilename",
     "JelicaPackageReader",
     "JelicaPackageReaderError",
@@ -101,6 +119,8 @@ __all__ = [
     "content_digest_from_content_id",
     "infer_media_type",
     "import_result_package",
+    "delete_all_result_packages",
+    "delete_result_package",
     "list_result_packages",
     "load_result_package_link",
     "load_result_package_stage_manifest",
@@ -116,4 +136,14 @@ __all__ = [
     "validate_result_package_file",
     "write_model_json",
     "write_result_package_link",
+    "TaskResultReference",
+    "TaskResultReferenceAnalysis",
+    "analyze_task_result_references",
+    "ResultDeletionBatch",
+    "ResultDeletionItem",
+    "ResultDeletionPlan",
+    "ResultDeletionTarget",
+    "ResultPackageDeletionValidationError",
+    "delete_result_packages",
+    "validate_result_package_deletion",
 ]

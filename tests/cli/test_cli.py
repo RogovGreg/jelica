@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import re
+import sqlite3
 import subprocess
 import sys
 import threading
@@ -75,7 +76,10 @@ from jelica_core.system_config import (
     ResolvedCoreConfig,
     core_config_field_paths,
 )
-from jelica_core.tasks import AnalyticalTaskRegistryService, AnalyticalTaskSnapshot
+from jelica_core.tasks import (
+    AnalyticalTaskRegistryService,
+    AnalyticalTaskSnapshot,
+)
 
 runner = CliRunner()
 _INVOKED_JELICA_HOMES: set[Path] = set()
@@ -839,6 +843,7 @@ def test_config_init_non_interactive_writes_defaults_and_directories(
         "input_directory_max_depth": 3,
         "ncbi_api_key": "",
         "ncbi_max_retries": 3,
+        "tasks_retention_days": "",
         "default_alignment_mode": "compute",
         "data": {"directory": "data"},
         "execution": {
@@ -1181,6 +1186,25 @@ def test_config_set_updates_data_directory(tmp_path: Path) -> None:
     resolved = _load_resolved_core_config(jelica_home)
     assert resolved.data_dir == jelica_home / "custom-data"
     assert resolved.tasks_dir.is_dir()
+
+
+def test_config_set_and_unset_tasks_retention_preserves_disabled_key(tmp_path: Path) -> None:
+    jelica_home = tmp_path / "home"
+    _run_non_interactive_init(jelica_home)
+
+    enabled = _invoke_cli(
+        args=["config", "set", "tasks_retention_days", "30"],
+        jelica_home=jelica_home,
+    )
+    assert enabled.exit_code == 0
+    assert _load_config_document(jelica_home)["tasks_retention_days"] == 30
+
+    disabled = _invoke_cli(
+        args=["config", "unset", "tasks_retention_days"],
+        jelica_home=jelica_home,
+    )
+    assert disabled.exit_code == 0
+    assert _load_config_document(jelica_home)["tasks_retention_days"] == ""
 
 
 @pytest.mark.parametrize(
@@ -2297,7 +2321,7 @@ def test_tasks_update_round_trips_saved_normalized_config(tmp_path: Path) -> Non
     assert saved["alignment"]["mafft"]["iterative_threads"] == "auto"
 
 
-def test_tasks_delete_reports_partial_exit_code_in_text_mode(tmp_path: Path) -> None:
+def test_tasks_delete_resolves_all_identifiers_before_deletion(tmp_path: Path) -> None:
     jelica_home = tmp_path / "home"
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
@@ -2311,13 +2335,11 @@ def test_tasks_delete_reports_partial_exit_code_in_text_mode(tmp_path: Path) -> 
         args=["tasks", "delete", task_id, missing_task_id, task_id, "--yes"],
         jelica_home=jelica_home,
     )
-    assert result.exit_code == 1
-    assert f"{task_id}: deleted" in result.stdout
-    assert f"{missing_task_id}: not_found" in result.stdout
-    assert "Task deletion: 1 deleted" in result.stdout
+    assert result.exit_code != 0
+    assert "was not found" in result.stdout
 
     resolved = _load_resolved_core_config(jelica_home)
-    assert not (resolved.tasks_dir / task_id).exists()
+    assert (resolved.tasks_dir / task_id).exists()
 
 
 def test_tasks_delete_confirmation_decline_preserves_task(tmp_path: Path) -> None:
@@ -2329,6 +2351,12 @@ def test_tasks_delete_confirmation_decline_preserves_task(tmp_path: Path) -> Non
         jelica_home=jelica_home, sample_paths=[sample]
     )
     task_name = _task_name(jelica_home=jelica_home, task_id=task_id)
+    with sqlite3.connect(_load_resolved_core_config(jelica_home).database_path) as connection:
+        connection.execute(
+            "UPDATE analytical_tasks SET state = 'cancelled' WHERE task_id = ?",
+            (task_id,),
+        )
+        connection.commit()
 
     result = _invoke_cli(
         args=["tasks", "delete", task_name.upper()],
@@ -4864,3 +4892,153 @@ def test_open_report_file_uses_xdg_open_on_linux(
     assert result.opened is True
     assert observed["args"] == ["xdg-open", str(report_path)]
     assert "shell" not in observed["kwargs"]
+
+
+def test_results_delete_shared_package_requires_force_and_leaves_links_dangling(
+    tmp_path: Path,
+) -> None:
+    jelica_home = tmp_path / "home"
+    _run_non_interactive_init(jelica_home)
+    source = tmp_path / "shared.jelica"
+    content_id = _build_validation_package(source)
+    imported = _invoke_cli(
+        args=["results", "import", str(source)],
+        jelica_home=jelica_home,
+    )
+    assert imported.exit_code == 0
+    package_path = next(_result_packages_dir(jelica_home).glob("*.jelica"))
+
+    for task_id in ("task-a", "task-b"):
+        _register_task_with_result_package_link(
+            jelica_home=jelica_home,
+            task_id=task_id,
+            content_id=content_id,
+            name=task_id,
+        )
+        with sqlite3.connect(_load_resolved_core_config(jelica_home).database_path) as connection:
+            connection.execute(
+                "UPDATE analytical_tasks SET state = 'cancelled' WHERE task_id = ?",
+                (task_id,),
+            )
+            connection.commit()
+
+    rejected = _invoke_cli(
+        args=["results", "delete", "task-a", "--yes"],
+        jelica_home=jelica_home,
+    )
+    assert rejected.exit_code != 0
+    assert "referenced by 2 tasks" in rejected.output
+    assert package_path.is_file()
+
+    deleted = _invoke_cli(
+        args=["results", "delete", "task-a", "--force", "--yes"],
+        jelica_home=jelica_home,
+    )
+    assert deleted.exit_code == 0
+    assert not package_path.exists()
+    unresolved = _invoke_cli(
+        args=["results", "path", "task-a"],
+        jelica_home=jelica_home,
+    )
+    assert unresolved.exit_code == 1
+    assert "package_not_found" in unresolved.stdout
+
+
+def test_results_delete_exact_corrupt_filename_requires_force(tmp_path: Path) -> None:
+    jelica_home = tmp_path / "home"
+    _run_non_interactive_init(jelica_home)
+    store = _result_packages_dir(jelica_home)
+    store.mkdir(parents=True, exist_ok=True)
+    corrupt = store / "broken.jelica"
+    corrupt.write_bytes(b"not a zip")
+
+    rejected = _invoke_cli(
+        args=["results", "delete", corrupt.name, "--yes"],
+        jelica_home=jelica_home,
+    )
+    assert rejected.exit_code != 0
+    assert corrupt.exists()
+
+    deleted = _invoke_cli(
+        args=["results", "delete", corrupt.name, "--force", "--yes"],
+        jelica_home=jelica_home,
+    )
+    assert deleted.exit_code == 0
+    assert not corrupt.exists()
+
+
+def test_tasks_delete_with_results_preserves_shared_until_last_task(
+    tmp_path: Path,
+) -> None:
+    jelica_home = tmp_path / "home"
+    _run_non_interactive_init(jelica_home)
+    source = tmp_path / "shared.jelica"
+    content_id = _build_validation_package(source)
+    imported = _invoke_cli(
+        args=["results", "import", str(source)],
+        jelica_home=jelica_home,
+    )
+    assert imported.exit_code == 0
+    package_path = next(_result_packages_dir(jelica_home).glob("*.jelica"))
+    for task_id in ("task-a", "task-b"):
+        _register_task_with_result_package_link(
+            jelica_home=jelica_home,
+            task_id=task_id,
+            content_id=content_id,
+            name=task_id,
+        )
+        with sqlite3.connect(_load_resolved_core_config(jelica_home).database_path) as connection:
+            connection.execute(
+                "UPDATE analytical_tasks SET state = 'cancelled' WHERE task_id = ?",
+                (task_id,),
+            )
+            connection.commit()
+
+    first = _invoke_cli(
+        args=["tasks", "delete", "task-a", "--with-results", "--yes"],
+        jelica_home=jelica_home,
+    )
+    assert first.exit_code == 0
+    assert package_path.is_file()
+    assert "shared preserved" in first.stdout
+
+    second = _invoke_cli(
+        args=["tasks", "delete", "task-b", "--with-results", "--yes"],
+        jelica_home=jelica_home,
+    )
+    assert second.exit_code == 0
+    assert not package_path.exists()
+
+
+def test_tasks_list_and_show_survive_missing_workspace(tmp_path: Path) -> None:
+    jelica_home = tmp_path / "home"
+    _run_non_interactive_init(jelica_home)
+    sample = tmp_path / "sample.fasta"
+    sample.write_text(">a\nACGT\n", encoding="utf-8")
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home,
+        sample_paths=[sample],
+    )
+    resolved = _load_resolved_core_config(jelica_home)
+    task_dir = resolved.tasks_dir / task_id
+    import shutil
+
+    shutil.rmtree(task_dir)
+
+    listed = _invoke_cli(args=["tasks", "list"], jelica_home=jelica_home)
+    listed_machine = _invoke_cli(
+        args=["tasks", "list", "--machine"],
+        jelica_home=jelica_home,
+    )
+    shown = _invoke_cli(args=["tasks", "show", task_id], jelica_home=jelica_home)
+    assert listed.exit_code == 0
+    assert task_id in listed.stdout
+    assert listed_machine.exit_code == 0
+    assert shown.exit_code == 0
+    assert task_id in shown.stdout
+
+    deleted = _invoke_cli(
+        args=["tasks", "delete", task_id, "--force", "--yes"],
+        jelica_home=jelica_home,
+    )
+    assert deleted.exit_code == 0
