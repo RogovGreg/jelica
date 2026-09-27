@@ -3382,6 +3382,7 @@ def _validate_result_package_domain(
         package_path=result_package_target_path(
             task_dir=task_dir,
             content_digest=stage_manifest.content_digest,
+            result_name=stage_manifest.result_name,
         ),
     )
     if stage_manifest.published_package_relative_path != expected_published_relative_path:

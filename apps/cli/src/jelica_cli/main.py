@@ -54,6 +54,7 @@ from jelica_core.input_sources import InputSourceKind, classify_input_source
 from jelica_core.reporting import ResultOverviewBuildError, build_result_overview
 from jelica_core.result_package import (
     JelicaPackageValidator,
+    ListedResultPackage,
     ResultPackageLibraryError,
     import_result_package,
     list_result_packages,
@@ -115,6 +116,13 @@ from .results_export import (
     ReportExportError,
     ReportExportErrorCode,
     export_results_pdf_report,
+)
+from .results_import import (
+    ResultImportPlanError,
+    build_result_import_groups,
+    expand_result_import_items,
+    render_result_import_name,
+    validate_import_source,
 )
 from .system_config import CliConfig, CliSystemConfigService
 from .terminal import TerminalMode, create_terminal_presenter
@@ -247,7 +255,9 @@ def _resolve_task_references(
     if len(task_references) == 0:
         _exit_with_cli_error(
             definition=CLI_ANALYZE_ARGUMENT_INVALID,
-            message_params={"detail": "At least one analytical task reference is required."},
+            message_params={
+                "detail": "At least one analytical task reference is required."
+            },
             output_format=output_format,
             verbose=False,
         )
@@ -255,7 +265,9 @@ def _resolve_task_references(
     config_service = _core_config_service()
     try:
         resolved_config = config_service.require_initialized_config()
-        registry = AnalyticalTaskRegistryService(database_path=resolved_config.database_path)
+        registry = AnalyticalTaskRegistryService(
+            database_path=resolved_config.database_path
+        )
     except Exception:
         _exit_with_task_reference_resolution_error(
             task_reference=task_references[0],
@@ -299,7 +311,9 @@ def _resolve_task_references(
         except Exception as error:
             _exit_with_cli_error(
                 definition=CLI_INTERNAL_ERROR,
-                message_params={"detail": f"Cannot resolve task trace metadata: {error}"},
+                message_params={
+                    "detail": f"Cannot resolve task trace metadata: {error}"
+                },
                 output_format=output_format,
                 verbose=False,
                 expected=False,
@@ -533,35 +547,172 @@ def results_validate(
 
 @results_app.command(
     "import",
-    help="jelica results import FILE.jelica — Import one package into local store.",
+    help=(
+        "jelica results import [SOURCE...] [--rename=SOURCE=TEMPLATE] [--no-name] "
+        "— Import result packages into local store."
+    ),
     rich_help_panel="Import",
 )
 def results_import(
-    package_path: Path = typer.Argument(..., help="Path to .jelica package file."),
+    sources: list[Path] | None = typer.Argument(
+        None,
+        help="A .jelica file or directory; omitted means the current directory.",
+    ),
+    rename: list[str] | None = typer.Option(
+        None,
+        "--rename",
+        help=(
+            'Rename source with --rename="SOURCE=TEMPLATE"; when no source is '
+            'given, use --rename="TEMPLATE". Repeatable.'
+        ),
+    ),
+    no_name: bool = typer.Option(
+        False,
+        "--no-name",
+        help="Store every imported package with its digest-only filename.",
+    ),
+    machine: bool = typer.Option(
+        False,
+        "--machine",
+        help="Write one machine protocol JSON response for the batch.",
+    ),
 ) -> None:
     try:
-        outcome = import_result_package(
-            source_path=package_path,
-            core_config_service=_core_config_service(),
+        implicit_current_directory = sources is None
+        if implicit_current_directory and any(
+            "=" in value for value in (rename or ())
+        ):
+            raise ResultImportPlanError(
+                "No import source was specified explicitly. In implicit "
+                "current-directory mode, --rename must contain only a rename "
+                'template. Example: --rename="{index}_{name}".'
+            )
+        positional_sources = (
+            tuple(sources)
+            if sources is not None
+            else ()
         )
-    except ResultPackageLibraryError as error:
-        _print_result_package_library_error(error)
-        raise typer.Exit(code=1) from error
+        groups = build_result_import_groups(
+            positional_sources=positional_sources,
+            rename_values=tuple(rename or ()),
+            implicit_current_directory=implicit_current_directory,
+        )
+        items = expand_result_import_items(groups=groups, no_name=no_name)
+    except ResultImportPlanError as error:
+        raise typer.BadParameter(str(error)) from error
 
-    if outcome.already_exists:
-        _TERMINAL.plain("JELICA result package already exists")
-    else:
-        _TERMINAL.success("JELICA result package imported")
-    _TERMINAL.plain(f"Content ID: {outcome.content_id}")
-    _TERMINAL.plain(f"Path: {outcome.path.resolve(strict=False)}")
+    imported_count = 0
+    already_exists_count = 0
+    failures: list[tuple[Path, str]] = []
+    successful_packages: list[dict[str, str | bool]] = []
+    validator = JelicaPackageValidator()
+    for item in items:
+        try:
+            validation = validator.validate(item.file_path)
+            content_id = validate_import_source(item=item, validation=validation)
+            if no_name:
+                rendered_name = None
+                filename_stem = None
+            else:
+                rendered = render_result_import_name(item=item, content_id=content_id)
+                rendered_name = rendered.result_name
+                filename_stem = rendered.filename_stem
+            outcome = import_result_package(
+                source_path=item.file_path,
+                core_config_service=_core_config_service(),
+                result_name=rendered_name,
+                filename_stem=filename_stem,
+            )
+        except (ResultPackageLibraryError, ValueError, OSError) as error:
+            if isinstance(error, ResultPackageLibraryError):
+                failures.append((item.file_path, f"[{error.code.value}] {error}"))
+            else:
+                failures.append((item.file_path, str(error)))
+            continue
+
+        if outcome.already_exists:
+            already_exists_count += 1
+            if not machine:
+                _TERMINAL.plain("JELICA result package already exists")
+        else:
+            imported_count += 1
+            if not machine:
+                _TERMINAL.success("JELICA result package imported")
+        if not machine:
+            _TERMINAL.plain(f"Content ID: {outcome.content_id}")
+            _TERMINAL.plain(f"Path: {outcome.path.resolve(strict=False)}")
+        successful_packages.append(
+            {
+                "content_id": outcome.content_id,
+                "path": str(outcome.path.resolve(strict=False)),
+                "already_exists": outcome.already_exists,
+            }
+        )
+
+    if machine:
+        batch_data = {
+            "imported": imported_count,
+            "already_exists": already_exists_count,
+            "failed": len(failures),
+            "packages": successful_packages,
+            "failures": [
+                {"source": str(path), "reason": reason} for path, reason in failures
+            ],
+        }
+        if failures:
+            machine_error = _build_cli_public_error(
+                definition=CLI_RESULT_PACKAGE_RESOLUTION_FAILED,
+                message_params={"detail": "One or more result package imports failed."},
+                expected=True,
+            ).model_copy(update={"safe_details": batch_data})
+            _print_machine_error(error=machine_error)
+            raise typer.Exit(code=1)
+        _print_machine_success(data=batch_data)
+        raise typer.Exit(code=0)
+
+    _TERMINAL.plain(f"Imported: {imported_count}")
+    _TERMINAL.plain(f"Already existed: {already_exists_count}")
+    _TERMINAL.plain(f"Failed: {len(failures)}")
+    for path, reason in failures:
+        _TERMINAL.plain("")
+        _TERMINAL.plain(f"Failed import: {path}", style="red")
+        _TERMINAL.plain(f"  {reason}")
+    if failures:
+        raise typer.Exit(code=1)
+    raise typer.Exit(code=0)
 
 
 @results_app.command(
     "list",
-    help="jelica results list — List local result packages from central store.",
+    help=(
+        "jelica results list [--short|--standard|--verbose] — List local result "
+        "packages from central store."
+    ),
     rich_help_panel="Catalog",
 )
-def results_list() -> None:
+def results_list(
+    short: bool = typer.Option(
+        False,
+        "--short",
+        help="Show one concise line per result.",
+    ),
+    standard: bool = typer.Option(
+        False,
+        "--standard",
+        help="Show the standard two-line result view (default).",
+    ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        help="Show result, content, task, status, and format details.",
+    ),
+) -> None:
+    selected_views = sum((short, standard, verbose))
+    if selected_views > 1:
+        raise typer.BadParameter(
+            "Options --short, --standard, and --verbose are mutually exclusive."
+        )
+    view = "short" if short else "verbose" if verbose else "standard"
     try:
         listing = list_result_packages(core_config_service=_core_config_service())
     except ResultPackageLibraryError as error:
@@ -572,23 +723,96 @@ def results_list() -> None:
         _TERMINAL.plain("No JELICA result packages found")
         raise typer.Exit(code=0)
 
-    for index, package in enumerate(listing.packages):
-        if index > 0:
+    packages = tuple(sorted(listing.packages, key=_result_list_sort_key))
+    for index, package in enumerate(packages, start=1):
+        if index > 1 and view != "short":
             _TERMINAL.plain("")
-        _TERMINAL.plain(f"File name: {package.file_name}")
-        if package.valid:
-            _TERMINAL.plain(f"Content ID: {package.content_id or '-'}")
-            _TERMINAL.plain(f"Task ID: {package.task_id or '-'}")
-            _TERMINAL.plain(f"Status: {package.status}")
-            _TERMINAL.plain(f"Format version: {package.format_version or '-'}")
-            continue
-        _TERMINAL.plain(f"Status: {package.status}", style="red")
-        if package.issue_code is not None:
-            _TERMINAL.plain(f"[{package.issue_code.value}] package entry is invalid")
+        for line in _format_result_list_entry(
+            index=index,
+            package=package,
+            view=view,
+        ):
+            _TERMINAL.plain(line, style="red" if not package.valid else None)
 
     if listing.has_invalid_entries:
         raise typer.Exit(code=1)
     raise typer.Exit(code=0)
+
+
+def _result_list_display_name(package: ListedResultPackage) -> str:
+    if not package.valid:
+        return "Invalid"
+    return package.result_name or "Unnamed"
+
+
+def _result_list_sort_key(package: ListedResultPackage) -> tuple[str, str, str, str]:
+    display_name = _result_list_display_name(package)
+    return (
+        display_name.casefold(),
+        display_name,
+        package.file_name.casefold(),
+        package.file_name,
+    )
+
+
+def _result_list_task_display(package: ListedResultPackage) -> str:
+    if package.task_id is None:
+        return "undefined (imported results)"
+    return f"{package.task_name or 'Unnamed'} - {package.task_id}"
+
+
+def _result_list_invalid_detail(package: ListedResultPackage) -> str:
+    if package.issue_code is None:
+        return package.status
+    return f"{package.status} [{package.issue_code.value}]"
+
+
+def _format_result_list_entry(
+    *,
+    index: int,
+    package: ListedResultPackage,
+    view: str,
+) -> tuple[str, ...]:
+    continuation_indent = " " * len(f"{index}. ")
+    if not package.valid:
+        if view == "short":
+            return (
+                f"{index}. Invalid: {package.file_name}"
+                f" [{package.issue_code.value}]"
+                if package.issue_code is not None
+                else f"{index}. Invalid: {package.file_name}",
+            )
+        first_line = f"{index}. Result: Invalid - {package.file_name}"
+        if view == "standard":
+            return (
+                first_line,
+                f"{continuation_indent}Status: {_result_list_invalid_detail(package)}",
+            )
+        return (
+            first_line,
+            f"{continuation_indent}Content ID: undefined",
+            f"{continuation_indent}Task: undefined (imported results)",
+            f"{continuation_indent}Status: {_result_list_invalid_detail(package)}",
+            f"{continuation_indent}Format version: undefined",
+        )
+
+    result_line = (
+        f"{index}. Result: {_result_list_display_name(package)} - {package.file_name}"
+    )
+    if view == "short":
+        return (f"{index}. {_result_list_display_name(package)}: {package.file_name}",)
+    if view == "standard":
+        return (
+            result_line,
+            f"{continuation_indent}Task: {_result_list_task_display(package)}",
+        )
+    return (
+        result_line,
+        f"{continuation_indent}Content ID: {package.content_id or 'undefined'}",
+        f"{continuation_indent}Task: {_result_list_task_display(package)}",
+        f"{continuation_indent}Status: {package.status}",
+        f"{continuation_indent}Format version: {package.format_version or 'undefined'}",
+    )
 
 
 @results_app.command(
@@ -599,7 +823,9 @@ def results_list() -> None:
 def results_path(
     task_or_content_ref: str = typer.Argument(
         ...,
-        help="Task ID, full content ID (sha256:<digest>), or bare 64-char digest.",
+        help=(
+            "Task ID/name, content ID, bare digest, result name, or stored .jelica filename."
+        ),
     ),
     machine: bool = typer.Option(
         False,
@@ -646,13 +872,15 @@ def results_path(
 
 @results_app.command(
     "overview",
-    help="jelica results overview <task-id|content-id> — Read display-safe result data.",
+    help="jelica results overview <reference> — Read display-safe result data.",
     rich_help_panel="Catalog",
 )
 def results_overview(
     task_or_content_ref: str = typer.Argument(
         ...,
-        help="Task ID, full content ID (sha256:<digest>), or bare 64-char digest.",
+        help=(
+            "Task ID/name, content ID, bare digest, result name, or stored .jelica filename."
+        ),
     ),
     machine: bool = typer.Option(
         False,
@@ -724,7 +952,9 @@ def results_export(
     ),
 ) -> None:
     if format_name.strip().lower() != "pdf":
-        _TERMINAL.plain("[unsupported_export_format] Only --format=pdf is supported.", style="red")
+        _TERMINAL.plain(
+            "[unsupported_export_format] Only --format=pdf is supported.", style="red"
+        )
         raise typer.Exit(code=1)
 
     try:
@@ -753,7 +983,9 @@ def results_export(
 
     warning_code = outcome.open_result.warning_code
     if warning_code is not None:
-        _TERMINAL.warning(f"[{warning_code.value}] The report could not be opened automatically.")
+        _TERMINAL.warning(
+            f"[{warning_code.value}] The report could not be opened automatically."
+        )
     raise typer.Exit(code=0)
 
 
@@ -854,7 +1086,11 @@ def analyze(
 ) -> None:
     output_format = "machine" if machine else "text"
     alias_target = _ANALYSIS_ALIAS_TARGETS.get(ctx.info_name or "")
-    if alias_target is not None and target is not None and target.strip().lower() != alias_target:
+    if (
+        alias_target is not None
+        and target is not None
+        and target.strip().lower() != alias_target
+    ):
         _exit_with_cli_error(
             definition=CLI_ANALYZE_ARGUMENT_INVALID,
             message_params={
@@ -889,7 +1125,11 @@ def analyze(
             verbose=False,
         )
     terminal_mode = (
-        TerminalMode.VERBOSE if verbose else TerminalMode.QUIET if quiet else TerminalMode.STANDARD
+        TerminalMode.VERBOSE
+        if verbose
+        else TerminalMode.QUIET
+        if quiet
+        else TerminalMode.STANDARD
     )
 
     raw_arguments = list(ctx.args)
@@ -984,7 +1224,9 @@ def analyze(
     if task is None:
         _exit_with_cli_error(
             definition=CLI_INTERNAL_ERROR,
-            message_params={"detail": "Core returned no task payload for successful operation."},
+            message_params={
+                "detail": "Core returned no task payload for successful operation."
+            },
             output_format=output_format,
             verbose=verbose,
             expected=False,
@@ -1023,7 +1265,9 @@ def analyze(
     if start_result.value is None:
         _exit_with_cli_error(
             definition=CLI_INTERNAL_ERROR,
-            message_params={"detail": "Core returned no start payload for successful operation."},
+            message_params={
+                "detail": "Core returned no start payload for successful operation."
+            },
             output_format=output_format,
             verbose=verbose,
             expected=False,
@@ -1047,7 +1291,11 @@ def analyze(
                 data["plan"] = analysis_plan.model_dump(mode="json")
             _print_machine_success(
                 data=data,
-                trace_id=(str(task.config.trace_id) if task.config.trace_id is not None else None),
+                trace_id=(
+                    str(task.config.trace_id)
+                    if task.config.trace_id is not None
+                    else None
+                ),
             )
             raise typer.Exit(code=0)
 
@@ -1090,7 +1338,9 @@ def analyze(
         if final_row.state != "completed":
             _exit_with_cli_error(
                 definition=CLI_INTERNAL_ERROR,
-                message_params={"detail": f"Analysis task finished in state '{final_row.state}'."},
+                message_params={
+                    "detail": f"Analysis task finished in state '{final_row.state}'."
+                },
                 output_format=output_format,
                 verbose=verbose,
                 expected=False,
@@ -1104,7 +1354,9 @@ def analyze(
             data["plan"] = analysis_plan.model_dump(mode="json")
         _print_machine_success(
             data=data,
-            trace_id=str(task.config.trace_id) if task.config.trace_id is not None else None,
+            trace_id=str(task.config.trace_id)
+            if task.config.trace_id is not None
+            else None,
         )
         raise typer.Exit(code=0)
     raise typer.Exit(code=0 if final_row.state == "completed" else 1)
@@ -1155,7 +1407,9 @@ def tasks_list(
     if tasks is None:
         _exit_with_cli_error(
             definition=CLI_INTERNAL_ERROR,
-            message_params={"detail": "Core returned no tasks payload for successful operation."},
+            message_params={
+                "detail": "Core returned no tasks payload for successful operation."
+            },
             output_format=output_format,
             verbose=False,
             expected=False,
@@ -1292,7 +1546,9 @@ def tasks_jobs(
     if jobs is None:
         _exit_with_cli_error(
             definition=CLI_INTERNAL_ERROR,
-            message_params={"detail": "Core returned no jobs payload for successful operation."},
+            message_params={
+                "detail": "Core returned no jobs payload for successful operation."
+            },
             output_format=output_format,
             verbose=False,
             expected=False,
@@ -1307,7 +1563,9 @@ def tasks_jobs(
                 "limit": limit,
                 "offset": offset,
             },
-            trace_id=str(result.event.trace_id) if result.event.trace_id is not None else None,
+            trace_id=str(result.event.trace_id)
+            if result.event.trace_id is not None
+            else None,
         )
         return
 
@@ -1389,7 +1647,11 @@ def _run_task_execution_command(
         )
     if watched.interrupted:
         if machine:
-            trace_id = operation_results[0].event.trace_id if len(operation_results) == 1 else None
+            trace_id = (
+                operation_results[0].event.trace_id
+                if len(operation_results) == 1
+                else None
+            )
             _exit_machine_interrupted(
                 task_ids=watched_task_ids,
                 trace_id=trace_id,
@@ -1435,13 +1697,16 @@ def _run_task_execution_command(
                 expected=False,
             )
         final_results.append(
-            lifecycle_result.model_copy(update={"task": final_snapshot.task, "job": final_job})
+            lifecycle_result.model_copy(
+                update={"task": final_snapshot.task, "job": final_job}
+            )
         )
 
     if machine:
         machine_trace_id = (
             str(operation_results[0].event.trace_id)
-            if len(operation_results) == 1 and operation_results[0].event.trace_id is not None
+            if len(operation_results) == 1
+            and operation_results[0].event.trace_id is not None
             else None
         )
         _print_machine_success(
@@ -1571,7 +1836,9 @@ def tasks_start(
             verbose=False,
             expected=False,
         )
-    start_result = start_result.model_copy(update={"task": final_snapshot.task, "job": final_job})
+    start_result = start_result.model_copy(
+        update={"task": final_snapshot.task, "job": final_job}
+    )
 
     _print_event(
         result.event,
@@ -1644,7 +1911,9 @@ def tasks_delete(
     if batch_result is None:
         _exit_with_cli_error(
             definition=CLI_INTERNAL_ERROR,
-            message_params={"detail": "Core returned no delete payload for successful operation."},
+            message_params={
+                "detail": "Core returned no delete payload for successful operation."
+            },
             output_format=output_format,
             verbose=False,
             expected=False,
@@ -1655,14 +1924,22 @@ def tasks_delete(
         if command_exit_code != 0:
             error = _build_cli_public_error(
                 definition=CLI_INTERNAL_ERROR,
-                message_params={"detail": "One or more task deletions were not completed."},
+                message_params={
+                    "detail": "One or more task deletions were not completed."
+                },
                 expected=True,
-            ).model_copy(update={"safe_details": {"result": batch_result.model_dump(mode="json")}})
+            ).model_copy(
+                update={
+                    "safe_details": {"result": batch_result.model_dump(mode="json")}
+                }
+            )
             _print_machine_error(error=error)
             raise typer.Exit(code=1)
         _print_machine_success(
             data={"result": batch_result.model_dump(mode="json")},
-            trace_id=str(result.event.trace_id) if result.event.trace_id is not None else None,
+            trace_id=str(result.event.trace_id)
+            if result.event.trace_id is not None
+            else None,
         )
         raise typer.Exit(code=0)
     _print_task_delete_result(batch_result)
@@ -1705,7 +1982,9 @@ def tasks_watch(
                 task_ids=normalized_task_ids,
                 mode=TerminalMode.STANDARD,
                 render=False,
-                event_callback=lambda event: _TERMINAL.raw(serialize_machine_event(event=event)),
+                event_callback=lambda event: _TERMINAL.raw(
+                    serialize_machine_event(event=event)
+                ),
                 row_callback=_print_machine_task_update,
             )
         else:
@@ -1730,7 +2009,9 @@ def tasks_watch(
     succeeded = _watch_outcome_succeeded(outcome)
     if outcome.interrupted:
         if machine:
-            interrupted_task_ids = normalized_task_ids or tuple(row.task_id for row in outcome.rows)
+            interrupted_task_ids = normalized_task_ids or tuple(
+                row.task_id for row in outcome.rows
+            )
             trace_id = (
                 outcome.rows[0].trace_id
                 if len(outcome.rows) == 1
@@ -1910,7 +2191,9 @@ def tasks_update(
     if update_result is None:
         _exit_with_cli_error(
             definition=CLI_INTERNAL_ERROR,
-            message_params={"detail": "Core returned no update payload for successful operation."},
+            message_params={
+                "detail": "Core returned no update payload for successful operation."
+            },
             output_format=output_format,
             verbose=False,
             expected=False,
@@ -1919,7 +2202,9 @@ def tasks_update(
     if machine:
         _print_machine_success(
             data={"result": update_result.model_dump(mode="json")},
-            trace_id=str(result.event.trace_id) if result.event.trace_id is not None else None,
+            trace_id=str(result.event.trace_id)
+            if result.event.trace_id is not None
+            else None,
         )
         return
 
@@ -1931,7 +2216,9 @@ def tasks_update(
     _print_task_update_result(update_result)
 
 
-@tasks_samples_app.command("list", help="jelica tasks samples list TASK_REF — List task sources.")
+@tasks_samples_app.command(
+    "list", help="jelica tasks samples list TASK_REF — List task sources."
+)
 def tasks_samples_list(
     task_reference: str = typer.Argument(..., help="Analytical task ID or name."),
 ) -> None:
@@ -1951,7 +2238,9 @@ def tasks_samples_list(
     if samples is None:
         _exit_with_cli_error(
             definition=CLI_INTERNAL_ERROR,
-            message_params={"detail": "Core returned no samples payload for successful operation."},
+            message_params={
+                "detail": "Core returned no samples payload for successful operation."
+            },
             output_format="text",
             verbose=False,
             expected=False,
@@ -2010,7 +2299,9 @@ def tasks_samples_add(
 )
 def tasks_samples_remove(
     task_reference: str = typer.Argument(..., help="Analytical task ID or name."),
-    indices: list[int] = typer.Argument(..., help="One or more sample indices to remove."),
+    indices: list[int] = typer.Argument(
+        ..., help="One or more sample indices to remove."
+    ),
 ) -> None:
     task_id = _resolve_task_reference(task_reference=task_reference)
     result = run_remove_analytical_task_samples(
@@ -2091,7 +2382,9 @@ def tasks_reprioritize(
     if machine:
         _print_machine_success(
             data={"result": reprioritize_result.model_dump(mode="json")},
-            trace_id=str(result.event.trace_id) if result.event.trace_id is not None else None,
+            trace_id=str(result.event.trace_id)
+            if result.event.trace_id is not None
+            else None,
         )
         return
 
@@ -2144,7 +2437,8 @@ def _run_task_control_command(
     if machine:
         trace_id = (
             str(operation_results[0].event.trace_id)
-            if len(operation_results) == 1 and operation_results[0].event.trace_id is not None
+            if len(operation_results) == 1
+            and operation_results[0].event.trace_id is not None
             else None
         )
         _print_machine_success(
@@ -2264,7 +2558,9 @@ def tasks_resume(
     if resume_result is None:
         _exit_with_cli_error(
             definition=CLI_INTERNAL_ERROR,
-            message_params={"detail": "Core returned no resume payload for successful operation."},
+            message_params={
+                "detail": "Core returned no resume payload for successful operation."
+            },
             output_format="text",
             verbose=False,
             expected=False,
@@ -2303,7 +2599,9 @@ def tasks_resume(
             verbose=False,
             expected=False,
         )
-    resume_result = resume_result.model_copy(update={"task": final_snapshot.task, "job": final_job})
+    resume_result = resume_result.model_copy(
+        update={"task": final_snapshot.task, "job": final_job}
+    )
 
     _print_event(
         result.event,
@@ -2541,7 +2839,9 @@ def _print_analysis_plan(plan: AnalysisPlan) -> None:
         if phase.enabled:
             _TERMINAL.plain(f"  ✓ {phase.name}")
             continue
-        reason = f": {phase.disabled_reason}" if phase.disabled_reason is not None else ""
+        reason = (
+            f": {phase.disabled_reason}" if phase.disabled_reason is not None else ""
+        )
         _TERMINAL.plain(f"  - {phase.name} (disabled{reason})")
 
     if len(plan.warnings) == 0:
@@ -2556,7 +2856,9 @@ def _print_execution_selection_diagnostics(config: Any) -> None:
     execution = config.execution
     target = _enum_cli_value(execution.target)
     from_phase = _enum_cli_value(execution.from_phase)
-    resolved_start_phase = "input_processing" if from_phase in {"auto", "raw"} else from_phase
+    resolved_start_phase = (
+        "input_processing" if from_phase in {"auto", "raw"} else from_phase
+    )
     skipped = (
         "none"
         if resolved_start_phase == "input_processing"
@@ -2762,7 +3064,9 @@ def _task_snapshots_machine_payload(
 ) -> list[dict[str, JSONValue]]:
     try:
         resolved_config = _core_config_service().require_initialized_config()
-        registry = AnalyticalTaskRegistryService(database_path=resolved_config.database_path)
+        registry = AnalyticalTaskRegistryService(
+            database_path=resolved_config.database_path
+        )
         payloads: list[dict[str, JSONValue]] = []
         for snapshot in task_snapshots:
             payload: dict[str, JSONValue] = snapshot.task.model_dump(mode="json")
@@ -2804,7 +3108,9 @@ def _print_task_details(task_snapshot: AnalyticalTaskSnapshot) -> None:
     _TERMINAL.plain(f"state: {payload['state']}")
     _TERMINAL.plain(f"default_priority: {payload['default_priority']}")
     _TERMINAL.plain(f"current_config_revision: {payload['current_config_revision']}")
-    _TERMINAL.plain(f"current_config_relative_path: {payload['current_config_relative_path']}")
+    _TERMINAL.plain(
+        f"current_config_relative_path: {payload['current_config_relative_path']}"
+    )
     _TERMINAL.plain(f"current_config_hash: {payload['current_config_hash']}")
     _TERMINAL.plain(f"active_job_id: {payload['active_job_id']}")
     _TERMINAL.plain(f"latest_job_id: {payload['latest_job_id']}")
@@ -2905,7 +3211,9 @@ def _render_input_processing_runtime_event(
                 "genbank_malformed",
             }:
                 failed_issue_code = "malformed_input_file"
-            detail = "" if primary_issue_message is None else f" {primary_issue_message}"
+            detail = (
+                "" if primary_issue_message is None else f" {primary_issue_message}"
+            )
             _TERMINAL.error(
                 f"Input file {file_index}/{total_file_count} failed ({failed_issue_code}).{detail}"
             )
@@ -2915,7 +3223,9 @@ def _render_input_processing_runtime_event(
         issue_codes_value = context.get("dataset_issue_codes")
         issue_codes: list[str] = []
         if isinstance(issue_codes_value, list):
-            issue_codes = [str(item) for item in issue_codes_value if isinstance(item, str)]
+            issue_codes = [
+                str(item) for item in issue_codes_value if isinstance(item, str)
+            ]
         if len(issue_codes) > 0:
             _TERMINAL.error(f"Dataset validation failed: {', '.join(issue_codes)}")
         else:
@@ -3041,7 +3351,9 @@ def _watch_execution_tasks(
         task_reference_text = ", ".join(task_ids)
         _exit_with_cli_error(
             definition=CLI_INTERNAL_ERROR,
-            message_params={"detail": f"Cannot watch task(s) {task_reference_text}: {error}"},
+            message_params={
+                "detail": f"Cannot watch task(s) {task_reference_text}: {error}"
+            },
             output_format=output_format,
             verbose=verbose,
             expected=False,
@@ -3069,7 +3381,9 @@ def _load_execution_task_snapshot(
     if snapshot is None:
         _exit_with_cli_error(
             definition=CLI_INTERNAL_ERROR,
-            message_params={"detail": "Core returned no task snapshot after execution."},
+            message_params={
+                "detail": "Core returned no task snapshot after execution."
+            },
             output_format=output_format,
             verbose=verbose,
             expected=False,
@@ -3079,7 +3393,9 @@ def _load_execution_task_snapshot(
         _exit_with_cli_error(
             definition=CLI_INTERNAL_ERROR,
             message_params={
-                "detail": (f"Task {task_id} no longer refers to expected job {expected_job_id}.")
+                "detail": (
+                    f"Task {task_id} no longer refers to expected job {expected_job_id}."
+                )
             },
             output_format=output_format,
             verbose=verbose,
@@ -3124,7 +3440,9 @@ def _run_watch_session(
 
     inactive_tasks = preparation.inactive_tasks
     if wait_for_initial_rows and preparation.explicit and len(preparation.rows) == 0:
-        inactive_tasks = tuple(task for task in inactive_tasks if task.state != "waiting")
+        inactive_tasks = tuple(
+            task for task in inactive_tasks if task.state != "waiting"
+        )
 
     if render:
         for task_id in preparation.missing_task_ids:
@@ -3198,7 +3516,8 @@ def _run_watch_session(
                 final_update = service.watch(
                     _update,
                     stop_condition=stop_condition,
-                    wait_for_observed_rows=wait_for_initial_rows and preparation.explicit,
+                    wait_for_observed_rows=wait_for_initial_rows
+                    and preparation.explicit,
                 )
                 latest_rows = final_update.rows
                 if waiting_for_initial_rows and len(latest_rows) > 0:
@@ -3274,7 +3593,9 @@ def _load_input_processing_summary_context(
     valid_sample_count = dataset_summary.get("valid_sample_count")
     invalid_sample_count = dataset_summary.get("invalid_sample_count")
     unique_sequence_count = dataset_summary.get("unique_sequence_count")
-    duplicate_logical_sample_count = dataset_summary.get("duplicate_logical_sample_count")
+    duplicate_logical_sample_count = dataset_summary.get(
+        "duplicate_logical_sample_count"
+    )
     comparative_available = dataset_summary.get("comparative_analysis_available")
     parsed_record_count = dataset_summary.get("discovered_record_count")
     if not isinstance(valid_sample_count, int):
@@ -3399,10 +3720,14 @@ def _print_task_delete_result(result: TaskDeleteBatchResult) -> None:
         1 for item in result.items if item.result is TaskDeleteItemResultType.DELETED
     )
     deletion_requested_count = sum(
-        1 for item in result.items if item.result is TaskDeleteItemResultType.DELETION_REQUESTED
+        1
+        for item in result.items
+        if item.result is TaskDeleteItemResultType.DELETION_REQUESTED
     )
     already_satisfied_count = sum(
-        1 for item in result.items if item.result is TaskDeleteItemResultType.ALREADY_SATISFIED
+        1
+        for item in result.items
+        if item.result is TaskDeleteItemResultType.ALREADY_SATISFIED
     )
     not_found_count = sum(
         1 for item in result.items if item.result is TaskDeleteItemResultType.NOT_FOUND
@@ -3456,9 +3781,12 @@ def _format_sample_source_for_display(source: str | None) -> str:
         and classification.inline_sequence is not None
         and classification.inline_length is not None
     ):
-        source_hash = hashlib.sha256(classification.inline_sequence.encode("utf-8")).hexdigest()
+        source_hash = hashlib.sha256(
+            classification.inline_sequence.encode("utf-8")
+        ).hexdigest()
         return (
-            f"inline_sequence(length={classification.inline_length}, sha256={source_hash[:12]}...)"
+            f"inline_sequence(length={classification.inline_length}, "
+            f"sha256={source_hash[:12]}...)"
         )
     return source
 
@@ -3495,7 +3823,11 @@ def _print_service_status(status: ServiceStatus, *, detailed: bool) -> None:
     )
     _TERMINAL.plain(
         "last_heartbeat: "
-        + (status.last_heartbeat.isoformat() if status.last_heartbeat is not None else "-")
+        + (
+            status.last_heartbeat.isoformat()
+            if status.last_heartbeat is not None
+            else "-"
+        )
     )
     _TERMINAL.plain(f"state: {status.state.value}")
     _TERMINAL.plain(f"configured_workers: {status.configured_workers}")
@@ -3506,7 +3838,9 @@ def _print_service_status(status: ServiceStatus, *, detailed: bool) -> None:
         return
     _TERMINAL.plain("queued_task_ids: " + (", ".join(status.queued_task_ids) or "-"))
     _TERMINAL.plain("running_task_ids: " + (", ".join(status.running_task_ids) or "-"))
-    _TERMINAL.plain("active_worker_task_ids: " + (", ".join(status.active_worker_task_ids) or "-"))
+    _TERMINAL.plain(
+        "active_worker_task_ids: " + (", ".join(status.active_worker_task_ids) or "-")
+    )
     _TERMINAL.plain(f"log_path: {status.log_path}")
 
 
@@ -3580,7 +3914,9 @@ def config_init(
 
     if not non_interactive and not machine:
         if requested_data_dir is None:
-            requested_data_dir = typer.prompt("data.directory", default=DEFAULT_DATA_DIRECTORY)
+            requested_data_dir = typer.prompt(
+                "data.directory", default=DEFAULT_DATA_DIRECTORY
+            )
         if requested_max_parallel_tasks is None:
             requested_max_parallel_tasks = typer.prompt(
                 "execution.max_parallel_tasks",
@@ -3588,7 +3924,9 @@ def config_init(
                 type=int,
             )
         if requested_log_level is None:
-            requested_log_level = typer.prompt("logging.level", default=DEFAULT_LOG_LEVEL)
+            requested_log_level = typer.prompt(
+                "logging.level", default=DEFAULT_LOG_LEVEL
+            )
 
     result = run_config_init(
         data_directory=requested_data_dir,
@@ -3609,7 +3947,9 @@ def config_init(
     if resolved_config is None:
         _exit_with_cli_error(
             definition=CLI_INTERNAL_ERROR,
-            message_params={"detail": "Core returned no config payload for successful operation."},
+            message_params={
+                "detail": "Core returned no config payload for successful operation."
+            },
             output_format=output_format,
             verbose=verbose,
             expected=False,
@@ -3661,7 +4001,9 @@ def config_path(
     if config_path_value is None:
         _exit_with_cli_error(
             definition=CLI_INTERNAL_ERROR,
-            message_params={"detail": "Core returned no path payload for successful operation."},
+            message_params={
+                "detail": "Core returned no path payload for successful operation."
+            },
             output_format=output_format,
             verbose=verbose,
             expected=False,
@@ -3704,7 +4046,9 @@ def config_show(
     if resolved_config is None:
         _exit_with_cli_error(
             definition=CLI_INTERNAL_ERROR,
-            message_params={"detail": "Core returned no config payload for successful operation."},
+            message_params={
+                "detail": "Core returned no config payload for successful operation."
+            },
             output_format=output_format,
             verbose=verbose,
             expected=False,
@@ -3748,7 +4092,9 @@ def config_validate(
     if resolved_config is None:
         _exit_with_cli_error(
             definition=CLI_INTERNAL_ERROR,
-            message_params={"detail": "Core returned no config payload for successful operation."},
+            message_params={
+                "detail": "Core returned no config payload for successful operation."
+            },
             output_format=output_format,
             verbose=verbose,
             expected=False,
@@ -3791,11 +4137,15 @@ def config_set(
 ) -> None:
     output_format = "machine" if machine else "text"
     if len(ctx.args) > 1:
-        raise typer.BadParameter("expected one optional legacy value", param_hint="value")
+        raise typer.BadParameter(
+            "expected one optional legacy value", param_hint="value"
+        )
     value = ctx.args[0] if ctx.args else None
     if value is None:
         if "=" not in parameter:
-            raise typer.BadParameter("expected KEY=VALUE assignment", param_hint="KEY=VALUE")
+            raise typer.BadParameter(
+                "expected KEY=VALUE assignment", param_hint="KEY=VALUE"
+            )
         parameter, value = parameter.split("=", 1)
     elif "=" in parameter:
         raise typer.BadParameter(
@@ -3831,7 +4181,9 @@ def config_set(
     if resolved_config is None:
         _exit_with_cli_error(
             definition=CLI_INTERNAL_ERROR,
-            message_params={"detail": "Core returned no config payload for successful operation."},
+            message_params={
+                "detail": "Core returned no config payload for successful operation."
+            },
             output_format=output_format,
             verbose=verbose,
             expected=False,
@@ -3888,7 +4240,9 @@ def config_unset(
     if resolved_config is None:
         _exit_with_cli_error(
             definition=CLI_INTERNAL_ERROR,
-            message_params={"detail": "Core returned no config payload for successful operation."},
+            message_params={
+                "detail": "Core returned no config payload for successful operation."
+            },
             output_format=output_format,
             verbose=verbose,
             expected=False,
@@ -3902,7 +4256,9 @@ def config_unset(
             }
         )
         return
-    _TERMINAL.success(f"Parameter '{parameter}' was reset to its explicit default value.")
+    _TERMINAL.success(
+        f"Parameter '{parameter}' was reset to its explicit default value."
+    )
     if verbose:
         _print_resolved_core_config(resolved_config)
 
@@ -3920,10 +4276,14 @@ def _resolved_application_config_payload(
     return payload
 
 
-def _resolved_core_config_payload(resolved_config: ResolvedCoreConfig) -> dict[str, JSONValue]:
+def _resolved_core_config_payload(
+    resolved_config: ResolvedCoreConfig,
+) -> dict[str, JSONValue]:
     payload = resolved_config.model_dump(mode="json")
     ncbi_api_key = resolved_config.ncbi_api_key.strip()
-    payload["ncbi_api_key"] = "<configured>" if ncbi_api_key != "" else "<not configured>"
+    payload["ncbi_api_key"] = (
+        "<configured>" if ncbi_api_key != "" else "<not configured>"
+    )
     return payload
 
 
@@ -3935,7 +4295,9 @@ def _print_machine_success(
     global _MACHINE_RESPONSE_EMITTED
     invocation = _current_cli_invocation().with_trace_id(trace_id)
     _TERMINAL.raw(
-        serialize_machine_payload(machine_success_payload(invocation=invocation, data=data))
+        serialize_machine_payload(
+            machine_success_payload(invocation=invocation, data=data)
+        )
     )
     _MACHINE_RESPONSE_EMITTED = True
 
@@ -3944,7 +4306,9 @@ def _print_machine_error(*, error: PublicError) -> None:
     global _MACHINE_RESPONSE_EMITTED
     current_invocation = _current_cli_invocation()
     trace_id = (
-        error.event.trace_id if error.event.trace_id is not None else current_invocation.trace_id
+        error.event.trace_id
+        if error.event.trace_id is not None
+        else current_invocation.trace_id
     )
     invocation = current_invocation.with_trace_id(trace_id)
     _TERMINAL.raw(
@@ -3984,7 +4348,9 @@ def _exit_with_core_failure(
     if error is None:
         _exit_with_cli_error(
             definition=CLI_INTERNAL_ERROR,
-            message_params={"detail": "Core operation failed without structured error payload."},
+            message_params={
+                "detail": "Core operation failed without structured error payload."
+            },
             output_format=output_format,
             verbose=verbose,
             expected=False,

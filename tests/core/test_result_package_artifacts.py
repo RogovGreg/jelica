@@ -35,8 +35,10 @@ from jelica_core.result_package import (
     content_digest_from_content_id,
     infer_media_type,
     load_result_package_link,
+    parse_result_package_filename,
     publish_prepared_result_package,
     relative_package_path_from_task,
+    result_package_filename,
     result_package_target_path,
     serialize_stable_json,
     validate_result_package_file,
@@ -78,7 +80,11 @@ def _manual_content_id(artifacts: tuple[ResultPackageArtifactInfo, ...]) -> str:
 
 def _protected_payloads() -> dict[str, bytes]:
     return {
-        JELICA_PACKAGE_TASK_PATH: b'{"task_id":"task-1","status":"completed"}\n',
+        JELICA_PACKAGE_TASK_PATH: (
+            b'{"completed_at":"2026-08-01T00:00:01Z",'
+            b'"created_at":"2026-08-01T00:00:00Z",'
+            b'"status":"completed","task_id":"task-1"}\n'
+        ),
         JELICA_PACKAGE_CONFIGURATION_PATH: b'{"alignment":{"mode":"none"}}\n',
         JELICA_PACKAGE_INPUT_MANIFEST_PATH: b'{"sources":[]}\n',
         JELICA_PACKAGE_NORMALIZED_FASTA_PATH: b">sample-a\nACTG\n",
@@ -175,11 +181,13 @@ def _build_stage_manifest(
     task_dir: Path,
     prepared_package_relative_path: str,
     manifest: JelicaPackageManifest,
+    result_name: str | None = None,
 ) -> ResultPackageStageManifest:
     content_digest = content_digest_from_content_id(manifest.content_id)
     target_path = result_package_target_path(
         task_dir=task_dir,
         content_digest=content_digest,
+        result_name=result_name,
     )
     return ResultPackageStageManifest(
         task_id=manifest.task.task_id,
@@ -195,13 +203,16 @@ def _build_stage_manifest(
             package_path=target_path,
         ),
         task=manifest.task,
+        result_name=result_name,
         source_stage_ids=("comparative_analysis",),
         artifact_count=len(manifest.artifacts),
         stage_count=1,
     )
 
 
-def test_compute_content_id_matches_specified_algorithm_and_is_order_independent() -> None:
+def test_compute_content_id_matches_specified_algorithm_and_is_order_independent() -> (
+    None
+):
     manifest, _ = _build_manifest()
     artifacts = manifest.artifacts
     reversed_artifacts = tuple(reversed(artifacts))
@@ -225,7 +236,35 @@ def test_compute_content_id_changes_when_protected_artifact_changes() -> None:
         sha256=original.sha256,
     )
 
-    assert compute_content_id(artifacts=tuple(mutated)) != compute_content_id(artifacts=baseline)
+    assert compute_content_id(artifacts=tuple(mutated)) != compute_content_id(
+        artifacts=baseline
+    )
+
+
+def test_result_package_filename_keeps_full_digest_and_parses_legacy_and_named_forms() -> (
+    None
+):
+    digest = "a" * 64
+
+    assert result_package_filename(content_digest=digest) == f"{digest}.jelica"
+    assert (
+        result_package_filename(content_digest=digest, result_name="My result")
+        == f"My_result__{digest}.jelica"
+    )
+    legacy = parse_result_package_filename(f"{digest}.jelica")
+    assert legacy is not None
+    assert legacy.result_name is None
+    assert legacy.content_digest == digest
+    parsed = parse_result_package_filename(f"My_result__{digest}.jelica")
+    assert parsed is not None
+    assert parsed.result_name == "My_result"
+    assert parsed.content_digest == digest
+
+    explicit = result_package_filename(
+        content_digest=digest,
+        filename_stem=f"1_{digest}",
+    )
+    assert explicit == f"1_{digest}.jelica"
 
 
 def test_content_id_is_stable_across_different_package_timestamps() -> None:
@@ -310,7 +349,9 @@ def test_publish_prepared_result_package_reuses_existing_valid_package(
         include_notes=False,
     )
 
-    target_path = result_package_target_path(task_dir=task_dir, content_digest=content_digest)
+    target_path = result_package_target_path(
+        task_dir=task_dir, content_digest=content_digest
+    )
     _write_package(
         package_path=target_path,
         manifest=manifest,
@@ -369,7 +410,110 @@ def test_publish_prepared_result_package_creates_target_and_cleans_prepared_sour
     assert published_path.is_file()
     assert not prepared_path.exists()
     assert not (stage_root / RESULT_PACKAGE_PREPARED_DIRNAME).exists()
+
+
+def test_publish_prepared_result_package_supports_named_target(tmp_path: Path) -> None:
+    task_dir = tmp_path / "tasks" / "task-1"
+    stage_root = task_dir / "jobs" / "job-1" / "stages" / RESULT_PACKAGE_STAGE_ID
+    stage_root.mkdir(parents=True, exist_ok=True)
+    manifest, payloads = _build_manifest()
+    content_digest = content_digest_from_content_id(manifest.content_id)
+    prepared_relative_path = f".result_package_prepared/{content_digest}.jelica"
+    prepared_path = stage_root / prepared_relative_path
+    _write_package(package_path=prepared_path, manifest=manifest, payloads=payloads)
+    stage_manifest = _build_stage_manifest(
+        task_dir=task_dir,
+        prepared_package_relative_path=prepared_relative_path,
+        manifest=manifest,
+        result_name="Generated_result",
+    )
+
+    published_path = publish_prepared_result_package(
+        prepared_package_path=prepared_path,
+        task_dir=task_dir,
+        stage_manifest=stage_manifest,
+    )
+
+    assert published_path.name == f"Generated_result__{content_digest}.jelica"
+    assert published_path.is_file()
     assert list(task_dir.rglob("*.jelica")) == []
+
+
+@pytest.mark.parametrize(
+    ("existing_result_name", "new_result_name"),
+    (("First_task", "Second_task"), (None, "Named_task")),
+)
+def test_publish_prepared_result_package_reuses_existing_content_under_other_filename(
+    tmp_path: Path,
+    existing_result_name: str | None,
+    new_result_name: str,
+) -> None:
+    first_task_dir = tmp_path / "tasks" / "first-task"
+    second_task_dir = tmp_path / "tasks" / "second-task"
+    first_task_dir.mkdir(parents=True, exist_ok=True)
+    second_stage_root = (
+        second_task_dir / "jobs" / "job-2" / "stages" / RESULT_PACKAGE_STAGE_ID
+    )
+    second_stage_root.mkdir(parents=True, exist_ok=True)
+    manifest, payloads = _build_manifest()
+    content_digest = content_digest_from_content_id(manifest.content_id)
+
+    existing_path = result_package_target_path(
+        task_dir=first_task_dir,
+        content_digest=content_digest,
+        result_name=existing_result_name,
+    )
+    _write_package(
+        package_path=existing_path,
+        manifest=manifest,
+        payloads=payloads,
+    )
+
+    prepared_relative_path = f".result_package_prepared/{content_digest}.jelica"
+    prepared_path = second_stage_root / prepared_relative_path
+    _write_package(
+        package_path=prepared_path,
+        manifest=manifest,
+        payloads=payloads,
+    )
+    stage_manifest = _build_stage_manifest(
+        task_dir=second_task_dir,
+        prepared_package_relative_path=prepared_relative_path,
+        manifest=manifest,
+        result_name=new_result_name,
+    )
+
+    published_path = publish_prepared_result_package(
+        prepared_package_path=prepared_path,
+        task_dir=second_task_dir,
+        stage_manifest=stage_manifest,
+    )
+
+    assert published_path == existing_path
+    assert existing_path.is_file()
+    assert not (
+        result_package_target_path(
+            task_dir=second_task_dir,
+            content_digest=content_digest,
+            result_name=new_result_name,
+        )
+    ).exists()
+    assert not prepared_path.exists()
+    assert list(existing_path.parent.glob("*.jelica")) == [existing_path]
+
+    link_path = write_result_package_link(
+        task_dir=second_task_dir,
+        link=ResultPackageLink(
+            content_id=manifest.content_id,
+            path=relative_package_path_from_task(
+                task_dir=second_task_dir,
+                package_path=published_path,
+            ),
+            format_version=manifest.format_version,
+        ),
+    )
+    link = load_result_package_link(path=link_path)
+    assert (second_task_dir / Path(link.path)).resolve() == existing_path.resolve()
 
 
 def test_publish_prepared_result_package_fails_for_existing_corrupted_target(
@@ -388,7 +532,9 @@ def test_publish_prepared_result_package_fails_for_existing_corrupted_target(
         include_notes=False,
     )
 
-    target_path = result_package_target_path(task_dir=task_dir, content_digest=content_digest)
+    target_path = result_package_target_path(
+        task_dir=task_dir, content_digest=content_digest
+    )
     target_path.parent.mkdir(parents=True, exist_ok=True)
     target_path.write_bytes(b"corrupted-bytes")
     previous_bytes = target_path.read_bytes()
@@ -431,14 +577,18 @@ def test_publish_prepared_result_package_failure_keeps_prepared_and_no_partial_t
         prepared_package_relative_path=prepared_relative_path,
         manifest=manifest,
     )
-    target_path = result_package_target_path(task_dir=task_dir, content_digest=content_digest)
+    target_path = result_package_target_path(
+        task_dir=task_dir, content_digest=content_digest
+    )
 
     def _failing_copy(*, source_path: Path, target_path: Path) -> None:
         _ = source_path
         _ = target_path
         raise OSError("copy failed")
 
-    monkeypatch.setattr(result_package_artifacts_module, "_copy_file_atomically", _failing_copy)
+    monkeypatch.setattr(
+        result_package_artifacts_module, "_copy_file_atomically", _failing_copy
+    )
 
     with pytest.raises(ResultPackagePublicationError):
         publish_prepared_result_package(
@@ -484,6 +634,7 @@ def test_committed_result_package_snapshot_remains_valid_without_prepared_file(
         task_dir=task_dir,
         prepared_package_relative_path=f".result_package_prepared/{content_digest}.jelica",
         manifest=manifest,
+        result_name="Named_snapshot",
     ).model_copy(update={"source_stage_ids": tuple(), "stage_count": 0})
     (stage_root / "result_package").mkdir(parents=True, exist_ok=True)
     write_model_json(

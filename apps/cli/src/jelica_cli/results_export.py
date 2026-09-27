@@ -13,7 +13,10 @@ from jelica_core.reporting import (
     ReportExportErrorCode,
     export_analysis_report_pdf,
 )
-from jelica_core.result_package import resolve_result_package_path
+from jelica_core.result_package import (
+    ResultPackageLibraryError,
+    resolve_result_package_path,
+)
 from jelica_core.system_config import CoreConfigService
 
 
@@ -63,7 +66,9 @@ def export_results_pdf_report(
 
 
 def _export_report_pdf(*, package_path: Path, output: str | None) -> Path:
-    outcome = export_analysis_report_pdf(source_package_path=package_path, output=output)
+    outcome = export_analysis_report_pdf(
+        source_package_path=package_path, output=output
+    )
     return outcome.output_path
 
 
@@ -112,9 +117,18 @@ def _resolve_source_package(
         )
 
     if _looks_like_package_path(normalized_source):
-        return _ResolvedPackageSource(
-            path=Path(normalized_source).expanduser().resolve(strict=False)
-        )
+        candidate = Path(normalized_source).expanduser().resolve(strict=False)
+        if candidate.is_file() or "/" in normalized_source or "\\" in normalized_source:
+            return _ResolvedPackageSource(path=candidate)
+        try:
+            resolved = resolve_result_package_path(
+                task_or_content_ref=normalized_source,
+                core_config_service=core_config_service,
+            )
+            return _ResolvedPackageSource(path=resolved.path.resolve(strict=False))
+        except ResultPackageLibraryError:
+            pass
+        return _ResolvedPackageSource(path=candidate)
 
     resolved = resolve_result_package_path(
         task_or_content_ref=normalized_source,

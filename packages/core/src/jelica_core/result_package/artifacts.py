@@ -10,13 +10,20 @@ import stat
 import tempfile
 import time
 import zipfile
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import StrEnum
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import IO, Final, Iterable, Mapping
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 
 from jelica_core.system_config import (
     CONFIG_FILENAME,
@@ -29,6 +36,8 @@ from jelica_core.tasks import (
     AnalyticalTaskRegistryError,
     AnalyticalTaskRegistryService,
     TaskWorkspaceDeleteError,
+    validate_human_readable_name,
+    validate_task_name,
 )
 from jelica_core.tasks.storage import resolve_task_workspace_dir, write_text_atomically
 
@@ -61,6 +70,9 @@ _REQUIRED_PROTECTED_PATHS: Final[frozenset[str]] = frozenset(
 _CHUNK_SIZE: Final = 1024 * 1024
 _CONTENT_DIGEST_PATTERN: Final[re.Pattern[str]] = re.compile(r"^[0-9a-f]{64}$")
 _CONTENT_ID_PATTERN: Final[re.Pattern[str]] = re.compile(r"^sha256:([0-9a-f]{64})$")
+_RESULT_PACKAGE_FILENAME_STEM_PATTERN: Final[re.Pattern[str]] = re.compile(
+    r"^[A-Za-z0-9][A-Za-z0-9_-]*$"
+)
 _SUPPORTED_ZIP_COMPRESSION_METHODS: Final[frozenset[int]] = frozenset(
     method
     for method in (
@@ -171,6 +183,7 @@ class ResultPackageLibraryErrorCode(StrEnum):
     TASK_HAS_NO_RESULT_PACKAGE = "task_has_no_result_package"
     INVALID_RESULT_PACKAGE_LINK = "invalid_result_package_link"
     UNSAFE_RESULT_PACKAGE_LINK = "unsafe_result_package_link"
+    AMBIGUOUS_RESULT_PACKAGE = "ambiguous_result_package"
     IMPORT_IO_ERROR = "import_io_error"
 
 
@@ -188,6 +201,12 @@ class ImportedResultPackage:
 
 
 @dataclass(frozen=True, slots=True)
+class ParsedResultPackageFilename:
+    result_name: str | None
+    content_digest: str
+
+
+@dataclass(frozen=True, slots=True)
 class ListedResultPackage:
     file_name: str
     path: Path
@@ -196,6 +215,8 @@ class ListedResultPackage:
     status: str
     format_version: str | None
     valid: bool
+    result_name: str | None = None
+    task_name: str | None = None
     issue_code: ResultPackageLibraryErrorCode | None = None
 
 
@@ -292,7 +313,9 @@ class JelicaPackageReader:
                 path=normalized,
             ) from error
         try:
-            loaded = json.loads(decoded, parse_constant=_reject_non_finite_json_constant)
+            loaded = json.loads(
+                decoded, parse_constant=_reject_non_finite_json_constant
+            )
         except (ValueError, TypeError, json.JSONDecodeError) as error:
             raise JelicaPackageReaderError(
                 code=JelicaPackageValidationIssueCode.INVALID_JSON,
@@ -357,7 +380,9 @@ class JelicaPackageReader:
 
     def open_notes(self) -> IO[bytes] | None:
         archive = self._require_archive()
-        if JELICA_PACKAGE_NOTES_PATH not in {info.filename for info in archive.infolist()}:
+        if JELICA_PACKAGE_NOTES_PATH not in {
+            info.filename for info in archive.infolist()
+        }:
             return None
         return self.open_entry(path=JELICA_PACKAGE_NOTES_PATH)
 
@@ -397,6 +422,17 @@ class JelicaPackageValidator:
 
     def _validate_path(self, path: Path) -> JelicaPackageValidationResult:
         try:
+            if path.is_symlink():
+                return self._result_with_single_error(
+                    code=JelicaPackageValidationIssueCode.NOT_A_FILE,
+                    message="Result package path must reference a regular file",
+                )
+        except OSError:
+            return self._result_with_single_error(
+                code=JelicaPackageValidationIssueCode.NOT_A_FILE,
+                message="Result package path cannot be inspected",
+            )
+        try:
             resolved = path.resolve(strict=True)
         except FileNotFoundError:
             return self._result_with_single_error(
@@ -418,7 +454,9 @@ class JelicaPackageValidator:
         reader = JelicaPackageReader(path=resolved)
         return self._validate_reader(reader)
 
-    def _validate_reader(self, reader: JelicaPackageReader) -> JelicaPackageValidationResult:
+    def _validate_reader(
+        self, reader: JelicaPackageReader
+    ) -> JelicaPackageValidationResult:
         issues: list[JelicaPackageValidationIssue] = []
         warnings: list[JelicaPackageValidationIssue] = []
         package_format: str | None = None
@@ -514,7 +552,9 @@ class JelicaPackageValidator:
                     warnings=warnings,
                 )
 
-            manifest = self._validate_manifest_model(payload=manifest_payload, issues=issues)
+            manifest = self._validate_manifest_model(
+                payload=manifest_payload, issues=issues
+            )
             if manifest is None:
                 return self._result(
                     format=package_format,
@@ -670,7 +710,9 @@ class JelicaPackageValidator:
             )
             return None
         try:
-            loaded = json.loads(payload, parse_constant=_reject_non_finite_json_constant)
+            loaded = json.loads(
+                payload, parse_constant=_reject_non_finite_json_constant
+            )
         except (ValueError, TypeError, json.JSONDecodeError):
             self._add_issue(
                 issues=issues,
@@ -715,7 +757,10 @@ class JelicaPackageValidator:
         issues: list[JelicaPackageValidationIssue],
     ) -> None:
         _ = archive
-        expected = {JELICA_PACKAGE_MANIFEST_PATH, *(item.path for item in manifest.artifacts)}
+        expected = {
+            JELICA_PACKAGE_MANIFEST_PATH,
+            *(item.path for item in manifest.artifacts),
+        }
         names = set(info_by_name)
         required = {
             JELICA_PACKAGE_MANIFEST_PATH,
@@ -778,7 +823,9 @@ class JelicaPackageValidator:
                 )
                 has_integrity_errors = True
             try:
-                sha256 = _sha256_for_zip_entry(archive=archive, entry_path=artifact.path)
+                sha256 = _sha256_for_zip_entry(
+                    archive=archive, entry_path=artifact.path
+                )
             except ResultPackageValidationError:
                 self._add_issue(
                     issues=issues,
@@ -805,7 +852,9 @@ class JelicaPackageValidator:
                 issues=issues,
             )
 
-        if not has_integrity_errors and len(observed_records) == len(manifest.artifacts):
+        if not has_integrity_errors and len(observed_records) == len(
+            manifest.artifacts
+        ):
             computed = compute_content_id(
                 artifacts=tuple(
                     ResultPackageArtifactInfo(
@@ -968,10 +1017,14 @@ class JelicaPackageValidator:
                         message="results artifact stage does not match its path",
                         path=artifact.path,
                     )
-            elif artifact.path in {
-                JELICA_PACKAGE_TASK_PATH,
-                JELICA_PACKAGE_CONFIGURATION_PATH,
-            } and artifact.stage is not None:
+            elif (
+                artifact.path
+                in {
+                    JELICA_PACKAGE_TASK_PATH,
+                    JELICA_PACKAGE_CONFIGURATION_PATH,
+                }
+                and artifact.stage is not None
+            ):
                 self._add_issue(
                     issues=issues,
                     code=JelicaPackageValidationIssueCode.STAGE_ARTIFACT_MISMATCH,
@@ -986,7 +1039,9 @@ class JelicaPackageValidator:
         path: str,
         issues: list[JelicaPackageValidationIssue],
     ) -> None:
-        payload = self._read_text_from_archive(archive=archive, path=path, issues=issues)
+        payload = self._read_text_from_archive(
+            archive=archive, path=path, issues=issues
+        )
         if payload is None:
             return
         try:
@@ -1014,7 +1069,9 @@ class JelicaPackageValidator:
                     if line == "":
                         continue
                     try:
-                        json.loads(line, parse_constant=_reject_non_finite_json_constant)
+                        json.loads(
+                            line, parse_constant=_reject_non_finite_json_constant
+                        )
                     except (ValueError, TypeError, json.JSONDecodeError):
                         self._add_issue(
                             issues=issues,
@@ -1045,11 +1102,15 @@ class JelicaPackageValidator:
         path: str,
         issues: list[JelicaPackageValidationIssue],
     ) -> dict[str, object] | None:
-        payload = self._read_text_from_archive(archive=archive, path=path, issues=issues)
+        payload = self._read_text_from_archive(
+            archive=archive, path=path, issues=issues
+        )
         if payload is None:
             return None
         try:
-            loaded = json.loads(payload, parse_constant=_reject_non_finite_json_constant)
+            loaded = json.loads(
+                payload, parse_constant=_reject_non_finite_json_constant
+            )
         except (ValueError, TypeError, json.JSONDecodeError):
             self._add_issue(
                 issues=issues,
@@ -1184,6 +1245,7 @@ class JelicaPackageValidator:
             warnings=tuple(warnings),
         )
 
+
 class ResultPackageProducerInfo(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -1314,7 +1376,9 @@ class JelicaPackageManifest(BaseModel):
     def _validate_format_version(cls, value: str) -> str:
         normalized = value.strip()
         if normalized != JELICA_PACKAGE_FORMAT_VERSION:
-            raise ValueError(f"format_version must be '{JELICA_PACKAGE_FORMAT_VERSION}'")
+            raise ValueError(
+                f"format_version must be '{JELICA_PACKAGE_FORMAT_VERSION}'"
+            )
         return normalized
 
     @field_validator("content_id")
@@ -1382,7 +1446,9 @@ class ResultPackageLink(BaseModel):
     def _validate_format_version(cls, value: str) -> str:
         normalized = value.strip()
         if normalized != JELICA_PACKAGE_FORMAT_VERSION:
-            raise ValueError(f"format_version must be '{JELICA_PACKAGE_FORMAT_VERSION}'")
+            raise ValueError(
+                f"format_version must be '{JELICA_PACKAGE_FORMAT_VERSION}'"
+            )
         return normalized
 
 
@@ -1402,6 +1468,7 @@ class ResultPackageStageManifest(BaseModel):
     prepared_package_relative_path: str = Field(min_length=1)
     published_package_relative_path: str = Field(min_length=1)
     task: ResultPackageTaskInfo
+    result_name: str | None = None
     source_stage_ids: tuple[str, ...] = Field(default_factory=tuple)
     artifact_count: int = Field(ge=0)
     stage_count: int = Field(ge=0)
@@ -1439,7 +1506,9 @@ class ResultPackageStageManifest(BaseModel):
     def _validate_format_version(cls, value: str) -> str:
         normalized = value.strip()
         if normalized != JELICA_PACKAGE_FORMAT_VERSION:
-            raise ValueError(f"format_version must be '{JELICA_PACKAGE_FORMAT_VERSION}'")
+            raise ValueError(
+                f"format_version must be '{JELICA_PACKAGE_FORMAT_VERSION}'"
+            )
         return normalized
 
     @field_validator("content_id")
@@ -1478,15 +1547,25 @@ class ResultPackageStageManifest(BaseModel):
             raise ValueError("stage_count must match source_stage_ids length")
         return self
 
+    @field_validator("result_name")
+    @classmethod
+    def _normalize_result_name(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        return validate_task_name(value)
+
 
 def serialize_stable_json(payload: Mapping[str, object] | list[object]) -> str:
-    return json.dumps(
-        payload,
-        ensure_ascii=False,
-        indent=2,
-        sort_keys=True,
-        allow_nan=False,
-    ) + "\n"
+    return (
+        json.dumps(
+            payload,
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+            allow_nan=False,
+        )
+        + "\n"
+    )
 
 
 def write_model_json(*, path: Path, model: BaseModel) -> None:
@@ -1548,9 +1627,80 @@ def resolve_result_packages_directory(*, task_dir: Path) -> Path:
     return task_dir.parent / RESULT_PACKAGE_DIRECTORY_NAME
 
 
-def result_package_target_path(*, task_dir: Path, content_digest: str) -> Path:
-    normalized_digest = _normalize_sha256_hex(content_digest, field_name="content_digest")
-    return resolve_result_packages_directory(task_dir=task_dir) / f"{normalized_digest}.jelica"
+def result_package_filename(
+    *,
+    content_digest: str,
+    result_name: str | None = None,
+    filename_stem: str | None = None,
+) -> str:
+    normalized_digest = _normalize_sha256_hex(
+        content_digest, field_name="content_digest"
+    )
+    if filename_stem is not None and result_name is not None:
+        raise ValueError("result_name and filename_stem are mutually exclusive")
+    if filename_stem is not None:
+        normalized_stem = _validate_explicit_result_package_stem(
+            filename_stem=filename_stem,
+            content_digest=normalized_digest,
+        )
+        return f"{normalized_stem}.jelica"
+    if result_name is None:
+        return f"{normalized_digest}.jelica"
+    normalized_name = validate_task_name(result_name)
+    return f"{normalized_name}__{normalized_digest}.jelica"
+
+
+def parse_result_package_filename(filename: str) -> ParsedResultPackageFilename | None:
+    if Path(filename).name != filename or not filename.endswith(".jelica"):
+        return None
+    stem = filename[: -len(".jelica")]
+    if _CONTENT_DIGEST_PATTERN.fullmatch(stem):
+        return ParsedResultPackageFilename(result_name=None, content_digest=stem)
+    digest = stem[-64:]
+    if stem.endswith(f"__{digest}"):
+        result_name = stem[: -(64 + 2)]
+    elif stem.endswith(f"_{digest}"):
+        result_name = stem[: -(64 + 1)]
+    else:
+        return None
+    if _CONTENT_DIGEST_PATTERN.fullmatch(digest) is None:
+        return None
+    try:
+        normalized_name = validate_human_readable_name(result_name, max_length=None)
+    except ValueError:
+        return None
+    if normalized_name != result_name:
+        return None
+    return ParsedResultPackageFilename(result_name=result_name, content_digest=digest)
+
+
+def _is_supported_result_package_filename(filename: str) -> bool:
+    if Path(filename).name != filename or not filename.endswith(".jelica"):
+        return False
+    stem = filename[: -len(".jelica")]
+    return _RESULT_PACKAGE_FILENAME_STEM_PATTERN.fullmatch(stem) is not None
+
+
+def _filename_contains_content_digest(filename: str, content_id: str) -> bool:
+    digest = content_digest_from_content_id(content_id)
+    stem = filename[: -len(".jelica")]
+    return digest in stem
+
+
+def result_package_target_path(
+    *,
+    task_dir: Path,
+    content_digest: str,
+    result_name: str | None = None,
+    filename_stem: str | None = None,
+) -> Path:
+    return resolve_result_packages_directory(
+        task_dir=task_dir
+    ) / result_package_filename(
+        content_digest=content_digest,
+        result_name=result_name,
+        filename_stem=filename_stem,
+    )
 
 
 def relative_package_path_from_task(*, task_dir: Path, package_path: Path) -> str:
@@ -1559,7 +1709,9 @@ def relative_package_path_from_task(*, task_dir: Path, package_path: Path) -> st
     return _normalize_filesystem_relative_path(normalized, allow_parent=True)
 
 
-def result_package_artifact_paths(manifest: ResultPackageStageManifest) -> tuple[str, ...]:
+def result_package_artifact_paths(
+    manifest: ResultPackageStageManifest,
+) -> tuple[str, ...]:
     _ = manifest
     return (RESULT_PACKAGE_STAGE_MANIFEST_RELATIVE_PATH,)
 
@@ -1594,6 +1746,10 @@ def validate_result_package_file(
     expected_content_id: str | None = None,
     require_notes_absent: bool = False,
 ) -> ValidatedResultPackage:
+    if path.is_symlink():
+        raise ResultPackageValidationError(
+            f"result package must not be a symbolic link: '{path}'"
+        )
     try:
         resolved = path.resolve(strict=True)
     except OSError as error:
@@ -1601,7 +1757,9 @@ def validate_result_package_file(
             f"result package is missing: '{path}'"
         ) from error
     if not resolved.is_file():
-        raise ResultPackageValidationError(f"result package is not a regular file: '{resolved}'")
+        raise ResultPackageValidationError(
+            f"result package is not a regular file: '{resolved}'"
+        )
     if resolved.is_symlink():
         raise ResultPackageValidationError(
             f"result package must not be a symbolic link: '{resolved}'"
@@ -1647,6 +1805,7 @@ def publish_prepared_result_package(
     target_path = result_package_target_path(
         task_dir=task_dir,
         content_digest=stage_manifest.content_digest,
+        result_name=stage_manifest.result_name,
     )
     expected_relative_path = relative_package_path_from_task(
         task_dir=task_dir,
@@ -1657,24 +1816,29 @@ def publish_prepared_result_package(
             "result-package relative link path is inconsistent with publication target"
         )
 
-    target_path.parent.mkdir(parents=True, exist_ok=True)
+    result_packages_dir = resolve_result_packages_directory(task_dir=task_dir)
+    try:
+        result_packages_dir.mkdir(parents=True, exist_ok=True)
+    except OSError as error:
+        raise ResultPackagePublicationError(
+            "result package store directory cannot be created"
+        ) from error
+
+    lock_fd: int | None = None
+    lock_path: Path | None = None
     published_path: Path
-    if target_path.exists():
+    try:
         try:
-            validate_result_package_file(
-                path=target_path,
-                expected_content_id=stage_manifest.content_id,
-                require_notes_absent=False,
+            lock_fd, lock_path = _acquire_result_package_store_lock(
+                directory=result_packages_dir
             )
-        except ResultPackageValidationError as error:
+        except ResultPackageLibraryError as error:
             raise ResultPackagePublicationError(
-                "existing result package is corrupted or inconsistent with expected content"
+                "result package store lock cannot be acquired"
             ) from error
-        published_path = target_path
-    else:
-        try:
-            _copy_file_atomically(source_path=prepared, target_path=target_path)
-        except FileExistsError:
+
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        if target_path.exists():
             try:
                 validate_result_package_file(
                     path=target_path,
@@ -1683,25 +1847,56 @@ def publish_prepared_result_package(
                 )
             except ResultPackageValidationError as error:
                 raise ResultPackagePublicationError(
-                    "concurrent publication produced an invalid result package"
+                    "existing result package is corrupted or inconsistent with expected content"
                 ) from error
             published_path = target_path
-        except OSError as error:
-            raise ResultPackagePublicationError(
-                "result package could not be atomically published"
-            ) from error
+        else:
+            try:
+                existing_path = _find_stored_package_by_content_id(
+                    result_packages_dir=result_packages_dir,
+                    content_id=stage_manifest.content_id,
+                    validator=JelicaPackageValidator(),
+                )
+            except ResultPackageLibraryError as error:
+                raise ResultPackagePublicationError(
+                    "existing result package store is ambiguous or invalid"
+                ) from error
+            if existing_path is not None:
+                published_path = existing_path
+            else:
+                try:
+                    _copy_file_atomically(source_path=prepared, target_path=target_path)
+                except FileExistsError:
+                    try:
+                        validate_result_package_file(
+                            path=target_path,
+                            expected_content_id=stage_manifest.content_id,
+                            require_notes_absent=False,
+                        )
+                    except ResultPackageValidationError as error:
+                        raise ResultPackagePublicationError(
+                            "concurrent publication produced an invalid result package"
+                        ) from error
+                    published_path = target_path
+                except OSError as error:
+                    raise ResultPackagePublicationError(
+                        "result package could not be atomically published"
+                    ) from error
 
-        try:
-            validate_result_package_file(
-                path=target_path,
-                expected_content_id=stage_manifest.content_id,
-                require_notes_absent=False,
-            )
-        except ResultPackageValidationError as error:
-            raise ResultPackagePublicationError(
-                "published result package failed integrity validation"
-            ) from error
-        published_path = target_path
+                try:
+                    validate_result_package_file(
+                        path=target_path,
+                        expected_content_id=stage_manifest.content_id,
+                        require_notes_absent=False,
+                    )
+                except ResultPackageValidationError as error:
+                    raise ResultPackagePublicationError(
+                        "published result package failed integrity validation"
+                    ) from error
+                published_path = target_path
+    finally:
+        if lock_path is not None:
+            _release_result_package_store_lock(lock_fd=lock_fd, lock_path=lock_path)
 
     # The prepared package is removed only after successful central publication.
     # On failures it is intentionally preserved for potential retry paths.
@@ -1713,6 +1908,8 @@ def import_result_package(
     *,
     source_path: Path,
     core_config_service: CoreConfigService,
+    result_name: str | None = None,
+    filename_stem: str | None = None,
 ) -> ImportedResultPackage:
     validator = JelicaPackageValidator()
     source_result = validator.validate(source_path)
@@ -1740,7 +1937,18 @@ def import_result_package(
             message="Result package store directory cannot be created",
         ) from error
 
-    target_path = result_packages_dir / f"{content_digest}.jelica"
+    try:
+        target_filename = result_package_filename(
+            content_digest=content_digest,
+            result_name=result_name,
+            filename_stem=filename_stem,
+        )
+    except ValueError as error:
+        raise ResultPackageLibraryError(
+            code=ResultPackageLibraryErrorCode.INVALID_SOURCE_PACKAGE,
+            message=f"Requested result package name is invalid: {error}",
+        ) from error
+    target_path = result_packages_dir / target_filename
     if target_path.exists() and not _is_existing_regular_file(target_path):
         raise ResultPackageLibraryError(
             code=ResultPackageLibraryErrorCode.INVALID_EXISTING_PACKAGE,
@@ -1751,6 +1959,19 @@ def import_result_package(
             validator=validator,
             source_path=source_path,
             target_path=target_path,
+            expected_content_id=content_id,
+        )
+
+    existing_path = _find_stored_package_by_content_id(
+        result_packages_dir=result_packages_dir,
+        content_id=content_id,
+        validator=validator,
+    )
+    if existing_path is not None:
+        return _reuse_existing_imported_package(
+            validator=validator,
+            source_path=source_path,
+            target_path=existing_path,
             expected_content_id=content_id,
         )
 
@@ -1774,7 +1995,9 @@ def import_result_package(
                 message=f"Temporary copy failed validation ({first_code})",
             )
 
-        lock_fd, lock_path = _acquire_result_package_store_lock(directory=result_packages_dir)
+        lock_fd, lock_path = _acquire_result_package_store_lock(
+            directory=result_packages_dir
+        )
         if target_path.exists() and not _is_existing_regular_file(target_path):
             raise ResultPackageLibraryError(
                 code=ResultPackageLibraryErrorCode.INVALID_EXISTING_PACKAGE,
@@ -1785,6 +2008,18 @@ def import_result_package(
                 validator=validator,
                 source_path=source_path,
                 target_path=target_path,
+                expected_content_id=content_id,
+            )
+        existing_path = _find_stored_package_by_content_id(
+            result_packages_dir=result_packages_dir,
+            content_id=content_id,
+            validator=validator,
+        )
+        if existing_path is not None:
+            return _reuse_existing_imported_package(
+                validator=validator,
+                source_path=source_path,
+                target_path=existing_path,
                 expected_content_id=content_id,
             )
         try:
@@ -1818,7 +2053,9 @@ def import_result_package(
             code=ResultPackageLibraryErrorCode.IMPORT_IO_ERROR,
             message=f"Published package failed post-import validation ({first_code})",
         )
-    return ImportedResultPackage(content_id=content_id, path=target_path, already_exists=False)
+    return ImportedResultPackage(
+        content_id=content_id, path=target_path, already_exists=False
+    )
 
 
 def list_result_packages(
@@ -1838,7 +2075,9 @@ def list_result_packages(
 
     entries: list[ListedResultPackage] = []
     try:
-        directory_entries = sorted(result_packages_dir.iterdir(), key=lambda item: item.name)
+        directory_entries = sorted(
+            result_packages_dir.iterdir(), key=lambda item: item.name
+        )
     except OSError as error:
         raise ResultPackageLibraryError(
             code=ResultPackageLibraryErrorCode.IMPORT_IO_ERROR,
@@ -1850,6 +2089,17 @@ def list_result_packages(
         if entry_path.suffix != ".jelica":
             continue
         entries.append(_build_result_package_catalog_entry(path=entry_path))
+
+    task_names = _resolve_result_package_task_names(
+        core_config_service=core_config_service,
+        task_ids={
+            entry.task_id for entry in entries if entry.valid and entry.task_id is not None
+        },
+    )
+    entries = [
+        replace(entry, task_name=task_names.get(entry.task_id))
+        for entry in entries
+    ]
 
     sorted_entries = tuple(
         sorted(
@@ -1884,10 +2134,15 @@ def resolve_result_package_path(
         core_config_service=core_config_service
     )
     digest = _parse_content_digest_reference(reference=normalized_ref)
-    if digest is not None and normalized_ref.startswith("sha256:"):
+    if digest is not None:
         return _resolve_stored_package_by_digest(
             result_packages_dir=result_packages_dir,
             digest=digest,
+        )
+    if normalized_ref.endswith(".jelica"):
+        return _resolve_stored_package_by_filename(
+            result_packages_dir=result_packages_dir,
+            filename=normalized_ref,
         )
 
     try:
@@ -1902,13 +2157,18 @@ def resolve_result_package_path(
         database_path=resolved_core_config.database_path
     )
     try:
-        task_record = registry_service.resolve_task_reference(task_reference=normalized_ref)
+        task_record = registry_service.resolve_task_reference(
+            task_reference=normalized_ref
+        )
     except AnalyticalTaskNotFoundError as error:
-        if digest is not None:
-            return _resolve_stored_package_by_digest(
+        try:
+            return _resolve_stored_package_by_result_name(
                 result_packages_dir=result_packages_dir,
-                digest=digest,
+                result_name=normalized_ref,
             )
+        except ResultPackageLibraryError as result_error:
+            if result_error.code is not ResultPackageLibraryErrorCode.PACKAGE_NOT_FOUND:
+                raise
         raise ResultPackageLibraryError(
             code=ResultPackageLibraryErrorCode.TASK_NOT_FOUND,
             message=f"Task '{normalized_ref}' was not found",
@@ -1945,9 +2205,13 @@ def resolve_result_package_path(
             message="Task result package link is invalid",
         ) from error
 
-    expected_content_digest = content_digest_from_content_id(link.content_id)
-    expected_package_path = result_packages_dir / f"{expected_content_digest}.jelica"
-    link_target = (task_dir / Path(link.path)).resolve(strict=False)
+    raw_link_target = task_dir / Path(link.path)
+    if raw_link_target.is_symlink():
+        raise ResultPackageLibraryError(
+            code=ResultPackageLibraryErrorCode.UNSAFE_RESULT_PACKAGE_LINK,
+            message="Task result package link must not target a symbolic link",
+        )
+    link_target = raw_link_target.resolve(strict=False)
     store_root = result_packages_dir.resolve(strict=False)
     try:
         link_target.relative_to(store_root)
@@ -1957,10 +2221,10 @@ def resolve_result_package_path(
             message="Task result package link points outside result package store",
         ) from error
 
-    if link_target != expected_package_path.resolve(strict=False):
+    if link_target.suffix != ".jelica":
         raise ResultPackageLibraryError(
             code=ResultPackageLibraryErrorCode.INVALID_RESULT_PACKAGE_LINK,
-            message="Task result package link does not match content_id",
+            message="Task result package link must target a .jelica file",
         )
 
     if not _is_existing_regular_file(link_target):
@@ -1968,6 +2232,15 @@ def resolve_result_package_path(
             code=ResultPackageLibraryErrorCode.PACKAGE_NOT_FOUND,
             message="Result package referenced by task was not found",
         )
+    try:
+        validate_result_package_file(
+            path=link_target, expected_content_id=link.content_id
+        )
+    except ResultPackageValidationError as error:
+        raise ResultPackageLibraryError(
+            code=ResultPackageLibraryErrorCode.INVALID_RESULT_PACKAGE_LINK,
+            message="Task result package content does not match content_id",
+        ) from error
     return ResolvedResultPackagePath(content_id=link.content_id, path=link_target)
 
 
@@ -1976,13 +2249,153 @@ def _resolve_stored_package_by_digest(
     result_packages_dir: Path,
     digest: str,
 ) -> ResolvedResultPackagePath:
-    package_path = result_packages_dir / f"{digest}.jelica"
-    if not _is_existing_regular_file(package_path):
+    validator = JelicaPackageValidator()
+    package_path = _find_stored_package_by_content_id(
+        result_packages_dir=result_packages_dir,
+        content_id=f"sha256:{digest}",
+        validator=validator,
+    )
+    if package_path is None:
         raise ResultPackageLibraryError(
             code=ResultPackageLibraryErrorCode.PACKAGE_NOT_FOUND,
             message="Result package was not found",
         )
     return ResolvedResultPackagePath(content_id=f"sha256:{digest}", path=package_path)
+
+
+def _resolve_stored_package_by_filename(
+    *,
+    result_packages_dir: Path,
+    filename: str,
+) -> ResolvedResultPackagePath:
+    if Path(filename).name != filename:
+        raise ResultPackageLibraryError(
+            code=ResultPackageLibraryErrorCode.PACKAGE_NOT_FOUND,
+            message="Result package filename reference must not contain directories",
+        )
+    if not _is_supported_result_package_filename(filename):
+        raise ResultPackageLibraryError(
+            code=ResultPackageLibraryErrorCode.PACKAGE_NOT_FOUND,
+            message="Result package filename is not a supported .jelica name",
+        )
+    package_path = result_packages_dir / filename
+    if not _is_existing_regular_file(package_path):
+        raise ResultPackageLibraryError(
+            code=ResultPackageLibraryErrorCode.PACKAGE_NOT_FOUND,
+            message="Result package was not found",
+        )
+    try:
+        validated = validate_result_package_file(path=package_path)
+    except ResultPackageValidationError as error:
+        raise ResultPackageLibraryError(
+            code=ResultPackageLibraryErrorCode.INVALID_EXISTING_PACKAGE,
+            message="Result package is invalid or inconsistent with its manifest",
+        ) from error
+    if not _filename_contains_content_digest(filename, validated.content_id):
+        raise ResultPackageLibraryError(
+            code=ResultPackageLibraryErrorCode.INVALID_EXISTING_PACKAGE,
+            message="Result package filename does not contain its content digest",
+        )
+    return ResolvedResultPackagePath(
+        content_id=validated.content_id,
+        path=package_path,
+    )
+
+
+def _resolve_stored_package_by_result_name(
+    *,
+    result_packages_dir: Path,
+    result_name: str,
+) -> ResolvedResultPackagePath:
+    try:
+        normalized_name = validate_human_readable_name(result_name, max_length=None)
+    except ValueError as error:
+        raise ResultPackageLibraryError(
+            code=ResultPackageLibraryErrorCode.PACKAGE_NOT_FOUND,
+            message=f"Result package name '{result_name}' is invalid",
+        ) from error
+    validator = JelicaPackageValidator()
+    matches: list[tuple[Path, str]] = []
+    for candidate in _iter_result_package_files(
+        result_packages_dir=result_packages_dir
+    ):
+        parsed = parse_result_package_filename(candidate.name)
+        if parsed is not None:
+            candidate_result_name = parsed.result_name
+            expected_content_id = f"sha256:{parsed.content_digest}"
+        elif _is_supported_result_package_filename(candidate.name):
+            candidate_result_name = candidate.stem
+            expected_content_id = None
+        else:
+            continue
+        if (
+            candidate_result_name is None
+            or candidate_result_name.casefold() != normalized_name.casefold()
+        ):
+            continue
+        result = validator.validate(candidate)
+        if result.valid and (
+            expected_content_id is None or result.content_id == expected_content_id
+        ) and result.content_id is not None:
+            if not _filename_contains_content_digest(candidate.name, result.content_id):
+                continue
+            matches.append((candidate, result.content_id))
+    if not matches:
+        raise ResultPackageLibraryError(
+            code=ResultPackageLibraryErrorCode.PACKAGE_NOT_FOUND,
+            message=f"Result package named '{normalized_name}' was not found",
+        )
+    if len(matches) > 1:
+        details = ", ".join(
+            f"{path.name} ({content_id})" for path, content_id in matches
+        )
+        raise ResultPackageLibraryError(
+            code=ResultPackageLibraryErrorCode.AMBIGUOUS_RESULT_PACKAGE,
+            message=f"Result package name '{normalized_name}' is ambiguous: {details}",
+        )
+    package_path, content_id = matches[0]
+    return ResolvedResultPackagePath(content_id=content_id, path=package_path)
+
+
+def _iter_result_package_files(*, result_packages_dir: Path) -> tuple[Path, ...]:
+    if not result_packages_dir.is_dir() or result_packages_dir.is_symlink():
+        return tuple()
+    return tuple(
+        sorted(
+            (
+                entry
+                for entry in result_packages_dir.iterdir()
+                if entry.suffix == ".jelica" and _is_existing_regular_file(entry)
+            ),
+            key=lambda item: item.name,
+        )
+    )
+
+
+def _find_stored_package_by_content_id(
+    *,
+    result_packages_dir: Path,
+    content_id: str,
+    validator: JelicaPackageValidator,
+) -> Path | None:
+    matches: list[Path] = []
+    for candidate in _iter_result_package_files(
+        result_packages_dir=result_packages_dir
+    ):
+        result = validator.validate(candidate)
+        if (
+            result.valid
+            and result.content_id == content_id
+            and _filename_contains_content_digest(candidate.name, content_id)
+        ):
+            matches.append(candidate)
+    if len(matches) > 1:
+        names = ", ".join(path.name for path in matches)
+        raise ResultPackageLibraryError(
+            code=ResultPackageLibraryErrorCode.AMBIGUOUS_RESULT_PACKAGE,
+            message=f"More than one stored package has content_id {content_id}: {names}",
+        )
+    return matches[0] if matches else None
 
 
 def _cleanup_prepared_package_source(*, prepared_path: Path) -> None:
@@ -2137,7 +2550,11 @@ def _is_existing_regular_file(path: Path) -> bool:
 
 
 def _build_result_package_catalog_entry(*, path: Path) -> ListedResultPackage:
-    if path.is_symlink() or not path.is_file():
+    if (
+        path.is_symlink()
+        or not path.is_file()
+        or not _is_supported_result_package_filename(path.name)
+    ):
         return ListedResultPackage(
             file_name=path.name,
             path=path,
@@ -2146,6 +2563,7 @@ def _build_result_package_catalog_entry(*, path: Path) -> ListedResultPackage:
             status="invalid",
             format_version=None,
             valid=False,
+            result_name=None,
             issue_code=ResultPackageLibraryErrorCode.INVALID_EXISTING_PACKAGE,
         )
 
@@ -2161,11 +2579,19 @@ def _build_result_package_catalog_entry(*, path: Path) -> ListedResultPackage:
             status="invalid",
             format_version=None,
             valid=False,
+            result_name=None,
             issue_code=ResultPackageLibraryErrorCode.INVALID_EXISTING_PACKAGE,
         )
 
-    expected_file_name = f"{content_digest_from_content_id(manifest.content_id)}.jelica"
-    is_name_consistent = path.name == expected_file_name
+    parsed_filename = parse_result_package_filename(path.name)
+    expected_digest = content_digest_from_content_id(manifest.content_id)
+    is_name_consistent = (
+        parsed_filename is None
+        and _filename_contains_content_digest(path.name, manifest.content_id)
+    ) or (
+        parsed_filename is not None
+        and parsed_filename.content_digest == expected_digest
+    )
     return ListedResultPackage(
         file_name=path.name,
         path=path,
@@ -2174,12 +2600,43 @@ def _build_result_package_catalog_entry(*, path: Path) -> ListedResultPackage:
         status=manifest.task.status.value if is_name_consistent else "invalid",
         format_version=manifest.format_version,
         valid=is_name_consistent,
+        result_name=(
+            parsed_filename.result_name
+            if parsed_filename is not None and is_name_consistent
+            else path.stem
+            if is_name_consistent
+            else None
+        ),
         issue_code=(
             None
             if is_name_consistent
             else ResultPackageLibraryErrorCode.INVALID_EXISTING_PACKAGE
         ),
     )
+
+
+def _resolve_result_package_task_names(
+    *,
+    core_config_service: CoreConfigService,
+    task_ids: set[str],
+) -> dict[str, str | None]:
+    if not task_ids:
+        return {}
+    try:
+        resolved_config = core_config_service.require_initialized_config()
+        registry_service = AnalyticalTaskRegistryService(
+            database_path=resolved_config.database_path
+        )
+    except (CoreConfigError, AnalyticalTaskRegistryError):
+        return {}
+
+    task_names: dict[str, str | None] = {}
+    for task_id in task_ids:
+        try:
+            task_names[task_id] = registry_service.get_task(task_id=task_id).name
+        except AnalyticalTaskRegistryError:
+            task_names[task_id] = None
+    return task_names
 
 
 def _parse_content_digest_reference(*, reference: str) -> str | None:
@@ -2218,7 +2675,9 @@ def _validate_archive(
     try:
         manifest_payload_raw = archive.read(JELICA_PACKAGE_MANIFEST_PATH)
     except KeyError as error:
-        raise ResultPackageValidationError("ZIP archive is missing manifest.json") from error
+        raise ResultPackageValidationError(
+            "ZIP archive is missing manifest.json"
+        ) from error
     manifest = _load_package_manifest(payload=manifest_payload_raw)
 
     has_notes = JELICA_PACKAGE_NOTES_PATH in info_by_name
@@ -2227,7 +2686,10 @@ def _validate_archive(
             "automatically generated result packages must not include NOTES.txt"
         )
 
-    expected_files = {JELICA_PACKAGE_MANIFEST_PATH, *(item.path for item in manifest.artifacts)}
+    expected_files = {
+        JELICA_PACKAGE_MANIFEST_PATH,
+        *(item.path for item in manifest.artifacts),
+    }
     if has_notes:
         expected_files.add(JELICA_PACKAGE_NOTES_PATH)
     missing_files = sorted(expected_files.difference(names))
@@ -2412,6 +2874,25 @@ def _normalize_sha256_hex(value: str, *, field_name: str) -> str:
     return normalized
 
 
+def _validate_explicit_result_package_stem(
+    *,
+    filename_stem: str,
+    content_digest: str,
+) -> str:
+    normalized = filename_stem.strip()
+    if normalized == "":
+        raise ValueError("result package filename stem must not be empty")
+    if (
+        "/" in normalized
+        or "\\" in normalized
+        or _RESULT_PACKAGE_FILENAME_STEM_PATTERN.fullmatch(normalized) is None
+    ):
+        raise ValueError("result package filename stem contains invalid characters")
+    if content_digest not in normalized:
+        raise ValueError("result package filename stem must include content digest")
+    return normalized
+
+
 def _normalize_package_internal_path(value: str) -> str:
     return _normalize_filesystem_relative_path(value, allow_parent=False)
 
@@ -2458,6 +2939,7 @@ __all__ = [
     "JelicaPackageValidationResult",
     "JelicaPackageValidator",
     "ImportedResultPackage",
+    "ParsedResultPackageFilename",
     "ListedResultPackage",
     "ListedResultPackages",
     "ResolvedResultPackagePath",
@@ -2487,6 +2969,8 @@ __all__ = [
     "resolve_result_packages_directory",
     "result_package_artifact_paths",
     "result_package_target_path",
+    "result_package_filename",
+    "parse_result_package_filename",
     "serialize_stable_json",
     "validate_result_package_file",
     "write_model_json",

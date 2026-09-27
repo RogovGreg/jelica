@@ -2,12 +2,35 @@ from __future__ import annotations
 
 import re
 from urllib.parse import parse_qs, urlparse
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .analysis_overrides import AnalysisOverrides
 
 _NCBI_ACCESSION = re.compile(r"^[A-Z][A-Z0-9_]*\d(?:\.\d+)?$", re.IGNORECASE)
+_TASK_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
+_UUID_NAME_PATTERN = re.compile(
+    r"^(?:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-"
+    r"[0-9a-fA-F]{4}-[0-9a-fA-F]{12}|[0-9a-fA-F]{32})$"
+)
+
+
+def _normalize_task_name(value: str) -> str:
+    candidate = re.sub(r"\s+", "_", value.strip())
+    if not _TASK_NAME_PATTERN.fullmatch(candidate):
+        raise ValueError(
+            "name must be 1..64 characters, start with an ASCII letter or digit, "
+            "and contain only ASCII letters, digits, '_' or '-'"
+        )
+    if _UUID_NAME_PATTERN.fullmatch(candidate):
+        try:
+            UUID(candidate)
+        except ValueError:
+            pass
+        else:
+            raise ValueError("name must not be a UUID")
+    return candidate
 
 
 def _validate_ncbi_source(value: str) -> str:
@@ -19,7 +42,9 @@ def _validate_ncbi_source(value: str) -> str:
         "ncbi.nlm.nih.gov",
         "www.ncbi.nlm.nih.gov",
     }:
-        raise ValueError("Only NCBI nucleotide accessions or supported NCBI URLs are allowed")
+        raise ValueError(
+            "Only NCBI nucleotide accessions or supported NCBI URLs are allowed"
+        )
     path = parsed.path.lower()
     if not path.startswith(("/nuccore/", "/nucleotide/")) and path not in {
         "/entrez/viewer.fcgi",
@@ -61,10 +86,7 @@ class TaskSubmissionRequest(BaseModel):
     def _normalize_name(cls, value: str | None) -> str | None:
         if value is None:
             return None
-        candidate = value.strip()
-        if candidate == "":
-            raise ValueError("name must not be empty when provided")
-        return candidate
+        return _normalize_task_name(value)
 
     @field_validator("trace_id")
     @classmethod
@@ -122,10 +144,7 @@ class BrowserTaskSubmissionRequest(BaseModel):
     def _normalize_name(cls, value: str | None) -> str | None:
         if value is None:
             return None
-        candidate = value.strip()
-        if candidate == "":
-            raise ValueError("name must not be empty when provided")
-        return candidate
+        return _normalize_task_name(value)
 
     @field_validator("trace_id")
     @classmethod
@@ -147,4 +166,8 @@ class TaskSubmissionResult(BaseModel):
     command_id: str = Field(min_length=1)
 
 
-__all__ = ["BrowserTaskSubmissionRequest", "TaskSubmissionRequest", "TaskSubmissionResult"]
+__all__ = [
+    "BrowserTaskSubmissionRequest",
+    "TaskSubmissionRequest",
+    "TaskSubmissionResult",
+]

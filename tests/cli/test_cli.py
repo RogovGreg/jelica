@@ -44,6 +44,8 @@ from jelica_core.result_package import (
     JELICA_PACKAGE_TASK_PATH,
     RESULT_PACKAGE_DIRECTORY_NAME,
     JelicaPackageManifest,
+    ListedResultPackage,
+    ListedResultPackages,
     ResultPackageArtifactInfo,
     ResultPackageLink,
     ResultPackageProducerInfo,
@@ -68,7 +70,11 @@ from jelica_core.runtime import (
 from jelica_core.runtime import (
     stop_service as stop_core_service,
 )
-from jelica_core.system_config import CoreConfigService, ResolvedCoreConfig, core_config_field_paths
+from jelica_core.system_config import (
+    CoreConfigService,
+    ResolvedCoreConfig,
+    core_config_field_paths,
+)
 from jelica_core.tasks import AnalyticalTaskRegistryService, AnalyticalTaskSnapshot
 
 runner = CliRunner()
@@ -167,7 +173,9 @@ def _assert_complete_combined_config_document(document: dict[str, Any]) -> None:
 
 
 def _extract_started_task_id(stdout: str) -> str:
-    match = re.search(r"Analysis task ([a-f0-9-]{36}) was created and started\.", stdout)
+    match = re.search(
+        r"Analysis task ([a-f0-9-]{36}) was created and started\.", stdout
+    )
     assert match is not None
     return match.group(1)
 
@@ -276,7 +284,9 @@ def _install_inline_runtime_service(
         runtime_thread = threading.Thread(
             target=core_operations.run_runtime_continue,
             kwargs={
-                "core_config_service": CliSystemConfigService(jelica_home=jelica_home).core_service,
+                "core_config_service": CliSystemConfigService(
+                    jelica_home=jelica_home
+                ).core_service,
             },
             name="inline-test-service-runtime",
         )
@@ -285,7 +295,9 @@ def _install_inline_runtime_service(
         return os.getpid()
 
     monkeypatch.setattr(cli_main, "start_service", _fake_start_service)
-    monkeypatch.setattr(core_operations, "launch_background_runtime", _launch_inline_runtime)
+    monkeypatch.setattr(
+        core_operations, "launch_background_runtime", _launch_inline_runtime
+    )
     return runtime_threads
 
 
@@ -317,6 +329,7 @@ def _build_validation_package(
     broken_manifest: bool = False,
     notes: bytes | None = None,
     compression: int = zipfile.ZIP_DEFLATED,
+    normalized_fasta: bytes = b">sample\nACGT\n",
 ) -> str:
     payloads = {
         JELICA_PACKAGE_TASK_PATH: (
@@ -325,7 +338,7 @@ def _build_validation_package(
         ),
         JELICA_PACKAGE_CONFIGURATION_PATH: b'{"alignment":{"mode":"none"}}\n',
         JELICA_PACKAGE_INPUT_MANIFEST_PATH: b'{"sources":[]}\n',
-        JELICA_PACKAGE_NORMALIZED_FASTA_PATH: b">sample\nACGT\n",
+        JELICA_PACKAGE_NORMALIZED_FASTA_PATH: normalized_fasta,
         "results/comparative_analysis/manifest.json": b'{"ok":true}\n',
     }
     artifacts = tuple(
@@ -417,12 +430,17 @@ def _register_task_with_result_package_link(
         current_config_relative_path="configs/000001.json",
         current_config_hash="a" * 64,
     )
-    package_path = _result_packages_dir(jelica_home) / (
-        f"{content_digest_from_content_id(content_id)}.jelica"
+    digest = content_digest_from_content_id(content_id)
+    package_path = next(
+        path
+        for path in _result_packages_dir(jelica_home).glob(f"*{digest}.jelica")
+        if path.is_file()
     )
     link = ResultPackageLink(
         content_id=content_id,
-        path=relative_package_path_from_task(task_dir=task_dir, package_path=package_path),
+        path=relative_package_path_from_task(
+            task_dir=task_dir, package_path=package_path
+        ),
         format_version="1.0",
     )
     write_result_package_link(task_dir=task_dir, link=link)
@@ -475,7 +493,9 @@ def test_service_start_is_idempotent_and_status_is_rendered(
     status = _service_status(tmp_path)
     results = iter(
         (
-            ServiceStartResult(status=status, already_running=False, launched_pid=12345),
+            ServiceStartResult(
+                status=status, already_running=False, launched_pid=12345
+            ),
             ServiceStartResult(status=status, already_running=True),
         )
     )
@@ -611,14 +631,18 @@ def test_service_restart_status_detailed_and_logs_options_are_forwarded(
     assert log_tails == [2]
 
 
-def test_cli_version_exits_successfully_without_initialized_core(tmp_path: Path) -> None:
+def test_cli_version_exits_successfully_without_initialized_core(
+    tmp_path: Path,
+) -> None:
     result = _invoke_cli(args=["--version"], jelica_home=tmp_path / "home")
 
     assert result.exit_code == 0
     assert result.stdout.strip() == get_core_info()["version"]
 
 
-def test_cli_all_versions_exits_successfully_without_initialized_core(tmp_path: Path) -> None:
+def test_cli_all_versions_exits_successfully_without_initialized_core(
+    tmp_path: Path,
+) -> None:
     result = _invoke_cli(args=["--all-versions"], jelica_home=tmp_path / "home")
 
     assert result.exit_code == 0
@@ -648,7 +672,9 @@ def test_config_path_is_available_before_initialization(tmp_path: Path) -> None:
     assert result.stdout.strip() == str(jelica_home / "config.toml")
 
 
-def test_config_path_is_independent_of_current_directory(tmp_path: Path, monkeypatch: Any) -> None:
+def test_config_path_is_independent_of_current_directory(
+    tmp_path: Path, monkeypatch: Any
+) -> None:
     jelica_home = tmp_path / "home"
     different_cwd = tmp_path / "other-cwd"
     different_cwd.mkdir(parents=True)
@@ -799,7 +825,9 @@ def test_analyze_attached_watch_reuses_loaded_combined_snapshot_without_reread(
     assert "unknown field 'cli'" not in result.stdout
 
 
-def test_config_init_non_interactive_writes_defaults_and_directories(tmp_path: Path) -> None:
+def test_config_init_non_interactive_writes_defaults_and_directories(
+    tmp_path: Path,
+) -> None:
     jelica_home = tmp_path / "home"
     result = _run_non_interactive_init(jelica_home)
 
@@ -880,7 +908,9 @@ def test_config_init_non_interactive_writes_explicit_values(tmp_path: Path) -> N
     assert resolved.data_dir == (jelica_home / "custom-data")
 
 
-def test_config_init_is_idempotent_when_config_and_database_exist(tmp_path: Path) -> None:
+def test_config_init_is_idempotent_when_config_and_database_exist(
+    tmp_path: Path,
+) -> None:
     jelica_home = tmp_path / "home"
     first = _run_non_interactive_init(jelica_home)
     config_path = CoreConfigService(jelica_home=jelica_home).get_config_path()
@@ -893,7 +923,9 @@ def test_config_init_is_idempotent_when_config_and_database_exist(tmp_path: Path
     assert before == after
 
 
-def test_config_init_recreates_missing_database_from_existing_valid_toml(tmp_path: Path) -> None:
+def test_config_init_recreates_missing_database_from_existing_valid_toml(
+    tmp_path: Path,
+) -> None:
     jelica_home = tmp_path / "home"
     first = _run_non_interactive_init(jelica_home, "--max-workers", "3")
     resolved = _load_resolved_core_config(jelica_home)
@@ -977,7 +1009,10 @@ def test_config_init_interactive_recovers_existing_file_missing_required_core_fi
         ("missing-cli", tuple(), True),
         (
             "missing-multiple-defaulted-fields",
-            ("logging.include_diagnostics", "execution.progress_flush_interval_seconds"),
+            (
+                "logging.include_diagnostics",
+                "execution.progress_flush_interval_seconds",
+            ),
             False,
         ),
     ),
@@ -1109,7 +1144,9 @@ def test_config_validate_reports_invalid_toml(tmp_path: Path) -> None:
     assert "Failed to complete system config operation" not in result.stdout
 
 
-def test_config_validate_reports_unknown_field_as_invalid_config(tmp_path: Path) -> None:
+def test_config_validate_reports_unknown_field_as_invalid_config(
+    tmp_path: Path,
+) -> None:
     jelica_home = tmp_path / "home"
     _run_non_interactive_init(jelica_home)
     config_path = CoreConfigService(jelica_home=jelica_home).get_config_path()
@@ -1117,7 +1154,9 @@ def test_config_validate_reports_unknown_field_as_invalid_config(tmp_path: Path)
     execution_header = "[execution]\n"
     assert execution_header in config_text
     config_path.write_text(
-        config_text.replace(execution_header, f"{execution_header}min_workers = 1\n", 1),
+        config_text.replace(
+            execution_header, f"{execution_header}min_workers = 1\n", 1
+        ),
         encoding="utf-8",
     )
 
@@ -1278,7 +1317,9 @@ def test_config_set_rejects_empty_value(tmp_path: Path) -> None:
     assert "empty values are not allowed" in result.stdout
 
 
-def test_config_unset_data_directory_reverts_to_explicit_default(tmp_path: Path) -> None:
+def test_config_unset_data_directory_reverts_to_explicit_default(
+    tmp_path: Path,
+) -> None:
     jelica_home = tmp_path / "home"
     _run_non_interactive_init(jelica_home, "--data-dir", "custom-data")
 
@@ -1371,7 +1412,9 @@ def test_config_unset_rejects_unknown_parameter(tmp_path: Path) -> None:
     assert "Unknown system config parameter" in result.stdout
 
 
-def test_config_unset_rejects_parameter_that_is_already_set_to_default(tmp_path: Path) -> None:
+def test_config_unset_rejects_parameter_that_is_already_set_to_default(
+    tmp_path: Path,
+) -> None:
     jelica_home = tmp_path / "home"
     _run_non_interactive_init(jelica_home, "--max-workers", "4")
     first_unset = _invoke_cli(
@@ -1388,14 +1431,20 @@ def test_config_unset_rejects_parameter_that_is_already_set_to_default(tmp_path:
     assert "already set to its default value" in second_unset.stdout
 
 
-def test_analyze_creates_task_in_resolved_tasks_dir_after_initialization(tmp_path: Path) -> None:
+def test_analyze_creates_task_in_resolved_tasks_dir_after_initialization(
+    tmp_path: Path,
+) -> None:
     jelica_home = tmp_path / "home"
     _run_non_interactive_init(jelica_home)
     (tmp_path / "Sample_1.fasta").write_text(">s1\nACGT\n", encoding="utf-8")
     (tmp_path / "Sample_2.fasta").write_text(">s2\nACGG\n", encoding="utf-8")
 
     result = _invoke_cli(
-        args=["analyze", str(tmp_path / "Sample_1.fasta"), str(tmp_path / "Sample_2.fasta")],
+        args=[
+            "analyze",
+            str(tmp_path / "Sample_1.fasta"),
+            str(tmp_path / "Sample_2.fasta"),
+        ],
         jelica_home=jelica_home,
     )
 
@@ -1416,7 +1465,11 @@ def test_analyze_uses_custom_absolute_data_directory(tmp_path: Path) -> None:
     (tmp_path / "Sample_2.fasta").write_text(">s2\nACGG\n", encoding="utf-8")
 
     result = _invoke_cli(
-        args=["analyze", str(tmp_path / "Sample_1.fasta"), str(tmp_path / "Sample_2.fasta")],
+        args=[
+            "analyze",
+            str(tmp_path / "Sample_1.fasta"),
+            str(tmp_path / "Sample_2.fasta"),
+        ],
         jelica_home=jelica_home,
     )
 
@@ -1463,7 +1516,9 @@ def test_analyze_saves_default_priority_in_normalized_config(tmp_path: Path) -> 
     assert saved_config["priority"] == 1
 
 
-def test_analyze_priority_override_is_saved_in_normalized_config(tmp_path: Path) -> None:
+def test_analyze_priority_override_is_saved_in_normalized_config(
+    tmp_path: Path,
+) -> None:
     jelica_home = tmp_path / "home"
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "Sample_1.fasta"
@@ -1542,7 +1597,9 @@ def test_tasks_list_reports_empty_registry(tmp_path: Path) -> None:
     assert result.stdout.strip() == "Analytical tasks were not found."
 
 
-def test_tasks_list_outputs_multiple_tasks_sorted_by_updated_at_desc(tmp_path: Path) -> None:
+def test_tasks_list_outputs_multiple_tasks_sorted_by_updated_at_desc(
+    tmp_path: Path,
+) -> None:
     jelica_home = tmp_path / "home"
     _run_non_interactive_init(jelica_home)
     sample_a = tmp_path / "sample-a.fasta"
@@ -1698,7 +1755,9 @@ def test_tasks_show_returns_not_found_without_traceback(tmp_path: Path) -> None:
     _run_non_interactive_init(jelica_home)
     missing_task_id = "00000000-0000-4000-8000-000000000000"
 
-    result = _invoke_cli(args=["tasks", "show", missing_task_id], jelica_home=jelica_home)
+    result = _invoke_cli(
+        args=["tasks", "show", missing_task_id], jelica_home=jelica_home
+    )
 
     assert result.exit_code != 0
     assert "was not found" in result.stdout
@@ -1746,7 +1805,9 @@ def test_read_only_task_commands_do_not_start_service(
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">a\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
 
     def _unexpected_start(*args: Any, **kwargs: Any) -> Any:
         _ = (args, kwargs)
@@ -1761,12 +1822,16 @@ def test_read_only_task_commands_do_not_start_service(
     assert shown.exit_code == 0
 
 
-def test_tasks_start_completes_job_and_publishes_initialize_stage(tmp_path: Path) -> None:
+def test_tasks_start_completes_job_and_publishes_initialize_stage(
+    tmp_path: Path,
+) -> None:
     jelica_home = tmp_path / "home"
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">a\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
 
     start = _invoke_cli(args=["tasks", "start", task_id], jelica_home=jelica_home)
     assert start.exit_code == 0
@@ -1782,7 +1847,9 @@ def test_tasks_start_completes_job_and_publishes_initialize_stage(tmp_path: Path
     assert snapshot.task.active_job_id is None
     assert snapshot.task.latest_job_id == job_id
 
-    stage_dir = resolved.tasks_dir / task_id / "jobs" / job_id / "stages" / "initialize_job"
+    stage_dir = (
+        resolved.tasks_dir / task_id / "jobs" / job_id / "stages" / "initialize_job"
+    )
     stage_manifest_path = stage_dir / "stage_manifest.json"
     execution_manifest_path = stage_dir / "execution_manifest.json"
     assert stage_manifest_path.is_file()
@@ -1799,9 +1866,13 @@ def test_tasks_start_text_output_and_persistent_service_status(tmp_path: Path) -
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">a\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
 
-    start_result = _invoke_cli(args=["tasks", "start", task_id], jelica_home=jelica_home)
+    start_result = _invoke_cli(
+        args=["tasks", "start", task_id], jelica_home=jelica_home
+    )
     assert start_result.exit_code == 0
     assert f"Task {task_id} started as job" in start_result.stdout
     assert "(completed)." in start_result.stdout
@@ -1882,7 +1953,9 @@ def test_tasks_start_and_resume_multiple_uuid_refs_enqueue_before_one_common_wat
         verbose: bool,
     ) -> cli_main.WatchCliOutcome:
         _ = (event_since, mode, render, output_format, verbose)
-        operation_name = "resume" if any(item.startswith("resume:") for item in calls) else "start"
+        operation_name = (
+            "resume" if any(item.startswith("resume:") for item in calls) else "start"
+        )
         assert calls[-2:] == [
             f"{operation_name}:{task_ids[0]}",
             f"{operation_name}:{task_ids[1]}",
@@ -1914,12 +1987,16 @@ def test_tasks_start_and_resume_multiple_uuid_refs_enqueue_before_one_common_wat
     monkeypatch.setattr(cli_main, "start_service", _fake_start_service)
     monkeypatch.setattr(cli_main, "run_start_analytical_task", _wrapped_start)
     monkeypatch.setattr(cli_main, "run_resume_analytical_task", _wrapped_resume)
-    monkeypatch.setattr(core_operations, "launch_background_runtime", _fake_background_runtime)
+    monkeypatch.setattr(
+        core_operations, "launch_background_runtime", _fake_background_runtime
+    )
     monkeypatch.setattr(cli_main, "_watch_execution_tasks", _completed_batch_watch)
 
     started = _invoke_cli(args=["tasks", "start", *task_ids], jelica_home=jelica_home)
     assert started.exit_code == 0
-    assert all(f"Task {task_id} started as job" in started.stdout for task_id in task_ids)
+    assert all(
+        f"Task {task_id} started as job" in started.stdout for task_id in task_ids
+    )
     registry = _registry_service(jelica_home)
     for task_id in task_ids:
         paused = registry.pause(task_id=task_id)
@@ -1928,7 +2005,9 @@ def test_tasks_start_and_resume_multiple_uuid_refs_enqueue_before_one_common_wat
     resumed = _invoke_cli(args=["tasks", "resume", *task_ids], jelica_home=jelica_home)
 
     assert resumed.exit_code == 0
-    assert all(f"Task {task_id} resumed as job" in resumed.stdout for task_id in task_ids)
+    assert all(
+        f"Task {task_id} resumed as job" in resumed.stdout for task_id in task_ids
+    )
     assert calls == [
         "service",
         f"start:{task_ids[0]}",
@@ -1946,10 +2025,14 @@ def test_tasks_start_rejects_completed_task_without_traceback(tmp_path: Path) ->
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">a\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
 
     first_start = _invoke_cli(args=["tasks", "start", task_id], jelica_home=jelica_home)
-    second_start = _invoke_cli(args=["tasks", "start", task_id], jelica_home=jelica_home)
+    second_start = _invoke_cli(
+        args=["tasks", "start", task_id], jelica_home=jelica_home
+    )
 
     assert first_start.exit_code == 0
     assert second_start.exit_code != 0
@@ -1962,7 +2045,9 @@ def test_service_start_recovers_expired_running_job_to_waiting(tmp_path: Path) -
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">a\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
 
     registry = _registry_service(jelica_home)
     start_result = registry.start(task_id=task_id)
@@ -1995,7 +2080,9 @@ def test_tasks_pause_resume_cancel_text_smoke_without_traceback(tmp_path: Path) 
 
     sample_a = tmp_path / "sample-a.fasta"
     sample_a.write_text(">a\nACGT\n", encoding="utf-8")
-    task_a = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample_a])
+    task_a = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample_a]
+    )
     queued_a = _registry_service(jelica_home).start(task_id=task_a)
     assert queued_a.result_type.value == "applied"
 
@@ -2003,27 +2090,43 @@ def test_tasks_pause_resume_cancel_text_smoke_without_traceback(tmp_path: Path) 
     assert pause_result.exit_code == 0
     assert "Traceback" not in pause_result.stdout
     assert f"Task {task_a}: applied" in pause_result.stdout
-    assert _registry_service(jelica_home).get_task(task_id=task_a).state.value == "paused"
+    assert (
+        _registry_service(jelica_home).get_task(task_id=task_a).state.value == "paused"
+    )
 
-    resume_result = _invoke_cli(args=["tasks", "resume", task_a], jelica_home=jelica_home)
+    resume_result = _invoke_cli(
+        args=["tasks", "resume", task_a], jelica_home=jelica_home
+    )
     assert resume_result.exit_code == 0
     assert "Traceback" not in resume_result.stdout
     assert f"Task {task_a} resumed as job" in resume_result.stdout
-    assert _registry_service(jelica_home).get_task(task_id=task_a).state.value == "completed"
+    assert (
+        _registry_service(jelica_home).get_task(task_id=task_a).state.value
+        == "completed"
+    )
 
     sample_b = tmp_path / "sample-b.fasta"
     sample_b.write_text(">b\nACGT\n", encoding="utf-8")
-    task_b = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample_b])
+    task_b = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample_b]
+    )
     queued_b = _registry_service(jelica_home).start(task_id=task_b)
     assert queued_b.result_type.value == "applied"
 
-    cancel_result = _invoke_cli(args=["tasks", "cancel", task_b], jelica_home=jelica_home)
+    cancel_result = _invoke_cli(
+        args=["tasks", "cancel", task_b], jelica_home=jelica_home
+    )
     assert cancel_result.exit_code == 0
     assert "Traceback" not in cancel_result.stdout
     assert f"Task {task_b}: applied" in cancel_result.stdout
-    assert _registry_service(jelica_home).get_task(task_id=task_b).state.value == "cancelled"
+    assert (
+        _registry_service(jelica_home).get_task(task_id=task_b).state.value
+        == "cancelled"
+    )
 
-    pause_completed = _invoke_cli(args=["tasks", "pause", task_a], jelica_home=jelica_home)
+    pause_completed = _invoke_cli(
+        args=["tasks", "pause", task_a], jelica_home=jelica_home
+    )
     assert pause_completed.exit_code != 0
     assert "Traceback" not in pause_completed.stdout
 
@@ -2047,7 +2150,9 @@ def test_tasks_pause_stop_and_cancel_accept_text_names_and_multiple_refs(
     for task_id in task_ids:
         queued = registry.start(task_id=task_id)
         assert queued.result_type.value == "applied"
-    task_names = [_task_name(jelica_home=jelica_home, task_id=task_id) for task_id in task_ids]
+    task_names = [
+        _task_name(jelica_home=jelica_home, task_id=task_id) for task_id in task_ids
+    ]
 
     paused = _invoke_cli(
         args=["tasks", "pause", task_names[0].upper(), task_ids[1]],
@@ -2071,7 +2176,9 @@ def test_tasks_pause_stop_and_cancel_accept_text_names_and_multiple_refs(
     assert registry.get_task(task_id=task_ids[3]).state.value == "cancelled"
 
 
-def test_tasks_update_and_reprioritize_text_smoke_without_traceback(tmp_path: Path) -> None:
+def test_tasks_update_and_reprioritize_text_smoke_without_traceback(
+    tmp_path: Path,
+) -> None:
     jelica_home = tmp_path / "home"
     _run_non_interactive_init(jelica_home)
 
@@ -2079,7 +2186,9 @@ def test_tasks_update_and_reprioritize_text_smoke_without_traceback(tmp_path: Pa
     sample_b = tmp_path / "sample-b.fasta"
     sample_a.write_text(">a\nACGT\n", encoding="utf-8")
     sample_b.write_text(">b\nACGG\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample_a])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample_a]
+    )
 
     update_config = tmp_path / "update.json"
     update_config.write_text(
@@ -2093,7 +2202,10 @@ def test_tasks_update_and_reprioritize_text_smoke_without_traceback(tmp_path: Pa
     )
     assert update_result.exit_code == 0
     assert "Traceback" not in update_result.stdout
-    assert f"Task {task_id} updated: config revision 2, priority 5." in update_result.stdout
+    assert (
+        f"Task {task_id} updated: config revision 2, priority 5."
+        in update_result.stdout
+    )
 
     queued = _registry_service(jelica_home).start(task_id=task_id)
     assert queued.result_type.value == "applied"
@@ -2130,7 +2242,9 @@ def test_tasks_single_reference_commands_accept_case_insensitive_text_name(
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">sample\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
     task_name = _task_name(jelica_home=jelica_home, task_id=task_id).upper()
 
     updated = _invoke_cli(
@@ -2164,7 +2278,9 @@ def test_tasks_update_round_trips_saved_normalized_config(tmp_path: Path) -> Non
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">a\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
 
     result = _invoke_cli(
         args=["tasks", "update", task_id, "--priority=4"],
@@ -2173,7 +2289,9 @@ def test_tasks_update_round_trips_saved_normalized_config(tmp_path: Path) -> Non
 
     assert result.exit_code == 0
     assert f"Task {task_id} updated: config revision 2, priority 4." in result.stdout
-    saved = json.loads(_single_task_config_path(jelica_home).read_text(encoding="utf-8"))
+    saved = json.loads(
+        _single_task_config_path(jelica_home).read_text(encoding="utf-8")
+    )
     assert saved["alignment"]["mafft"]["strategy"] == "auto"
     assert saved["alignment"]["mafft"]["progressive_threads"] == "auto"
     assert saved["alignment"]["mafft"]["iterative_threads"] == "auto"
@@ -2184,7 +2302,9 @@ def test_tasks_delete_reports_partial_exit_code_in_text_mode(tmp_path: Path) -> 
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">a\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
     missing_task_id = "00000000-0000-4000-8000-000000000000"
 
     result = _invoke_cli(
@@ -2205,7 +2325,9 @@ def test_tasks_delete_confirmation_decline_preserves_task(tmp_path: Path) -> Non
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">a\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
     task_name = _task_name(jelica_home=jelica_home, task_id=task_id)
 
     result = _invoke_cli(
@@ -2228,7 +2350,9 @@ def test_tasks_watch_uses_composed_config_service_with_combined_toml(
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">watch\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
     task_name = _task_name(jelica_home=jelica_home, task_id=task_id)
 
     observed_core_services: list[CoreConfigService | None] = []
@@ -2296,14 +2420,20 @@ def test_tasks_watch_text_returns_terminal_result_with_persistent_service(
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">a\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
 
-    start_result = _invoke_cli(args=["tasks", "start", task_id], jelica_home=jelica_home)
+    start_result = _invoke_cli(
+        args=["tasks", "start", task_id], jelica_home=jelica_home
+    )
     assert start_result.exit_code == 0
     registry = _registry_service(jelica_home)
     assert registry.get_execution_runtime_lease() is not None
 
-    watch_result = _invoke_cli(args=["tasks", "watch", task_id], jelica_home=jelica_home)
+    watch_result = _invoke_cli(
+        args=["tasks", "watch", task_id], jelica_home=jelica_home
+    )
     assert watch_result.exit_code == 0
     assert "Traceback" not in watch_result.stdout
     assert task_id in watch_result.stdout
@@ -2316,11 +2446,17 @@ def test_tasks_watch_rejects_task_without_job(tmp_path: Path) -> None:
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">a\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
 
-    watch_result = _invoke_cli(args=["tasks", "watch", task_id], jelica_home=jelica_home)
+    watch_result = _invoke_cli(
+        args=["tasks", "watch", task_id], jelica_home=jelica_home
+    )
     assert watch_result.exit_code != 0
-    assert f"Task {task_id} is waiting; it was not added to watch." in watch_result.stdout
+    assert (
+        f"Task {task_id} is waiting; it was not added to watch." in watch_result.stdout
+    )
 
 
 def test_tasks_watch_multiple_reports_inactive_and_missing_tasks(
@@ -2330,7 +2466,9 @@ def test_tasks_watch_multiple_reports_inactive_and_missing_tasks(
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">a\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
     missing_task_id = "00000000-0000-4000-8000-000000000000"
 
     result = _invoke_cli(
@@ -2351,7 +2489,9 @@ def test_tasks_watch_ctrl_c_detaches_without_changing_task_state(
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">a\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
     registry = _registry_service(jelica_home)
     queued = registry.start(task_id=task_id)
     assert queued.result_type.value == "applied"
@@ -2384,7 +2524,9 @@ def test_tasks_watch_without_references_includes_unfinished_task_without_job(
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">a\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
     task_name = _task_name(jelica_home=jelica_home, task_id=task_id)
     registry = _registry_service(jelica_home)
 
@@ -2417,7 +2559,9 @@ def test_tasks_start_ctrl_c_stops_only_observation_after_service_start(
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">a\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
     calls: list[str] = []
     status = _service_status(tmp_path)
     original_start = cli_main.run_start_analytical_task
@@ -2430,7 +2574,9 @@ def test_tasks_start_ctrl_c_stops_only_observation_after_service_start(
         _ = core_config_service
         assert runner_module == "jelica_cli.service_runner"
         calls.append("service")
-        return ServiceStartResult(status=status, already_running=False, launched_pid=12345)
+        return ServiceStartResult(
+            status=status, already_running=False, launched_pid=12345
+        )
 
     def _wrapped_start(*args: Any, **kwargs: Any) -> Any:
         _ = args
@@ -2460,7 +2606,9 @@ def test_tasks_start_ctrl_c_stops_only_observation_after_service_start(
 
     monkeypatch.setattr(cli_main, "start_service", _fake_start_service)
     monkeypatch.setattr(cli_main, "run_start_analytical_task", _wrapped_start)
-    monkeypatch.setattr(core_operations, "launch_background_runtime", _fake_background_runtime)
+    monkeypatch.setattr(
+        core_operations, "launch_background_runtime", _fake_background_runtime
+    )
     monkeypatch.setattr(cli_main.TaskWatchService, "watch", _interrupt_watch)
 
     result = _invoke_cli(args=["tasks", "start", task_id], jelica_home=jelica_home)
@@ -2468,7 +2616,9 @@ def test_tasks_start_ctrl_c_stops_only_observation_after_service_start(
     assert result.exit_code == 130
     assert calls == ["service", "task"]
     assert f"Watching stopped. Task {task_id} continues running." in result.stdout
-    assert _registry_service(jelica_home).get_task(task_id=task_id).state.value == "queued"
+    assert (
+        _registry_service(jelica_home).get_task(task_id=task_id).state.value == "queued"
+    )
 
 
 def test_tasks_resume_ctrl_c_stops_only_observation_after_service_start(
@@ -2479,7 +2629,9 @@ def test_tasks_resume_ctrl_c_stops_only_observation_after_service_start(
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">a\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
     registry = _registry_service(jelica_home)
     queued = registry.start(task_id=task_id)
     assert queued.result_type.value == "applied"
@@ -2527,7 +2679,9 @@ def test_tasks_resume_ctrl_c_stops_only_observation_after_service_start(
 
     monkeypatch.setattr(cli_main, "start_service", _fake_start_service)
     monkeypatch.setattr(cli_main, "run_resume_analytical_task", _wrapped_resume)
-    monkeypatch.setattr(core_operations, "launch_background_runtime", _fake_background_runtime)
+    monkeypatch.setattr(
+        core_operations, "launch_background_runtime", _fake_background_runtime
+    )
     monkeypatch.setattr(cli_main.TaskWatchService, "watch", _interrupt_watch)
 
     result = _invoke_cli(args=["tasks", "resume", task_id], jelica_home=jelica_home)
@@ -2558,7 +2712,9 @@ def test_analyze_ctrl_c_stops_only_observation_of_service_owned_task(
         _ = core_config_service
         assert runner_module == "jelica_cli.service_runner"
         calls.append("service")
-        return ServiceStartResult(status=status, already_running=False, launched_pid=12345)
+        return ServiceStartResult(
+            status=status, already_running=False, launched_pid=12345
+        )
 
     def _wrapped_start(*args: Any, **kwargs: Any) -> Any:
         _ = args
@@ -2588,7 +2744,9 @@ def test_analyze_ctrl_c_stops_only_observation_of_service_owned_task(
 
     monkeypatch.setattr(cli_main, "start_service", _fake_start_service)
     monkeypatch.setattr(cli_main, "run_start_analytical_task", _wrapped_start)
-    monkeypatch.setattr(core_operations, "launch_background_runtime", _fake_background_runtime)
+    monkeypatch.setattr(
+        core_operations, "launch_background_runtime", _fake_background_runtime
+    )
     monkeypatch.setattr(cli_main.TaskWatchService, "watch", _interrupt_watch)
 
     result = _invoke_cli(args=["analyze", str(sample)], jelica_home=jelica_home)
@@ -2597,7 +2755,9 @@ def test_analyze_ctrl_c_stops_only_observation_of_service_owned_task(
     assert result.exit_code == 130
     assert calls == ["service", "task"]
     assert f"Watching stopped. Task {task_id} continues running." in result.stdout
-    assert _registry_service(jelica_home).get_task(task_id=task_id).state.value == "queued"
+    assert (
+        _registry_service(jelica_home).get_task(task_id=task_id).state.value == "queued"
+    )
 
 
 def test_analyze_streams_live_events_and_progress_before_runtime_finishes(
@@ -2642,11 +2802,15 @@ def test_analyze_streams_live_events_and_progress_before_runtime_finishes(
 
     def _capturing_watch_poll(self: Any) -> Any:
         update = original_watch_poll(self)
-        if any(row.stage == "comparative_analysis · pairwise 1/3" for row in update.rows):
+        if any(
+            row.stage == "comparative_analysis · pairwise 1/3" for row in update.rows
+        ):
             comparative_progress_rendered.set()
         return update
 
-    def _controlled_runtime_run(self: Any, *, auto_queue_waiting_jobs: bool = False) -> Any:
+    def _controlled_runtime_run(
+        self: Any, *, auto_queue_waiting_jobs: bool = False
+    ) -> Any:
         _ = auto_queue_waiting_jobs
         claimed = self._registry_service.claim_next_queued_job_for_worker(
             worker_instance_id="test-worker",
@@ -2728,7 +2892,10 @@ def test_analyze_streams_live_events_and_progress_before_runtime_finishes(
             task_id=task_id,
             to_state=core_operations.AnalyticalTaskState.COMPLETED,
         )
-        assert completed.result_type is core_operations.AnalyticalTaskMutationResultType.APPLIED
+        assert (
+            completed.result_type
+            is core_operations.AnalyticalTaskMutationResultType.APPLIED
+        )
         self._emit(
             core_operations.RUNTIME_EVENT_JOB_COMPLETED,
             {
@@ -2753,9 +2920,13 @@ def test_analyze_streams_live_events_and_progress_before_runtime_finishes(
         )
         command_finished.set()
 
-    monkeypatch.setattr(cli_terminal.TerminalPresenter, "event", _capturing_terminal_event)
+    monkeypatch.setattr(
+        cli_terminal.TerminalPresenter, "event", _capturing_terminal_event
+    )
     monkeypatch.setattr(cli_main.TaskWatchService, "poll", _capturing_watch_poll)
-    monkeypatch.setattr(core_operations.ExecutionRuntime, "run", _controlled_runtime_run)
+    monkeypatch.setattr(
+        core_operations.ExecutionRuntime, "run", _controlled_runtime_run
+    )
 
     cli_thread = threading.Thread(target=_run_cli, name="analyze-live-temporal-test")
     cli_thread.start()
@@ -2902,7 +3073,9 @@ def test_analyze_runtime_failure_after_emitting_events_is_reported(
         tmp_path=tmp_path,
     )
 
-    def _runtime_fails_after_events(self: Any, *, auto_queue_waiting_jobs: bool = False) -> Any:
+    def _runtime_fails_after_events(
+        self: Any, *, auto_queue_waiting_jobs: bool = False
+    ) -> Any:
         _ = auto_queue_waiting_jobs
         claimed = self._registry_service.claim_next_queued_job_for_worker(
             worker_instance_id="test-worker",
@@ -2932,7 +3105,10 @@ def test_analyze_runtime_failure_after_emitting_events_is_reported(
             to_state=core_operations.AnalyticalTaskState.FAILED,
             finished_reason="simulated runtime failure",
         )
-        assert failed.result_type is core_operations.AnalyticalTaskMutationResultType.APPLIED
+        assert (
+            failed.result_type
+            is core_operations.AnalyticalTaskMutationResultType.APPLIED
+        )
         self._emit(
             core_operations.RUNTIME_EVENT_JOB_FAILED,
             {
@@ -2952,7 +3128,9 @@ def test_analyze_runtime_failure_after_emitting_events_is_reported(
             interrupted=False,
         )
 
-    monkeypatch.setattr(core_operations.ExecutionRuntime, "run", _runtime_fails_after_events)
+    monkeypatch.setattr(
+        core_operations.ExecutionRuntime, "run", _runtime_fails_after_events
+    )
     result = _invoke_cli(args=["analyze", str(sample)], jelica_home=jelica_home)
     for runtime_thread in runtime_threads:
         runtime_thread.join(timeout=10)
@@ -2981,7 +3159,9 @@ def test_analyze_watcher_failure_does_not_stop_service_owned_task(
     runtime_started = threading.Event()
     allow_runtime_finish = threading.Event()
 
-    def _runtime_waits_for_release(self: Any, *, auto_queue_waiting_jobs: bool = False) -> Any:
+    def _runtime_waits_for_release(
+        self: Any, *, auto_queue_waiting_jobs: bool = False
+    ) -> Any:
         _ = auto_queue_waiting_jobs
         claimed = self._registry_service.claim_next_queued_job_for_worker(
             worker_instance_id="test-worker",
@@ -3003,7 +3183,9 @@ def test_analyze_watcher_failure_does_not_stop_service_owned_task(
         )
         runtime_started.set()
         if not allow_runtime_finish.wait(timeout=10):
-            raise RuntimeError("timed out waiting for runtime release in watcher cleanup test")
+            raise RuntimeError(
+                "timed out waiting for runtime release in watcher cleanup test"
+            )
         self._registry_service.update_active_job_progress(
             task_id=task_id,
             progress=100,
@@ -3013,7 +3195,10 @@ def test_analyze_watcher_failure_does_not_stop_service_owned_task(
             task_id=task_id,
             to_state=core_operations.AnalyticalTaskState.COMPLETED,
         )
-        assert completed.result_type is core_operations.AnalyticalTaskMutationResultType.APPLIED
+        assert (
+            completed.result_type
+            is core_operations.AnalyticalTaskMutationResultType.APPLIED
+        )
         self._emit(
             core_operations.RUNTIME_EVENT_JOB_COMPLETED,
             {
@@ -3052,7 +3237,9 @@ def test_analyze_watcher_failure_does_not_stop_service_owned_task(
         )
         raise RuntimeError("simulated watcher failure")
 
-    monkeypatch.setattr(core_operations.ExecutionRuntime, "run", _runtime_waits_for_release)
+    monkeypatch.setattr(
+        core_operations.ExecutionRuntime, "run", _runtime_waits_for_release
+    )
     monkeypatch.setattr(cli_main, "_run_watch_session", _watcher_failure)
 
     result = _invoke_cli(
@@ -3062,7 +3249,10 @@ def test_analyze_watcher_failure_does_not_stop_service_owned_task(
     try:
         assert runtime_started.wait(timeout=10)
         task_id = _single_task_id(jelica_home)
-        assert _registry_service(jelica_home).get_task(task_id=task_id).state.value == "running"
+        assert (
+            _registry_service(jelica_home).get_task(task_id=task_id).state.value
+            == "running"
+        )
         assert result.exit_code != 0
         assert "Cannot watch task" in result.stdout
         assert "simulated watcher failure" in result.stdout
@@ -3071,14 +3261,19 @@ def test_analyze_watcher_failure_does_not_stop_service_owned_task(
         for runtime_thread in runtime_threads:
             runtime_thread.join(timeout=15)
         assert all(not runtime_thread.is_alive() for runtime_thread in runtime_threads)
-        assert _registry_service(jelica_home).get_task(task_id=task_id).state.value == "completed"
+        assert (
+            _registry_service(jelica_home).get_task(task_id=task_id).state.value
+            == "completed"
+        )
     finally:
         allow_runtime_finish.set()
         for runtime_thread in runtime_threads:
             runtime_thread.join(timeout=15)
 
 
-def test_analyze_respects_cli_color_and_emoji_disable_for_live_output(tmp_path: Path) -> None:
+def test_analyze_respects_cli_color_and_emoji_disable_for_live_output(
+    tmp_path: Path,
+) -> None:
     jelica_home = tmp_path / "home"
     _run_non_interactive_init(jelica_home)
     set_color = _invoke_cli(
@@ -3100,7 +3295,9 @@ def test_analyze_respects_cli_color_and_emoji_disable_for_live_output(tmp_path: 
     assert "\u001b[" not in result.stdout
     assert "🌲" not in result.stdout
     assert "🎄" not in result.stdout
-    first_non_empty_line = next(line for line in result.stdout.splitlines() if line.strip() != "")
+    first_non_empty_line = next(
+        line for line in result.stdout.splitlines() if line.strip() != ""
+    )
     assert first_non_empty_line.startswith("Analysis task ")
     assert "Stage started:" in result.stdout
 
@@ -3148,7 +3345,9 @@ def test_service_start_processes_prequeued_job_and_remains_running(
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">queued\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
 
     registry = _registry_service(jelica_home)
     queued = registry.start(task_id=task_id)
@@ -3175,7 +3374,9 @@ def test_service_start_processes_prequeued_job_and_remains_running(
     assert after.last_started_at is not None
 
 
-def test_analyze_text_reports_single_sample_input_processing_summary(tmp_path: Path) -> None:
+def test_analyze_text_reports_single_sample_input_processing_summary(
+    tmp_path: Path,
+) -> None:
     jelica_home = tmp_path / "home"
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
@@ -3190,7 +3391,9 @@ def test_analyze_text_reports_single_sample_input_processing_summary(tmp_path: P
     assert "completed." in result.stdout
 
 
-def test_analyze_text_reports_dataset_ready_but_comparative_not_executed(tmp_path: Path) -> None:
+def test_analyze_text_reports_dataset_ready_but_comparative_not_executed(
+    tmp_path: Path,
+) -> None:
     jelica_home = tmp_path / "home"
     _run_non_interactive_init(jelica_home)
     first = tmp_path / "first.fasta"
@@ -3198,7 +3401,9 @@ def test_analyze_text_reports_dataset_ready_but_comparative_not_executed(tmp_pat
     first.write_text(">a\nACGT\n", encoding="utf-8")
     second.write_text(">b\nACGA\n", encoding="utf-8")
 
-    result = _invoke_cli(args=["analyze", str(first), str(second)], jelica_home=jelica_home)
+    result = _invoke_cli(
+        args=["analyze", str(first), str(second)], jelica_home=jelica_home
+    )
 
     assert result.exit_code == 0
     assert "Input processing completed: 2 valid, 0 invalid." in result.stdout
@@ -3231,14 +3436,23 @@ def test_tasks_watch_text_reports_completed_task_without_adding_it_to_table(
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">watch\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
 
-    start_result = _invoke_cli(args=["tasks", "start", task_id], jelica_home=jelica_home)
+    start_result = _invoke_cli(
+        args=["tasks", "start", task_id], jelica_home=jelica_home
+    )
     assert start_result.exit_code == 0
 
-    watch_result = _invoke_cli(args=["tasks", "watch", task_id], jelica_home=jelica_home)
+    watch_result = _invoke_cli(
+        args=["tasks", "watch", task_id], jelica_home=jelica_home
+    )
     assert watch_result.exit_code == 0
-    assert f"Task {task_id} is completed; it was not added to watch." in watch_result.stdout
+    assert (
+        f"Task {task_id} is completed; it was not added to watch."
+        in watch_result.stdout
+    )
     assert "Input processing" not in watch_result.stdout
 
 
@@ -3260,7 +3474,10 @@ def test_runtime_event_renderer_reports_failed_input_file_without_completed_stat
 
     output = capsys.readouterr().out
     assert "Error: Input file 2/2 failed (malformed_input_file)." in output
-    assert "Materialized file was not found: inputs/files/0002_inline_sequence.fasta." in output
+    assert (
+        "Materialized file was not found: inputs/files/0002_inline_sequence.fasta."
+        in output
+    )
     assert "completed" not in output.lower()
 
 
@@ -3315,7 +3532,8 @@ def test_manifest_summary_reports_failed_input_file_counts(
         "dataset_issues": [],
     }
     manifest_path.write_text(
-        json.dumps(manifest_payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        json.dumps(manifest_payload, ensure_ascii=False, indent=2, sort_keys=True)
+        + "\n",
         encoding="utf-8",
     )
 
@@ -3358,7 +3576,9 @@ def test_analyze_accepts_direct_inline_sequence_of_length_128(tmp_path: Path) ->
     result = _invoke_cli(args=["analyze", "A" * 128], jelica_home=jelica_home)
 
     assert result.exit_code == 0
-    task_config = json.loads(_single_task_config_path(jelica_home).read_text(encoding="utf-8"))
+    task_config = json.loads(
+        _single_task_config_path(jelica_home).read_text(encoding="utf-8")
+    )
     assert task_config["samples"] == ["A" * 128]
 
 
@@ -3378,7 +3598,9 @@ def test_tasks_samples_list_add_and_remove(tmp_path: Path) -> None:
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">a\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
     task_reference = _task_name(jelica_home=jelica_home, task_id=task_id).upper()
 
     initial_list = _invoke_cli(
@@ -3424,7 +3646,9 @@ def test_tasks_samples_remove_rejects_invalid_index(tmp_path: Path) -> None:
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">a\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
 
     result = _invoke_cli(
         args=["tasks", "samples", "remove", task_id, "9"],
@@ -3440,7 +3664,9 @@ def test_tasks_samples_update_is_rejected_for_completed_task(tmp_path: Path) -> 
     _run_non_interactive_init(jelica_home)
     sample = tmp_path / "sample.fasta"
     sample.write_text(">a\nACGT\n", encoding="utf-8")
-    task_id = _initialize_task_without_start(jelica_home=jelica_home, sample_paths=[sample])
+    task_id = _initialize_task_without_start(
+        jelica_home=jelica_home, sample_paths=[sample]
+    )
 
     started = _invoke_cli(args=["tasks", "start", task_id], jelica_home=jelica_home)
     assert started.exit_code == 0
@@ -3473,7 +3699,9 @@ def test_results_validate_returns_zero_for_valid_package(tmp_path: Path) -> None
     assert "Content ID: sha256:" in result.stdout
 
 
-def test_results_validate_returns_non_zero_and_privacy_safe_errors(tmp_path: Path) -> None:
+def test_results_validate_returns_non_zero_and_privacy_safe_errors(
+    tmp_path: Path,
+) -> None:
     jelica_home = tmp_path / "home"
     _run_non_interactive_init(jelica_home)
     package_path = tmp_path / "invalid.jelica"
@@ -3514,7 +3742,9 @@ def test_results_validate_uses_color_for_success_and_failure_lines(
         color=True,
     )
     assert valid_result.exit_code == 0
-    assert re.search(r"\x1b\[[0-9;]*32mValid JELICA result package", valid_result.stdout)
+    assert re.search(
+        r"\x1b\[[0-9;]*32mValid JELICA result package", valid_result.stdout
+    )
 
     invalid_path = tmp_path / "invalid.jelica"
     _build_validation_package(invalid_path, broken_manifest=True)
@@ -3524,7 +3754,9 @@ def test_results_validate_uses_color_for_success_and_failure_lines(
         color=True,
     )
     assert invalid_result.exit_code == 1
-    assert re.search(r"\x1b\[[0-9;]*31mInvalid JELICA result package", invalid_result.stdout)
+    assert re.search(
+        r"\x1b\[[0-9;]*31mInvalid JELICA result package", invalid_result.stdout
+    )
 
 
 def test_results_import_new_and_repeat_are_successful(tmp_path: Path) -> None:
@@ -3541,7 +3773,7 @@ def test_results_import_new_and_repeat_are_successful(tmp_path: Path) -> None:
     assert first.exit_code == 0
     assert "JELICA result package imported" in first.stdout
     assert f"Content ID: {content_id}" in first.stdout
-    assert (_result_packages_dir(jelica_home) / f"{digest}.jelica").is_file()
+    assert (_result_packages_dir(jelica_home) / f"package__{digest}.jelica").is_file()
 
     second = _invoke_cli(
         args=["results", "import", str(package_path)],
@@ -3550,6 +3782,369 @@ def test_results_import_new_and_repeat_are_successful(tmp_path: Path) -> None:
     assert second.exit_code == 0
     assert "JELICA result package already exists" in second.stdout
     assert f"Content ID: {content_id}" in second.stdout
+
+
+def test_results_import_supports_rename_and_no_name(tmp_path: Path) -> None:
+    jelica_home = tmp_path / "home"
+    _run_non_interactive_init(jelica_home)
+    package_path = tmp_path / "source package.jelica"
+    content_id = _build_validation_package(package_path)
+    digest = content_digest_from_content_id(content_id)
+
+    renamed = _invoke_cli(
+        args=[
+            "results",
+            "import",
+            str(package_path),
+            f"--rename={package_path}=Experiment_A",
+        ],
+        jelica_home=jelica_home,
+    )
+    assert renamed.exit_code == 0
+    assert (
+        _result_packages_dir(jelica_home) / f"Experiment_A__{digest}.jelica"
+    ).is_file()
+
+    no_name_source = tmp_path / "other.jelica"
+    no_name_content_id = _build_validation_package(
+        no_name_source,
+        normalized_fasta=b">other\nTGCA\n",
+    )
+    no_name = _invoke_cli(
+        args=["results", "import", str(no_name_source), "--no-name"],
+        jelica_home=jelica_home,
+    )
+    assert no_name.exit_code == 0
+    assert (
+        _result_packages_dir(jelica_home)
+        / f"{content_digest_from_content_id(no_name_content_id)}.jelica"
+    ).is_file()
+
+
+def test_results_import_directory_is_sorted_non_recursive_and_partial(
+    tmp_path: Path,
+) -> None:
+    jelica_home = tmp_path / "home"
+    _run_non_interactive_init(jelica_home)
+    source_dir = tmp_path / "sources"
+    source_dir.mkdir()
+    content_a = _build_validation_package(source_dir / "a.jelica")
+    (source_dir / "b.jelica").write_bytes(b"broken")
+    content_c = _build_validation_package(
+        source_dir / "c.jelica",
+        normalized_fasta=b">other\nTGCA\n",
+    )
+    nested = source_dir / "nested"
+    nested.mkdir()
+    _build_validation_package(nested / "nested.jelica")
+
+    result = _invoke_cli(
+        args=[
+            "results",
+            "import",
+            str(source_dir),
+            f"--rename={source_dir}={{index}}_Imported_{{name}}",
+        ],
+        jelica_home=jelica_home,
+    )
+
+    assert result.exit_code == 1
+    assert "Imported: 2" in result.stdout
+    assert "Failed: 1" in result.stdout
+    assert "b.jelica" in result.stdout
+    assert (
+        _result_packages_dir(jelica_home)
+        / f"1_Imported_a__{content_digest_from_content_id(content_a)}.jelica"
+    ).is_file()
+    assert (
+        _result_packages_dir(jelica_home)
+        / f"3_Imported_c__{content_digest_from_content_id(content_c)}.jelica"
+    ).is_file()
+    assert not (_result_packages_dir(jelica_home) / "nested__").exists()
+
+
+@pytest.mark.parametrize(
+    ("rename_value", "expected_filename"),
+    (
+        ("{index}_Imported_{name}", "1_Imported_"),
+        ("Imported", "Imported_1"),
+    ),
+)
+def test_results_import_directory_rename_applies_to_hash_only_source(
+    tmp_path: Path,
+    rename_value: str,
+    expected_filename: str,
+) -> None:
+    jelica_home = tmp_path / "home"
+    _run_non_interactive_init(jelica_home)
+    source_dir = tmp_path / "sources"
+    source_dir.mkdir()
+    source_path = source_dir / "source.jelica"
+    content_id = _build_validation_package(source_path)
+    digest = content_digest_from_content_id(content_id)
+    hash_only_source = source_dir / f"{digest}.jelica"
+    source_path.rename(hash_only_source)
+
+    result = _invoke_cli(
+        args=[
+            "results",
+            "import",
+            str(source_dir),
+            f"--rename={source_dir}={rename_value}",
+        ],
+        jelica_home=jelica_home,
+    )
+
+    assert result.exit_code == 0
+    expected_path = _result_packages_dir(jelica_home) / (
+        f"{expected_filename}__{digest}.jelica"
+        if expected_filename == "Imported_1"
+        else f"{expected_filename}{digest}__{digest}.jelica"
+    )
+    assert expected_path.is_file()
+    assert not (_result_packages_dir(jelica_home) / f"{digest}.jelica").exists()
+
+
+def test_results_import_hash_only_directory_without_rename_keeps_hash_only_name(
+    tmp_path: Path,
+) -> None:
+    jelica_home = tmp_path / "home"
+    _run_non_interactive_init(jelica_home)
+    source_dir = tmp_path / "sources"
+    source_dir.mkdir()
+    source_path = source_dir / "source.jelica"
+    content_id = _build_validation_package(source_path)
+    digest = content_digest_from_content_id(content_id)
+    source_path.rename(source_dir / f"{digest}.jelica")
+
+    result = _invoke_cli(
+        args=["results", "import", str(source_dir)],
+        jelica_home=jelica_home,
+    )
+
+    assert result.exit_code == 0
+    assert (_result_packages_dir(jelica_home) / f"{digest}.jelica").is_file()
+
+
+def test_results_import_hash_only_directory_rename_respects_duplicate_content(
+    tmp_path: Path,
+) -> None:
+    jelica_home = tmp_path / "home"
+    _run_non_interactive_init(jelica_home)
+    source_dir = tmp_path / "sources"
+    source_dir.mkdir()
+    source_path = source_dir / "source.jelica"
+    content_id = _build_validation_package(source_path)
+    digest = content_digest_from_content_id(content_id)
+    source_path.rename(source_dir / f"{digest}.jelica")
+
+    first = _invoke_cli(
+        args=["results", "import", str(source_dir), f"--rename={source_dir}=First"],
+        jelica_home=jelica_home,
+    )
+    second = _invoke_cli(
+        args=["results", "import", str(source_dir), f"--rename={source_dir}=Second"],
+        jelica_home=jelica_home,
+    )
+
+    assert first.exit_code == 0
+    assert second.exit_code == 0
+    assert "Already existed: 1" in second.stdout
+    assert len(list(_result_packages_dir(jelica_home).glob("*.jelica"))) == 1
+    assert (
+        _result_packages_dir(jelica_home) / f"First_1__{digest}.jelica"
+    ).is_file()
+
+
+@pytest.mark.parametrize(
+    ("data_template", "test_template"),
+    (
+        ("1-{hash}-{filename}", "1-{hash}-{filename}"),
+        ("2-{hash}", "1-{hash}"),
+    ),
+)
+def test_results_import_explicit_hash_templates_do_not_require_hash_suffix(
+    tmp_path: Path,
+    data_template: str,
+    test_template: str,
+) -> None:
+    jelica_home = tmp_path / "home"
+    _run_non_interactive_init(jelica_home)
+    test_source = tmp_path / "Test.jelica"
+    data_source = tmp_path / "Data.jelica"
+    test_content_id = _build_validation_package(test_source)
+    data_content_id = _build_validation_package(
+        data_source,
+        normalized_fasta=b">data\nTGCA\n",
+    )
+    test_digest = content_digest_from_content_id(test_content_id)
+    data_digest = content_digest_from_content_id(data_content_id)
+
+    result = _invoke_cli(
+        args=[
+            "results",
+            "import",
+            str(test_source),
+            str(data_source),
+            f"--rename={data_source}={data_template}",
+            f"--rename={test_source}={test_template}",
+        ],
+        jelica_home=jelica_home,
+    )
+
+    assert result.exit_code == 0
+    expected_test_stem = test_template.replace("{hash}", test_digest).replace(
+        "{filename}", "Test"
+    )
+    expected_data_stem = data_template.replace("{hash}", data_digest).replace(
+        "{filename}", "Data"
+    )
+    expected_test = f"{expected_test_stem}.jelica"
+    expected_data = f"{expected_data_stem}.jelica"
+    store = _result_packages_dir(jelica_home)
+    assert (store / expected_test).is_file()
+    assert (store / expected_data).is_file()
+    assert "__" not in expected_test
+    assert "__" not in expected_data
+
+    listed = _invoke_cli(args=["results", "list"], jelica_home=jelica_home)
+    assert listed.exit_code == 0
+    assert expected_test in listed.stdout
+    assert expected_data in listed.stdout
+
+    for expected_name in (expected_test, expected_data):
+        resolved = _invoke_cli(
+            args=["results", "path", expected_name],
+            jelica_home=jelica_home,
+        )
+        assert resolved.exit_code == 0
+        assert resolved.stdout.strip() == str((store / expected_name).resolve())
+
+
+def test_results_import_directory_hash_template_is_resolvable(
+    tmp_path: Path,
+) -> None:
+    jelica_home = tmp_path / "home"
+    _run_non_interactive_init(jelica_home)
+    source_dir = tmp_path / "sources"
+    source_dir.mkdir()
+    source = source_dir / "Test.jelica"
+    content_id = _build_validation_package(source)
+    digest = content_digest_from_content_id(content_id)
+
+    result = _invoke_cli(
+        args=[
+            "results",
+            "import",
+            str(source_dir),
+            f"--rename={source_dir}={{index}}-{{hash}}-{{name}}",
+        ],
+        jelica_home=jelica_home,
+    )
+
+    expected_name = f"1-{digest}-Test.jelica"
+    assert result.exit_code == 0
+    assert (_result_packages_dir(jelica_home) / expected_name).is_file()
+    resolved = _invoke_cli(
+        args=["results", "path", expected_name],
+        jelica_home=jelica_home,
+    )
+    assert resolved.exit_code == 0
+    assert expected_name in resolved.stdout
+
+
+def test_results_import_implicit_current_directory_rename_forms(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    jelica_home = tmp_path / "home"
+    _run_non_interactive_init(jelica_home)
+    source_dir = tmp_path / "sources"
+    source_dir.mkdir()
+    package_path = source_dir / "a.jelica"
+    content_id = _build_validation_package(package_path)
+    digest = content_digest_from_content_id(content_id)
+    monkeypatch.chdir(source_dir)
+
+    implicit_template = _invoke_cli(
+        args=["results", "import", '--rename={i}-imported'],
+        jelica_home=jelica_home,
+    )
+    assert implicit_template.exit_code == 0
+    assert (
+        _result_packages_dir(jelica_home) / f"1-imported__{digest}.jelica"
+    ).is_file()
+
+
+def test_results_import_implicit_current_directory_prefix_and_explicit_dot_forms(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    jelica_home = tmp_path / "home"
+    _run_non_interactive_init(jelica_home)
+    source_dir = tmp_path / "sources"
+    source_dir.mkdir()
+    first_path = source_dir / "a.jelica"
+    first_content_id = _build_validation_package(first_path)
+    first_digest = content_digest_from_content_id(first_content_id)
+    monkeypatch.chdir(source_dir)
+
+    implicit_prefix = _invoke_cli(
+        args=["results", "import", '--rename=Imported'],
+        jelica_home=jelica_home,
+    )
+    assert implicit_prefix.exit_code == 0
+    assert (
+        _result_packages_dir(jelica_home) / f"Imported_1__{first_digest}.jelica"
+    ).is_file()
+
+    second_path = source_dir / "b.jelica"
+    second_content_id = _build_validation_package(
+        second_path,
+        normalized_fasta=b">second\nTGCA\n",
+    )
+    second_digest = content_digest_from_content_id(second_content_id)
+    explicit_dot = _invoke_cli(
+        args=["results", "import", ".", '--rename=.={i}-imported'],
+        jelica_home=jelica_home,
+    )
+    assert explicit_dot.exit_code == 0
+    assert "Already existed: 1" in explicit_dot.stdout
+    assert (
+        _result_packages_dir(jelica_home) / f"2-imported__{second_digest}.jelica"
+    ).is_file()
+
+
+def test_results_import_rename_mode_mismatch_is_rejected(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    jelica_home = tmp_path / "home"
+    _run_non_interactive_init(jelica_home)
+    source_dir = tmp_path / "sources"
+    source_dir.mkdir()
+    _build_validation_package(source_dir / "a.jelica")
+    monkeypatch.chdir(source_dir)
+
+    implicit_source_form = _invoke_cli(
+        args=["results", "import", '--rename=.=Imported'],
+        jelica_home=jelica_home,
+    )
+    implicit_file_source_form = _invoke_cli(
+        args=["results", "import", '--rename=./a.jelica=Imported'],
+        jelica_home=jelica_home,
+    )
+    explicit_template_form = _invoke_cli(
+        args=["results", "import", ".", '--rename=Imported'],
+        jelica_home=jelica_home,
+    )
+
+    assert implicit_source_form.exit_code != 0
+    assert "only a rename template" in implicit_source_form.output
+    assert implicit_file_source_form.exit_code != 0
+    assert "only a rename template" in implicit_file_source_form.output
+    assert explicit_template_form.exit_code != 0
+    assert "SOURCE=TEMPLATE" in explicit_template_form.output
 
 
 def test_results_import_rejects_notes_conflict(tmp_path: Path) -> None:
@@ -3588,11 +4183,230 @@ def test_results_list_outputs_expected_fields(tmp_path: Path) -> None:
 
     listed = _invoke_cli(args=["results", "list"], jelica_home=jelica_home)
     assert listed.exit_code == 0
-    assert "File name:" in listed.stdout
-    assert f"Content ID: {content_id}" in listed.stdout
-    assert "Task ID: task-1" in listed.stdout
-    assert "Status: completed" in listed.stdout
-    assert "Format version: 1.0" in listed.stdout
+    assert "1. Result: package - package__" in listed.stdout
+    assert "   Task: Unnamed - task-1" in listed.stdout
+
+    verbose = _invoke_cli(
+        args=["results", "list", "--verbose"],
+        jelica_home=jelica_home,
+    )
+    assert verbose.exit_code == 0
+    assert f"Content ID: {content_id}" in verbose.stdout
+    assert "Status: completed" in verbose.stdout
+    assert "Format version: 1.0" in verbose.stdout
+
+
+def test_results_list_short_standard_and_verbose_views_are_sorted_and_task_aware(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    jelica_home = tmp_path / "home"
+    _run_non_interactive_init(jelica_home)
+    packages = (
+        ListedResultPackage(
+            file_name="z__" + "a" * 64 + ".jelica",
+            path=tmp_path / "z.jelica",
+            content_id="sha256:" + "a" * 64,
+            task_id="task-z",
+            status="completed",
+            format_version="1.0",
+            valid=True,
+            result_name="Experiment_B",
+            task_name="SARS_analysis",
+        ),
+        ListedResultPackage(
+            file_name="unnamed.jelica",
+            path=tmp_path / "unnamed.jelica",
+            content_id="sha256:" + "b" * 64,
+            task_id=None,
+            status="completed",
+            format_version="1.0",
+            valid=True,
+            result_name=None,
+        ),
+        ListedResultPackage(
+            file_name="a__" + "c" * 64 + ".jelica",
+            path=tmp_path / "a.jelica",
+            content_id="sha256:" + "c" * 64,
+            task_id="missing-task",
+            status="completed",
+            format_version="1.0",
+            valid=True,
+            result_name="Experiment_A",
+            task_name=None,
+        ),
+    )
+    monkeypatch.setattr(
+        cli_main,
+        "list_result_packages",
+        lambda *, core_config_service: ListedResultPackages(
+            packages=packages,
+            has_invalid_entries=False,
+        ),
+    )
+
+    short = _invoke_cli(
+        args=["results", "list", "--short"],
+        jelica_home=jelica_home,
+    )
+    standard = _invoke_cli(args=["results", "list"], jelica_home=jelica_home)
+    explicit_standard = _invoke_cli(
+        args=["results", "list", "--standard"],
+        jelica_home=jelica_home,
+    )
+    verbose = _invoke_cli(
+        args=["results", "list", "--verbose"],
+        jelica_home=jelica_home,
+    )
+
+    assert short.exit_code == 0
+    assert short.stdout.splitlines() == [
+        "1. Experiment_A: a__" + "c" * 64 + ".jelica",
+        "2. Experiment_B: z__" + "a" * 64 + ".jelica",
+        "3. Unnamed: unnamed.jelica",
+    ]
+    assert standard.exit_code == 0
+    assert explicit_standard.exit_code == 0
+    assert standard.stdout == explicit_standard.stdout
+    assert standard.stdout.splitlines() == [
+        "1. Result: Experiment_A - a__" + "c" * 64 + ".jelica",
+        "   Task: Unnamed - missing-task",
+        "",
+        "2. Result: Experiment_B - z__" + "a" * 64 + ".jelica",
+        "   Task: SARS_analysis - task-z",
+        "",
+        "3. Result: Unnamed - unnamed.jelica",
+        "   Task: undefined (imported results)",
+    ]
+    assert verbose.exit_code == 0
+    assert verbose.stdout.index("Result: Experiment_A") < verbose.stdout.index(
+        "Result: Experiment_B"
+    )
+    assert "Content ID: sha256:" + "c" * 64 in verbose.stdout
+    assert "Task: undefined (imported results)" in verbose.stdout
+    assert "Format version: 1.0" in verbose.stdout
+
+
+def test_results_list_views_align_after_single_digit_indices(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    jelica_home = tmp_path / "home"
+    _run_non_interactive_init(jelica_home)
+    packages = tuple(
+        ListedResultPackage(
+            file_name=f"Result_{index:02d}.jelica",
+            path=tmp_path / f"Result_{index:02d}.jelica",
+            content_id="sha256:" + (str(index % 10) * 64),
+            task_id=f"task-{index}",
+            status="completed",
+            format_version="1.0",
+            valid=True,
+            result_name=f"Result_{index:02d}",
+            task_name="Task",
+        )
+        for index in range(1, 12)
+    )
+    monkeypatch.setattr(
+        cli_main,
+        "list_result_packages",
+        lambda *, core_config_service: ListedResultPackages(
+            packages=packages,
+            has_invalid_entries=False,
+        ),
+    )
+
+    short = _invoke_cli(
+        args=["results", "list", "--short"],
+        jelica_home=jelica_home,
+    )
+    standard = _invoke_cli(args=["results", "list"], jelica_home=jelica_home)
+    verbose = _invoke_cli(
+        args=["results", "list", "--verbose"],
+        jelica_home=jelica_home,
+    )
+
+    assert short.exit_code == 0
+    short_lines = short.stdout.splitlines()
+    assert len(short_lines) == 11
+    assert "" not in short_lines
+    assert short_lines[8].startswith("9. ")
+    assert short_lines[9].startswith("10. ")
+    assert short_lines[10].startswith("11. ")
+
+    assert standard.exit_code == 0
+    standard_lines = standard.stdout.splitlines()
+    standard_index = standard_lines.index(
+        "9. Result: Result_09 - Result_09.jelica"
+    )
+    assert standard_lines[standard_index + 1].startswith("   Task: ")
+    standard_index = standard_lines.index(
+        "10. Result: Result_10 - Result_10.jelica"
+    )
+    assert standard_lines[standard_index + 1].startswith("    Task: ")
+    standard_index = standard_lines.index(
+        "11. Result: Result_11 - Result_11.jelica"
+    )
+    assert standard_lines[standard_index + 1].startswith("    Task: ")
+
+    assert verbose.exit_code == 0
+    verbose_lines = verbose.stdout.splitlines()
+    verbose_index = verbose_lines.index(
+        "9. Result: Result_09 - Result_09.jelica"
+    )
+    assert verbose_lines[verbose_index + 1].startswith("   Content ID: ")
+    assert verbose_lines[verbose_index + 2].startswith("   Task: ")
+    verbose_index = verbose_lines.index(
+        "10. Result: Result_10 - Result_10.jelica"
+    )
+    assert verbose_lines[verbose_index + 1].startswith("    Content ID: ")
+    assert verbose_lines[verbose_index + 2].startswith("    Task: ")
+
+
+@pytest.mark.parametrize(
+    "flags",
+    (("--short", "--standard"), ("--short", "--verbose"), ("--standard", "--verbose")),
+)
+def test_results_list_views_are_mutually_exclusive(
+    tmp_path: Path,
+    flags: tuple[str, str],
+) -> None:
+    jelica_home = tmp_path / "home"
+    _run_non_interactive_init(jelica_home)
+
+    result = _invoke_cli(
+        args=["results", "list", *flags],
+        jelica_home=jelica_home,
+    )
+
+    assert result.exit_code != 0
+    assert "mutually exclusive" in result.output
+
+
+def test_results_list_invalid_entry_keeps_diagnostic_and_valid_entries(
+    tmp_path: Path,
+) -> None:
+    jelica_home = tmp_path / "home"
+    _run_non_interactive_init(jelica_home)
+    valid_source = tmp_path / "valid.jelica"
+    _build_validation_package(valid_source)
+    imported = _invoke_cli(
+        args=["results", "import", str(valid_source)],
+        jelica_home=jelica_home,
+    )
+    assert imported.exit_code == 0
+    broken_path = _result_packages_dir(jelica_home) / "broken.jelica"
+    broken_path.write_bytes(b"not-a-zip")
+
+    result = _invoke_cli(
+        args=["results", "list", "--short"],
+        jelica_home=jelica_home,
+    )
+
+    assert result.exit_code == 1
+    assert "Invalid: broken.jelica" in result.stdout
+    assert "invalid_existing_package" in result.stdout
+    assert "valid:" in result.stdout
 
 
 def test_results_path_outputs_path_for_content_and_task(tmp_path: Path) -> None:
@@ -3606,7 +4420,7 @@ def test_results_path_outputs_path_for_content_and_task(tmp_path: Path) -> None:
     )
     assert imported.exit_code == 0
     digest = content_digest_from_content_id(content_id)
-    expected_path = _result_packages_dir(jelica_home) / f"{digest}.jelica"
+    expected_path = _result_packages_dir(jelica_home) / f"package__{digest}.jelica"
 
     by_content = _invoke_cli(
         args=["results", "path", content_id],
@@ -3614,6 +4428,20 @@ def test_results_path_outputs_path_for_content_and_task(tmp_path: Path) -> None:
     )
     assert by_content.exit_code == 0
     assert by_content.stdout.strip() == str(expected_path.resolve(strict=False))
+
+    by_name = _invoke_cli(
+        args=["results", "path", "package"],
+        jelica_home=jelica_home,
+    )
+    assert by_name.exit_code == 0
+    assert by_name.stdout.strip() == str(expected_path.resolve(strict=False))
+
+    by_filename = _invoke_cli(
+        args=["results", "path", expected_path.name],
+        jelica_home=jelica_home,
+    )
+    assert by_filename.exit_code == 0
+    assert by_filename.stdout.strip() == str(expected_path.resolve(strict=False))
 
     _register_task_with_result_package_link(
         jelica_home=jelica_home,
@@ -3641,7 +4469,9 @@ def test_results_export_help_uses_canonical_equals_forms(tmp_path: Path) -> None
     assert "--open=true" in result.stdout
 
 
-def test_results_export_with_format_equals_creates_pdf(tmp_path: Path, monkeypatch: Any) -> None:
+def test_results_export_with_format_equals_creates_pdf(
+    tmp_path: Path, monkeypatch: Any
+) -> None:
     jelica_home, _, content_id = _prepare_imported_package_for_export(tmp_path)
     digest = content_digest_from_content_id(content_id)
     cwd = tmp_path / "cwd"
@@ -3666,7 +4496,9 @@ def test_results_export_default_output_name_is_based_on_digest_for_all_source_ty
     tmp_path: Path,
     monkeypatch: Any,
 ) -> None:
-    jelica_home, package_path, content_id = _prepare_imported_package_for_export(tmp_path)
+    jelica_home, package_path, content_id = _prepare_imported_package_for_export(
+        tmp_path
+    )
     digest = content_digest_from_content_id(content_id)
     task_id = "00000000-0000-4000-8000-000000000092"
     task_name = "task-export-default-name"
@@ -3967,7 +4799,9 @@ def test_results_export_keeps_pdf_and_warns_when_auto_open_fails(
     assert "Traceback" not in result.stdout
 
 
-def test_open_report_file_uses_macos_open_command(monkeypatch: Any, tmp_path: Path) -> None:
+def test_open_report_file_uses_macos_open_command(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
     report_path = (tmp_path / "report.pdf").resolve(strict=False)
     report_path.write_bytes(b"%PDF-1.4\n%%EOF\n")
     observed: dict[str, Any] = {}
@@ -3986,7 +4820,9 @@ def test_open_report_file_uses_macos_open_command(monkeypatch: Any, tmp_path: Pa
     assert "shell" not in observed["kwargs"]
 
 
-def test_open_report_file_uses_windows_startfile(monkeypatch: Any, tmp_path: Path) -> None:
+def test_open_report_file_uses_windows_startfile(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
     report_path = (tmp_path / "report.pdf").resolve(strict=False)
     report_path.write_bytes(b"%PDF-1.4\n%%EOF\n")
     observed_paths: list[str] = []
@@ -3999,7 +4835,9 @@ def test_open_report_file_uses_windows_startfile(monkeypatch: Any, tmp_path: Pat
         raise AssertionError("subprocess.Popen must not be used on Windows branch")
 
     monkeypatch.setattr(cli_results_export.platform, "system", lambda: "Windows")
-    monkeypatch.setattr(cli_results_export.os, "startfile", fake_startfile, raising=False)
+    monkeypatch.setattr(
+        cli_results_export.os, "startfile", fake_startfile, raising=False
+    )
     monkeypatch.setattr(cli_results_export.subprocess, "Popen", fail_popen)
     result = cli_results_export.open_report_file(report_path)
 
@@ -4007,7 +4845,9 @@ def test_open_report_file_uses_windows_startfile(monkeypatch: Any, tmp_path: Pat
     assert observed_paths == [str(report_path)]
 
 
-def test_open_report_file_uses_xdg_open_on_linux(monkeypatch: Any, tmp_path: Path) -> None:
+def test_open_report_file_uses_xdg_open_on_linux(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
     report_path = (tmp_path / "report.pdf").resolve(strict=False)
     report_path.write_bytes(b"%PDF-1.4\n%%EOF\n")
     observed: dict[str, Any] = {}

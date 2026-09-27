@@ -58,7 +58,6 @@ def test_task_name_accepts_valid_values_and_preserves_case(name: str) -> None:
         "",
         "_sample",
         "-sample",
-        "sample analysis",
         "sample.analysis",
         "sample/analysis",
         "анализ",
@@ -85,7 +84,9 @@ def test_task_name_rejects_uuid_like_value(uuid_like_name: str) -> None:
 def test_task_name_is_unique_case_insensitively_and_preserves_original_case(
     tmp_path: Path,
 ) -> None:
-    registry = AnalyticalTaskRegistryService(database_path=tmp_path / "data" / "jelica.db")
+    registry = AnalyticalTaskRegistryService(
+        database_path=tmp_path / "data" / "jelica.db"
+    )
     first_id = str(uuid4())
     second_id = str(uuid4())
     _register_task(service=registry, task_id=first_id, name="Sample-A")
@@ -98,7 +99,9 @@ def test_task_name_is_unique_case_insensitively_and_preserves_original_case(
 
 
 def test_task_reference_resolves_uuid_or_case_insensitive_name(tmp_path: Path) -> None:
-    registry = AnalyticalTaskRegistryService(database_path=tmp_path / "data" / "jelica.db")
+    registry = AnalyticalTaskRegistryService(
+        database_path=tmp_path / "data" / "jelica.db"
+    )
     task_id = str(uuid4())
     _register_task(service=registry, task_id=task_id, name="Sample-A")
 
@@ -107,18 +110,48 @@ def test_task_reference_resolves_uuid_or_case_insensitive_name(tmp_path: Path) -
     assert registry.resolve_task_id(task_reference="sample-a") == task_id
 
 
+@pytest.mark.parametrize(
+    ("raw", "normalized"),
+    (
+        ("  My analysis  ", "My_analysis"),
+        ("My   SARS analysis", "My_SARS_analysis"),
+        ("My__analysis", "My__analysis"),
+    ),
+)
+def test_task_name_normalizes_whitespace_before_validation(
+    raw: str, normalized: str
+) -> None:
+    request = InitializeAnalysisTaskRequest(name=raw)
+
+    assert request.name == normalized
+
+
+def test_task_reference_normalizes_whitespace(tmp_path: Path) -> None:
+    registry = AnalyticalTaskRegistryService(
+        database_path=tmp_path / "data" / "jelica.db"
+    )
+    task_id = str(uuid4())
+    _register_task(service=registry, task_id=task_id, name="My_analysis")
+
+    assert registry.resolve_task_id(task_reference="  My   analysis ") == task_id
+
+
 def test_task_reference_falls_back_to_legacy_non_uuid_task_id(tmp_path: Path) -> None:
-    registry = AnalyticalTaskRegistryService(database_path=tmp_path / "data" / "jelica.db")
+    registry = AnalyticalTaskRegistryService(
+        database_path=tmp_path / "data" / "jelica.db"
+    )
     _register_task(service=registry, task_id="legacy-task-1", name=None)
 
     assert registry.resolve_task_id(task_reference="legacy-task-1") == "legacy-task-1"
 
 
 def test_task_reference_rejects_invalid_name_syntax(tmp_path: Path) -> None:
-    registry = AnalyticalTaskRegistryService(database_path=tmp_path / "data" / "jelica.db")
+    registry = AnalyticalTaskRegistryService(
+        database_path=tmp_path / "data" / "jelica.db"
+    )
 
     with pytest.raises(AnalyticalTaskInvalidRecordDataError):
-        registry.resolve_task_reference(task_reference="invalid name")
+        registry.resolve_task_reference(task_reference="invalid.name")
 
 
 def test_analyze_assigns_and_persists_automatic_name(tmp_path: Path) -> None:
@@ -213,9 +246,7 @@ def test_orchestrator_uses_injected_clock_for_automatic_name(tmp_path: Path) -> 
     orchestrator = AnalysisOrchestrator(clock=lambda: timestamp)
 
     task = orchestrator.initialize_task(
-        request=InitializeAnalysisTaskRequest(
-            positional_sources=("sample-a.fasta",)
-        ),
+        request=InitializeAnalysisTaskRequest(positional_sources=("sample-a.fasta",)),
         task_storage=LocalTaskStorage(tasks_dir=tmp_path / "tasks"),
     )
 
@@ -230,7 +261,9 @@ def test_automatic_name_rejects_naive_timestamp() -> None:
 def test_registry_suffixes_automatic_name_collisions_case_insensitively(
     tmp_path: Path,
 ) -> None:
-    registry = AnalyticalTaskRegistryService(database_path=tmp_path / "data" / "jelica.db")
+    registry = AnalyticalTaskRegistryService(
+        database_path=tmp_path / "data" / "jelica.db"
+    )
     base = generate_automatic_task_name(datetime(2026, 8, 21, 0, 15, 32, tzinfo=UTC))
 
     assert base == "analysis-20260821T001532"

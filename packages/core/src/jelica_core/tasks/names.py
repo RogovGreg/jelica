@@ -12,19 +12,40 @@ _CANONICAL_UUID_PATTERN = re.compile(
     r"[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
 )
 _COMPACT_UUID_PATTERN = re.compile(r"^[0-9a-fA-F]{32}$")
+_HUMAN_NAME_WHITESPACE_PATTERN = re.compile(r"\s+")
+_HUMAN_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
 
 
-def validate_task_name(value: str) -> str:
-    """Validate and return a task name without changing its original case."""
+def normalize_human_readable_name(value: str) -> str:
+    """Normalize the shared human-readable task/result name representation."""
 
-    if not _TASK_NAME_PATTERN.fullmatch(value):
+    return _HUMAN_NAME_WHITESPACE_PATTERN.sub("_", value.strip())
+
+
+def validate_human_readable_name(value: str, *, max_length: int | None = 64) -> str:
+    """Normalize and validate the shared task/result human-readable name rules."""
+
+    normalized = normalize_human_readable_name(value)
+
+    if normalized == "" or _HUMAN_NAME_PATTERN.fullmatch(normalized) is None:
         raise ValueError(
             "name must be 1..64 characters, start with an ASCII letter or digit, "
             "and contain only ASCII letters, digits, '_' or '-'"
         )
-    if is_uuid_task_reference(value):
+    if max_length is not None and len(normalized) > max_length:
+        raise ValueError(
+            "name must be 1..64 characters, start with an ASCII letter or digit, "
+            "and contain only ASCII letters, digits, '_' or '-'"
+        )
+    if is_uuid_task_reference(normalized):
         raise ValueError("name must not be a UUID")
-    return value
+    return normalized
+
+
+def validate_task_name(value: str) -> str:
+    """Normalize and validate a task name without changing its original case."""
+
+    return validate_human_readable_name(value, max_length=TASK_NAME_MAX_LENGTH)
 
 
 def is_uuid_task_reference(value: str) -> bool:
@@ -45,7 +66,7 @@ def is_uuid_task_reference(value: str) -> bool:
 def normalize_task_reference(value: str) -> tuple[str, bool]:
     """Normalize a human task reference and report whether it is a UUID."""
 
-    normalized = value.strip()
+    normalized = normalize_human_readable_name(value)
     if normalized == "":
         raise ValueError("task reference must not be empty")
     if is_uuid_task_reference(normalized):

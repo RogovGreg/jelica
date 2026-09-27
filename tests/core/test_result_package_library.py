@@ -33,6 +33,7 @@ from jelica_core.result_package import (
     import_result_package,
     infer_media_type,
     list_result_packages,
+    parse_result_package_filename,
     relative_package_path_from_task,
     resolve_result_package_path,
     serialize_stable_json,
@@ -206,13 +207,17 @@ def _write_task_link(
     return write_result_package_link(task_dir=task_dir, link=link)
 
 
-def test_import_result_package_imports_new_file_and_keeps_source(tmp_path: Path) -> None:
+def test_import_result_package_imports_new_file_and_keeps_source(
+    tmp_path: Path,
+) -> None:
     core_service = _make_core_service(tmp_path)
     source_path = tmp_path / "input" / "package.jelica"
     content_id, _payloads = _build_package(package_path=source_path)
     source_bytes = source_path.read_bytes()
 
-    imported = import_result_package(source_path=source_path, core_config_service=core_service)
+    imported = import_result_package(
+        source_path=source_path, core_config_service=core_service
+    )
 
     assert imported.already_exists is False
     assert imported.content_id == content_id
@@ -223,6 +228,60 @@ def test_import_result_package_imports_new_file_and_keeps_source(tmp_path: Path)
     assert list(_result_packages_dir(core_service).glob("*.tmp")) == []
 
 
+def test_named_import_is_deduplicated_and_resolved_by_name_and_filename(
+    tmp_path: Path,
+) -> None:
+    core_service = _make_core_service(tmp_path)
+    source_path = tmp_path / "source.jelica"
+    content_id, _payloads = _build_package(package_path=source_path)
+    digest = content_digest_from_content_id(content_id)
+
+    first = import_result_package(
+        source_path=source_path,
+        core_config_service=core_service,
+        result_name="  Experiment result  ",
+    )
+    assert first.path.name == f"Experiment_result__{digest}.jelica"
+
+    by_name = resolve_result_package_path(
+        task_or_content_ref="Experiment   result",
+        core_config_service=core_service,
+    )
+    by_filename = resolve_result_package_path(
+        task_or_content_ref=first.path.name,
+        core_config_service=core_service,
+    )
+    assert by_name.path == first.path
+    assert by_filename.path == first.path
+
+    second = import_result_package(
+        source_path=source_path,
+        core_config_service=core_service,
+        result_name="Different_name",
+    )
+    assert second.already_exists is True
+    assert second.path == first.path
+    assert parse_result_package_filename(first.path.name) is not None
+
+
+def test_named_result_is_exposed_by_listing(tmp_path: Path) -> None:
+    core_service = _make_core_service(tmp_path)
+    source_path = tmp_path / "source.jelica"
+    content_id, _payloads = _build_package(package_path=source_path)
+    imported = import_result_package(
+        source_path=source_path,
+        core_config_service=core_service,
+        result_name="Listed_result",
+    )
+
+    listing = list_result_packages(core_config_service=core_service)
+
+    assert listing.has_invalid_entries is False
+    assert listing.packages[0].path == imported.path
+    assert listing.packages[0].content_id == content_id
+    assert listing.packages[0].result_name == "Listed_result"
+
+
 def test_import_result_package_is_idempotent_and_skips_copy_on_repeat(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -230,15 +289,21 @@ def test_import_result_package_is_idempotent_and_skips_copy_on_repeat(
     core_service = _make_core_service(tmp_path)
     source_path = tmp_path / "input" / "package.jelica"
     _build_package(package_path=source_path)
-    first = import_result_package(source_path=source_path, core_config_service=core_service)
+    first = import_result_package(
+        source_path=source_path, core_config_service=core_service
+    )
     assert first.already_exists is False
 
     def _unexpected_copy(*, source_path: Path, target_path: Path) -> None:
         _ = (source_path, target_path)
         raise AssertionError("copy should not run for idempotent import")
 
-    monkeypatch.setattr(result_package_artifacts_module, "_copy_file_atomically", _unexpected_copy)
-    second = import_result_package(source_path=source_path, core_config_service=core_service)
+    monkeypatch.setattr(
+        result_package_artifacts_module, "_copy_file_atomically", _unexpected_copy
+    )
+    second = import_result_package(
+        source_path=source_path, core_config_service=core_service
+    )
     assert second.already_exists is True
 
 
@@ -248,12 +313,18 @@ def test_import_result_package_accepts_same_content_with_different_zip_metadata(
     core_service = _make_core_service(tmp_path)
     source_a = tmp_path / "a.jelica"
     source_b = tmp_path / "b.jelica"
-    content_a, _ = _build_package(package_path=source_a, compression=zipfile.ZIP_DEFLATED)
+    content_a, _ = _build_package(
+        package_path=source_a, compression=zipfile.ZIP_DEFLATED
+    )
     content_b, _ = _build_package(package_path=source_b, compression=zipfile.ZIP_STORED)
     assert content_a == content_b
 
-    first = import_result_package(source_path=source_a, core_config_service=core_service)
-    second = import_result_package(source_path=source_b, core_config_service=core_service)
+    first = import_result_package(
+        source_path=source_a, core_config_service=core_service
+    )
+    second = import_result_package(
+        source_path=source_b, core_config_service=core_service
+    )
 
     assert first.already_exists is False
     assert second.already_exists is True
@@ -280,11 +351,15 @@ def test_import_result_package_handles_notes_compatibility(
     source_b = tmp_path / "b.jelica"
     _build_package(package_path=source_a, notes=first_notes)
     _build_package(package_path=source_b, notes=second_notes)
-    first = import_result_package(source_path=source_a, core_config_service=core_service)
+    first = import_result_package(
+        source_path=source_a, core_config_service=core_service
+    )
     assert first.already_exists is False
 
     if not expect_conflict:
-        second = import_result_package(source_path=source_b, core_config_service=core_service)
+        second = import_result_package(
+            source_path=source_b, core_config_service=core_service
+        )
         assert second.already_exists is True
         return
 
@@ -303,7 +378,9 @@ def test_import_result_package_rejects_invalid_source(tmp_path: Path) -> None:
     assert error_info.value.code is ResultPackageLibraryErrorCode.INVALID_SOURCE_PACKAGE
 
 
-def test_import_result_package_does_not_overwrite_invalid_existing_target(tmp_path: Path) -> None:
+def test_import_result_package_does_not_overwrite_invalid_existing_target(
+    tmp_path: Path,
+) -> None:
     core_service = _make_core_service(tmp_path)
     source_path = tmp_path / "valid.jelica"
     content_id, _ = _build_package(package_path=source_path)
@@ -317,7 +394,9 @@ def test_import_result_package_does_not_overwrite_invalid_existing_target(tmp_pa
     with pytest.raises(ResultPackageLibraryError) as error_info:
         import_result_package(source_path=source_path, core_config_service=core_service)
 
-    assert error_info.value.code is ResultPackageLibraryErrorCode.INVALID_EXISTING_PACKAGE
+    assert (
+        error_info.value.code is ResultPackageLibraryErrorCode.INVALID_EXISTING_PACKAGE
+    )
     assert target_path.read_bytes() == existing_bytes
 
 
@@ -349,9 +428,13 @@ def test_import_result_package_handles_source_already_in_store(tmp_path: Path) -
     core_service = _make_core_service(tmp_path)
     source_path = tmp_path / "valid.jelica"
     _build_package(package_path=source_path)
-    first = import_result_package(source_path=source_path, core_config_service=core_service)
+    first = import_result_package(
+        source_path=source_path, core_config_service=core_service
+    )
 
-    second = import_result_package(source_path=first.path, core_config_service=core_service)
+    second = import_result_package(
+        source_path=first.path, core_config_service=core_service
+    )
     assert second.already_exists is True
     assert second.path == first.path
 
@@ -392,7 +475,9 @@ def test_list_result_packages_returns_sorted_entries_and_fields(tmp_path: Path) 
     assert all(item.format_version == "1.0" for item in listing.packages if item.valid)
 
 
-def test_list_result_packages_ignores_non_jelica_and_subdirectories(tmp_path: Path) -> None:
+def test_list_result_packages_ignores_non_jelica_and_subdirectories(
+    tmp_path: Path,
+) -> None:
     core_service = _make_core_service(tmp_path)
     source_path = tmp_path / "valid.jelica"
     _build_package(package_path=source_path)
@@ -407,7 +492,9 @@ def test_list_result_packages_ignores_non_jelica_and_subdirectories(tmp_path: Pa
     assert len(listing.packages) == 1
 
 
-def test_list_result_packages_marks_invalid_entries_without_failing(tmp_path: Path) -> None:
+def test_list_result_packages_marks_invalid_entries_without_failing(
+    tmp_path: Path,
+) -> None:
     core_service = _make_core_service(tmp_path)
     source_path = tmp_path / "valid.jelica"
     _build_package(package_path=source_path)
@@ -436,7 +523,9 @@ def test_list_result_packages_does_not_hash_all_artifacts(
         _ = (archive, entry_path)
         raise AssertionError("list must not hash all artifacts")
 
-    monkeypatch.setattr(result_package_artifacts_module, "_sha256_for_zip_entry", _unexpected_hash)
+    monkeypatch.setattr(
+        result_package_artifacts_module, "_sha256_for_zip_entry", _unexpected_hash
+    )
     listing = list_result_packages(core_config_service=core_service)
     assert len(listing.packages) == 1
     assert listing.packages[0].valid is True
@@ -446,7 +535,9 @@ def test_resolve_result_package_path_by_content_id_and_digest(tmp_path: Path) ->
     core_service = _make_core_service(tmp_path)
     source_path = tmp_path / "valid.jelica"
     _build_package(package_path=source_path)
-    imported = import_result_package(source_path=source_path, core_config_service=core_service)
+    imported = import_result_package(
+        source_path=source_path, core_config_service=core_service
+    )
     digest = content_digest_from_content_id(imported.content_id)
 
     by_content_id = resolve_result_package_path(
@@ -460,6 +551,87 @@ def test_resolve_result_package_path_by_content_id_and_digest(tmp_path: Path) ->
 
     assert by_content_id.path == imported.path
     assert by_digest.path == imported.path
+
+
+def test_resolve_explicit_template_filename_by_content_id_and_filename(
+    tmp_path: Path,
+) -> None:
+    core_service = _make_core_service(tmp_path)
+    source_path = tmp_path / "source.jelica"
+    content_id, _payloads = _build_package(package_path=source_path)
+    digest = content_digest_from_content_id(content_id)
+
+    imported = import_result_package(
+        source_path=source_path,
+        core_config_service=core_service,
+        filename_stem=f"1_{digest}",
+    )
+
+    by_content_id = resolve_result_package_path(
+        task_or_content_ref=content_id,
+        core_config_service=core_service,
+    )
+    by_filename = resolve_result_package_path(
+        task_or_content_ref=f"1_{digest}.jelica",
+        core_config_service=core_service,
+    )
+
+    assert imported.path.name == f"1_{digest}.jelica"
+    assert by_content_id.path == imported.path
+    assert by_filename.path == imported.path
+    assert by_content_id.content_id == content_id
+    assert by_filename.content_id == content_id
+    assert len(list(_result_packages_dir(core_service).glob("*.jelica"))) == 1
+
+
+@pytest.mark.parametrize(
+    "filename_template",
+    (
+        "{digest}",
+        "1-{digest}",
+        "{name}-{digest}",
+        "{digest}-{name}",
+        "1-{digest}-{name}",
+        "1-{digest}-{filename}",
+    ),
+)
+def test_arbitrary_hash_placement_is_valid_and_resolvable(
+    tmp_path: Path,
+    filename_template: str,
+) -> None:
+    core_service = _make_core_service(tmp_path)
+    source_path = tmp_path / "Test.jelica"
+    content_id, _payloads = _build_package(package_path=source_path)
+    digest = content_digest_from_content_id(content_id)
+    filename_stem = filename_template.format(digest=digest, name="Test", filename="Test")
+
+    imported = import_result_package(
+        source_path=source_path,
+        core_config_service=core_service,
+        filename_stem=filename_stem,
+    )
+
+    by_content_id = resolve_result_package_path(
+        task_or_content_ref=content_id,
+        core_config_service=core_service,
+    )
+    by_filename = resolve_result_package_path(
+        task_or_content_ref=imported.path.name,
+        core_config_service=core_service,
+    )
+    listing = list_result_packages(core_config_service=core_service)
+
+    assert imported.path.name == f"{filename_stem}.jelica"
+    assert by_content_id.path == imported.path
+    assert by_filename.path == imported.path
+    assert by_content_id.content_id == content_id
+    assert listing.has_invalid_entries is False
+    assert listing.packages[0].valid is True
+    assert listing.packages[0].content_id == content_id
+    if filename_template == "{digest}":
+        assert listing.packages[0].result_name is None
+    else:
+        assert listing.packages[0].result_name == filename_stem
 
 
 def test_resolve_result_package_path_rejects_missing_content_id(tmp_path: Path) -> None:
@@ -477,9 +649,13 @@ def test_resolve_result_package_path_by_task_id(tmp_path: Path) -> None:
     core_service = _make_core_service(tmp_path)
     source_path = tmp_path / "valid.jelica"
     _build_package(package_path=source_path)
-    imported = import_result_package(source_path=source_path, core_config_service=core_service)
+    imported = import_result_package(
+        source_path=source_path, core_config_service=core_service
+    )
     task_dir = _register_task(core_service=core_service, task_id="task-xyz")
-    _write_task_link(core_service=core_service, task_dir=task_dir, content_id=imported.content_id)
+    _write_task_link(
+        core_service=core_service, task_dir=task_dir, content_id=imported.content_id
+    )
 
     resolved = resolve_result_package_path(
         task_or_content_ref="task-xyz",
@@ -490,17 +666,52 @@ def test_resolve_result_package_path_by_task_id(tmp_path: Path) -> None:
     assert resolved.content_id == imported.content_id
 
 
-def test_resolve_result_package_path_by_case_insensitive_task_name(tmp_path: Path) -> None:
+def test_task_link_resolves_authoritative_named_physical_path(tmp_path: Path) -> None:
     core_service = _make_core_service(tmp_path)
     source_path = tmp_path / "valid.jelica"
     _build_package(package_path=source_path)
-    imported = import_result_package(source_path=source_path, core_config_service=core_service)
+    imported = import_result_package(
+        source_path=source_path, core_config_service=core_service
+    )
+    digest = content_digest_from_content_id(imported.content_id)
+    named_path = imported.path.with_name(f"Renamed_result__{digest}.jelica")
+    imported.path.rename(named_path)
+    task_dir = _register_task(core_service=core_service, task_id="task-named-link")
+    _write_task_link(
+        core_service=core_service,
+        task_dir=task_dir,
+        content_id=imported.content_id,
+        relative_path=relative_package_path_from_task(
+            task_dir=task_dir,
+            package_path=named_path,
+        ),
+    )
+
+    resolved = resolve_result_package_path(
+        task_or_content_ref="task-named-link",
+        core_config_service=core_service,
+    )
+
+    assert resolved.path == named_path
+
+
+def test_resolve_result_package_path_by_case_insensitive_task_name(
+    tmp_path: Path,
+) -> None:
+    core_service = _make_core_service(tmp_path)
+    source_path = tmp_path / "valid.jelica"
+    _build_package(package_path=source_path)
+    imported = import_result_package(
+        source_path=source_path, core_config_service=core_service
+    )
     task_dir = _register_task(
         core_service=core_service,
         task_id="00000000-0000-4000-8000-000000000001",
         name="Named-Result",
     )
-    _write_task_link(core_service=core_service, task_dir=task_dir, content_id=imported.content_id)
+    _write_task_link(
+        core_service=core_service, task_dir=task_dir, content_id=imported.content_id
+    )
 
     resolved = resolve_result_package_path(
         task_or_content_ref="nAmEd-ReSuLt",
@@ -511,7 +722,7 @@ def test_resolve_result_package_path_by_case_insensitive_task_name(tmp_path: Pat
     assert resolved.content_id == imported.content_id
 
 
-def test_resolve_bare_digest_prefers_task_name_but_prefixed_digest_prefers_content(
+def test_resolve_bare_and_prefixed_digest_use_content_identity(
     tmp_path: Path,
 ) -> None:
     core_service = _make_core_service(tmp_path)
@@ -551,7 +762,7 @@ def test_resolve_bare_digest_prefers_task_name_but_prefixed_digest_prefers_conte
         core_config_service=core_service,
     )
 
-    assert by_name.path == task_package.path
+    assert by_name.path == content_package.path
     assert by_explicit_content_id.path == content_package.path
 
 
@@ -573,7 +784,10 @@ def test_resolve_result_package_path_rejects_task_without_link(tmp_path: Path) -
             task_or_content_ref="task-1",
             core_config_service=core_service,
         )
-    assert error_info.value.code is ResultPackageLibraryErrorCode.TASK_HAS_NO_RESULT_PACKAGE
+    assert (
+        error_info.value.code
+        is ResultPackageLibraryErrorCode.TASK_HAS_NO_RESULT_PACKAGE
+    )
 
 
 def test_resolve_result_package_path_rejects_invalid_link_json(tmp_path: Path) -> None:
@@ -585,7 +799,10 @@ def test_resolve_result_package_path_rejects_invalid_link_json(tmp_path: Path) -
             task_or_content_ref="task-1",
             core_config_service=core_service,
         )
-    assert error_info.value.code is ResultPackageLibraryErrorCode.INVALID_RESULT_PACKAGE_LINK
+    assert (
+        error_info.value.code
+        is ResultPackageLibraryErrorCode.INVALID_RESULT_PACKAGE_LINK
+    )
 
 
 def test_resolve_result_package_path_rejects_unsafe_link(tmp_path: Path) -> None:
@@ -604,15 +821,22 @@ def test_resolve_result_package_path_rejects_unsafe_link(tmp_path: Path) -> None
             task_or_content_ref="task-1",
             core_config_service=core_service,
         )
-    assert error_info.value.code is ResultPackageLibraryErrorCode.UNSAFE_RESULT_PACKAGE_LINK
+    assert (
+        error_info.value.code
+        is ResultPackageLibraryErrorCode.UNSAFE_RESULT_PACKAGE_LINK
+    )
 
 
-def test_resolve_result_package_path_rejects_missing_link_target(tmp_path: Path) -> None:
+def test_resolve_result_package_path_rejects_missing_link_target(
+    tmp_path: Path,
+) -> None:
     core_service = _make_core_service(tmp_path)
     source_path = tmp_path / "valid.jelica"
     content_id, _ = _build_package(package_path=source_path)
     task_dir = _register_task(core_service=core_service, task_id="task-1")
-    _write_task_link(core_service=core_service, task_dir=task_dir, content_id=content_id)
+    _write_task_link(
+        core_service=core_service, task_dir=task_dir, content_id=content_id
+    )
 
     with pytest.raises(ResultPackageLibraryError) as error_info:
         resolve_result_package_path(
@@ -636,7 +860,11 @@ def test_import_result_package_does_not_silently_overwrite_on_concurrent_file_ex
     replaced = {"done": False}
 
     def _race_replace(src: Path | str, dst: Path | str) -> None:
-        if Path(dst) == target_path and str(src).endswith(".import.tmp") and not replaced["done"]:
+        if (
+            Path(dst) == target_path
+            and str(src).endswith(".import.tmp")
+            and not replaced["done"]
+        ):
             _write_package(
                 package_path=target_path,
                 payloads=payloads,

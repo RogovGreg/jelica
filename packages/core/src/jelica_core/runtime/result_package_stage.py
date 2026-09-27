@@ -57,7 +57,12 @@ from .input_processing_models import (
     INPUT_PROCESSING_MANIFEST_RELATIVE_PATH,
     InputProcessingManifest,
 )
-from .pipeline import ProgressReporter, StageContext, StageRunResult, build_pipeline_definition
+from .pipeline import (
+    ProgressReporter,
+    StageContext,
+    StageRunResult,
+    build_pipeline_definition,
+)
 
 RESULT_PACKAGE_FAILED_EVENT: Final = "RESULT_PACKAGE_FAILED"
 RESULT_PACKAGE_STARTED_EVENT: Final = "RESULT_PACKAGE_STARTED"
@@ -114,13 +119,17 @@ class ResultPackageStage:
 
     def preflight(self, context: StageContext) -> None:
         context.stage_staging_directory.mkdir(parents=True, exist_ok=True)
-        (context.stage_staging_directory / "result_package").mkdir(parents=True, exist_ok=True)
+        (context.stage_staging_directory / "result_package").mkdir(
+            parents=True, exist_ok=True
+        )
         (context.stage_staging_directory / RESULT_PACKAGE_PREPARED_DIRNAME).mkdir(
             parents=True,
             exist_ok=True,
         )
 
-    def run(self, context: StageContext, progress_reporter: ProgressReporter) -> StageRunResult:
+    def run(
+        self, context: StageContext, progress_reporter: ProgressReporter
+    ) -> StageRunResult:
         try:
             context.check_control()
             context.emit_event(
@@ -135,8 +144,10 @@ class ResultPackageStage:
             task_status = _resolve_task_status(stage_status_by_id=stage_status_by_id)
             progress_reporter(0.2)
 
-            resolved_config = _load_resolved_config(context.launch_spec.config_revision_path)
-            task_info = _build_task_info(
+            resolved_config = _load_resolved_config(
+                context.launch_spec.config_revision_path
+            )
+            task_info, result_name = _build_task_info(
                 context=context,
                 package_created_at=package_created_at,
                 task_status=task_status,
@@ -145,7 +156,10 @@ class ResultPackageStage:
 
             context.emit_event(
                 RESULT_PACKAGE_PROGRESS_EVENT,
-                {"phase": "collect_protected_files", "detail": "Collecting protected artifacts."},
+                {
+                    "phase": "collect_protected_files",
+                    "detail": "Collecting protected artifacts.",
+                },
             )
 
             with tempfile.TemporaryDirectory(
@@ -162,7 +176,9 @@ class ResultPackageStage:
                 }
 
                 task_json_path = generated_root / "task.json"
-                _write_json_payload(path=task_json_path, payload=task_info.model_dump(mode="json"))
+                _write_json_payload(
+                    path=task_json_path, payload=task_info.model_dump(mode="json")
+                )
                 _register_protected_file(
                     protected_files=protected_files,
                     package_path=JELICA_PACKAGE_TASK_PATH,
@@ -227,13 +243,17 @@ class ResultPackageStage:
                     task_dir=context.launch_spec.task_dir,
                     drop_source_errors=False,
                 )
-                sanitized_input_processing_path = generated_root / "input_processing_manifest.json"
+                sanitized_input_processing_path = (
+                    generated_root / "input_processing_manifest.json"
+                )
                 _write_json_payload(
                     path=sanitized_input_processing_path,
                     payload=sanitized_input_processing_payload,
                 )
 
-                normalized_fasta_generated_path = generated_root / "normalized_sequences.fasta"
+                normalized_fasta_generated_path = (
+                    generated_root / "normalized_sequences.fasta"
+                )
                 _build_normalized_fasta(
                     output_path=normalized_fasta_generated_path,
                     input_processing_stage_root=input_processing_stage.stage_root,
@@ -252,7 +272,9 @@ class ResultPackageStage:
                 for committed_stage in committed_stages:
                     context.check_control()
                     stage_id = committed_stage.stage_id
-                    for artifact_relative_path in committed_stage.snapshot.manifest.artifacts:
+                    for (
+                        artifact_relative_path
+                    ) in committed_stage.snapshot.manifest.artifacts:
                         if (
                             stage_id == _INPUT_ACQUISITION_STAGE_ID
                             and artifact_relative_path == INPUT_MANIFEST_RELATIVE_PATH
@@ -264,7 +286,8 @@ class ResultPackageStage:
                         )
                         if (
                             stage_id == _INITIALIZE_STAGE_ID
-                            and artifact_relative_path == _EXECUTION_MANIFEST_RELATIVE_PATH
+                            and artifact_relative_path
+                            == _EXECUTION_MANIFEST_RELATIVE_PATH
                         ):
                             execution_manifest_payload = _load_json_object(
                                 path=committed_stage.stage_root / artifact_relative_path
@@ -284,7 +307,8 @@ class ResultPackageStage:
                             source_path = sanitized_execution_manifest_path
                         elif (
                             stage_id == _INPUT_PROCESSING_STAGE_ID
-                            and artifact_relative_path == INPUT_PROCESSING_MANIFEST_RELATIVE_PATH
+                            and artifact_relative_path
+                            == INPUT_PROCESSING_MANIFEST_RELATIVE_PATH
                         ):
                             source_path = sanitized_input_processing_path
                         else:
@@ -317,7 +341,9 @@ class ResultPackageStage:
                     ResultPackageStageInfo(
                         name=committed_stage.stage_id,
                         status=stage_status_by_id[committed_stage.stage_id],
-                        artifacts=tuple(sorted(stage_artifacts[committed_stage.stage_id])),
+                        artifacts=tuple(
+                            sorted(stage_artifacts[committed_stage.stage_id])
+                        ),
                     )
                     for committed_stage in committed_stages
                 )
@@ -333,7 +359,10 @@ class ResultPackageStage:
 
                 context.emit_event(
                     RESULT_PACKAGE_PROGRESS_EVENT,
-                    {"phase": "assemble_zip", "detail": "Assembling .jelica ZIP container."},
+                    {
+                        "phase": "assemble_zip",
+                        "detail": "Assembling .jelica ZIP container.",
+                    },
                 )
                 progress_reporter(0.75)
 
@@ -357,6 +386,7 @@ class ResultPackageStage:
                 published_package_path = result_package_target_path(
                     task_dir=context.launch_spec.task_dir,
                     content_digest=content_digest,
+                    result_name=result_name,
                 )
                 published_package_relative_path = relative_package_path_from_task(
                     task_dir=context.launch_spec.task_dir,
@@ -375,6 +405,7 @@ class ResultPackageStage:
                     prepared_package_relative_path=prepared_package_relative_path,
                     published_package_relative_path=published_package_relative_path,
                     task=task_info,
+                    result_name=result_name,
                     source_stage_ids=tuple(item.stage_id for item in committed_stages),
                     artifact_count=len(package_manifest.artifacts),
                     stage_count=len(committed_stages),
@@ -439,8 +470,10 @@ def _build_task_info(
     package_created_at: str,
     task_status: ResultPackageTaskStatus,
     trace_id: UUID | None,
-) -> ResultPackageTaskInfo:
-    registry = AnalyticalTaskRegistryService(database_path=context.launch_spec.database_path)
+) -> tuple[ResultPackageTaskInfo, str | None]:
+    registry = AnalyticalTaskRegistryService(
+        database_path=context.launch_spec.database_path
+    )
     task_record = registry.get_task(task_id=context.launch_spec.task_id)
     if task_record.state not in {
         AnalyticalTaskState.RUNNING,
@@ -455,16 +488,21 @@ def _build_task_info(
             ),
             context={"task_state": task_record.state.value},
         )
-    return ResultPackageTaskInfo(
-        task_id=task_record.task_id,
-        trace_id=trace_id,
-        status=task_status,
-        created_at=serialize_utc_datetime(task_record.created_at),
-        completed_at=package_created_at,
+    return (
+        ResultPackageTaskInfo(
+            task_id=task_record.task_id,
+            trace_id=trace_id,
+            status=task_status,
+            created_at=serialize_utc_datetime(task_record.created_at),
+            completed_at=package_created_at,
+        ),
+        task_record.name,
     )
 
 
-def _load_committed_stages(*, context: StageContext) -> tuple[_CommittedStageSnapshot, ...]:
+def _load_committed_stages(
+    *, context: StageContext
+) -> tuple[_CommittedStageSnapshot, ...]:
     pipeline = build_pipeline_definition(
         pipeline_name=context.launch_spec.pipeline_name,
         pipeline_version=context.launch_spec.pipeline_version,
@@ -528,7 +566,9 @@ def _resolve_task_status(
     *,
     stage_status_by_id: dict[str, str],
 ) -> ResultPackageTaskStatus:
-    has_partial_success = any(status == "partial_success" for status in stage_status_by_id.values())
+    has_partial_success = any(
+        status == "partial_success" for status in stage_status_by_id.values()
+    )
     if has_partial_success:
         return ResultPackageTaskStatus.COMPLETED_WITH_WARNINGS
     return ResultPackageTaskStatus.COMPLETED
@@ -578,7 +618,9 @@ def _build_normalized_fasta(
 ) -> None:
     with output_path.open("wb") as output_handle:
         for unique_sequence in input_processing_manifest.unique_sequences:
-            sequence_path = input_processing_stage_root / unique_sequence.sequence_artifact_path
+            sequence_path = (
+                input_processing_stage_root / unique_sequence.sequence_artifact_path
+            )
             if not sequence_path.is_file() or sequence_path.is_symlink():
                 raise ResultPackageStageError(
                     reason="result_package_sequence_artifact_missing",
@@ -586,7 +628,9 @@ def _build_normalized_fasta(
                     context={"path": unique_sequence.sequence_artifact_path},
                 )
             with sequence_path.open("rb") as source_handle:
-                shutil.copyfileobj(source_handle, output_handle, length=_COPY_CHUNK_SIZE)
+                shutil.copyfileobj(
+                    source_handle, output_handle, length=_COPY_CHUNK_SIZE
+                )
 
 
 def _build_artifact_infos(
@@ -647,7 +691,9 @@ def _build_package_zip(
                 )
             archive.writestr(
                 JELICA_PACKAGE_MANIFEST_PATH,
-                serialize_stable_json(package_manifest.model_dump(mode="json")).encode("utf-8"),
+                serialize_stable_json(package_manifest.model_dump(mode="json")).encode(
+                    "utf-8"
+                ),
             )
         os.replace(temporary_path, package_path)
     except OSError as error:
@@ -692,14 +738,20 @@ def _resolve_stage_artifact(
         raise ResultPackageStageError(
             reason="result_package_artifact_reference_invalid",
             detail="Requested stage artifact is not declared in committed manifest.",
-            context={"stage_id": stage.stage_id, "relative_path": artifact_relative_path},
+            context={
+                "stage_id": stage.stage_id,
+                "relative_path": artifact_relative_path,
+            },
         )
     path = stage.stage_root / artifact_relative_path
     if not path.is_file() or path.is_symlink():
         raise ResultPackageStageError(
             reason="result_package_artifact_missing",
             detail="A declared committed artifact is missing or invalid.",
-            context={"stage_id": stage.stage_id, "relative_path": artifact_relative_path},
+            context={
+                "stage_id": stage.stage_id,
+                "relative_path": artifact_relative_path,
+            },
         )
     return path
 
@@ -718,7 +770,12 @@ def _package_path_for_stage_artifact(
         )
     posix = PurePosixPath(normalized)
     windows = PureWindowsPath(normalized)
-    if posix.is_absolute() or windows.is_absolute() or ".." in posix.parts or ".." in windows.parts:
+    if (
+        posix.is_absolute()
+        or windows.is_absolute()
+        or ".." in posix.parts
+        or ".." in windows.parts
+    ):
         raise ResultPackageStageError(
             reason="result_package_path_invalid",
             detail="Stage artifact path is not a safe relative path.",
@@ -769,7 +826,10 @@ def _sanitize_json_value(
             )
         return sanitized
     if isinstance(value, list):
-        return [_sanitize_json_value(value=item, key=key, task_dir=task_dir) for item in value]
+        return [
+            _sanitize_json_value(value=item, key=key, task_dir=task_dir)
+            for item in value
+        ]
     if isinstance(value, str):
         return _sanitize_text(value=value, key=key, task_dir=task_dir)
     return value
@@ -781,7 +841,9 @@ def _sanitize_text(*, value: str, key: str | None, task_dir: Path) -> str:
         return normalized
     if key == "selector" and "::" in normalized:
         left, right = normalized.rsplit("::", maxsplit=1)
-        sanitized_left = _sanitize_text(value=left, key="source_reference", task_dir=task_dir)
+        sanitized_left = _sanitize_text(
+            value=left, key="source_reference", task_dir=task_dir
+        )
         return f"{sanitized_left}::{right.strip()}"
     if key == "config_revision_path":
         relative = _to_task_relative_path(value=normalized, task_dir=task_dir)
@@ -820,7 +882,11 @@ def _to_task_relative_path(*, value: str, task_dir: Path) -> str | None:
     if not _looks_like_absolute_path(value):
         return None
     try:
-        relative = Path(value).resolve(strict=False).relative_to(task_dir.resolve(strict=False))
+        relative = (
+            Path(value)
+            .resolve(strict=False)
+            .relative_to(task_dir.resolve(strict=False))
+        )
     except ValueError:
         return None
     return relative.as_posix()

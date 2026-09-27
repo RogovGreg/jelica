@@ -248,4 +248,5 @@ def test_initialized_task_contains_only_initialization_state_fields(tmp_path: Pa
         "current_config_relative_path",
         "current_config_hash",
         "warnings",
+        "name",
     }

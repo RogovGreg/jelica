@@ -12,7 +12,9 @@ from .names import (
     TASK_NAME_MAX_LENGTH,
     generate_automatic_task_name,
     is_uuid_task_reference,
+    normalize_human_readable_name,
     normalize_task_reference,
+    validate_human_readable_name,
     validate_task_name,
 )
 from .registry_errors import (
@@ -117,6 +119,8 @@ __all__ = [
     "TaskWorkspacePaths",
     "generate_automatic_task_name",
     "is_uuid_task_reference",
+    "normalize_human_readable_name",
     "normalize_task_reference",
+    "validate_human_readable_name",
     "validate_task_name",
 ]

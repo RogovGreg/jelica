@@ -22,6 +22,7 @@ from jelica_core.result_package import (
     ResultPackageValidationError,
     load_result_package_stage_manifest,
     publish_prepared_result_package,
+    relative_package_path_from_task,
     write_result_package_link,
 )
 from jelica_core.tasks import (
@@ -1278,7 +1279,10 @@ class ExecutionRuntime:
                     task_dir=task_dir,
                     link=ResultPackageLink(
                         content_id=stage_manifest.content_id,
-                        path=stage_manifest.published_package_relative_path,
+                        path=relative_package_path_from_task(
+                            task_dir=task_dir,
+                            package_path=published_package_path,
+                        ),
                         format_version=stage_manifest.format_version,
                     ),
                 )
