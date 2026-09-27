@@ -29,6 +29,7 @@ from .pipeline import ProgressReporter, StageContext, StageRunResult
 
 INPUT_SOURCE_UNSUPPORTED_EVENT = "INPUT_SOURCE_UNSUPPORTED"
 INPUT_PATH_NOT_FOUND_EVENT = "INPUT_PATH_NOT_FOUND"
+INPUT_RELATIVE_PATH_UNRESOLVED_EVENT = "INPUT_RELATIVE_PATH_UNRESOLVED"
 INPUT_FILE_TYPE_UNSUPPORTED_EVENT = "INPUT_FILE_TYPE_UNSUPPORTED"
 INPUT_FILE_UNREADABLE_EVENT = "INPUT_FILE_UNREADABLE"
 INPUT_FILE_EMPTY_EVENT = "INPUT_FILE_EMPTY"
@@ -323,6 +324,15 @@ class _InputAcquisitionSession:
         self._progress_reporter(1.0)
 
     def _process_source(self, *, source_index: int, source: str) -> None:
+        if _is_unresolved_relative_local_source(source):
+            raise InputAcquisitionError(
+                event_name=INPUT_RELATIVE_PATH_UNRESOLVED_EVENT,
+                detail=(
+                    f"Relative local input source cannot be resolved safely at execution time: "
+                    f"{source}. Local filesystem paths must be resolved when the task is submitted."
+                ),
+                context={"source": source},
+            )
         classification = classify_input_source(source)
         source_payload: dict[str, object] = {
             "index": source_index,
@@ -984,6 +994,22 @@ def _extract_samples(config_document: dict[str, object]) -> list[str]:
             continue
         samples.append(normalized)
     return samples
+
+
+def _is_unresolved_relative_local_source(source: str) -> bool:
+    normalized = source.strip()
+    classification = classify_input_source(normalized)
+    if classification.kind in {
+        InputSourceKind.NCBI_NUCLEOTIDE_URL,
+        InputSourceKind.NCBI_NUCLEOTIDE_ACCESSION,
+        InputSourceKind.INLINE_SEQUENCE,
+    }:
+        return False
+    if normalized.startswith(("http://", "https://")):
+        return False
+    if normalized.startswith("~"):
+        return True
+    return not Path(normalized).expanduser().is_absolute()
 
 
 def _extract_non_negative_int(

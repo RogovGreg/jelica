@@ -107,7 +107,7 @@ def test_analyze_plan_without_source_matches_explicit_current_directory(
     assert implicit.exit_code == 0, implicit.stdout
     assert explicit.exit_code == 0, explicit.stdout
     assert implicit.stdout == explicit.stdout
-    assert "Sources:\n  - ." in implicit.stdout
+    assert f"Sources:\n  - {input_dir.resolve()}" in implicit.stdout
     assert list(resolved_config.tasks_dir.iterdir()) == []
     assert get_service_status(core_config_service=config_service).running is False
 
@@ -122,7 +122,7 @@ def test_analyze_plan_preserves_explicit_samples_override(tmp_path: Path) -> Non
     )
 
     assert result.exit_code == 0, result.stdout
-    assert "Sources:\n  - override.fasta" in result.stdout
+    assert f"Sources:\n  - {(Path.cwd() / 'override.fasta').resolve()}" in result.stdout
     assert "Sources:\n  - ." not in result.stdout
 
 
@@ -155,7 +155,7 @@ def test_analyze_show_plan_without_source_uses_current_directory(
 
         assert result.exit_code == 0, result.stdout
         assert "Analysis plan" in result.stdout
-        assert "Sources:\n  - ." in result.stdout
+        assert f"Sources:\n  - {input_dir.resolve()}" in result.stdout
         assert "Analysis task " in result.stdout
         assert observed_sources == [(".",)]
     finally:

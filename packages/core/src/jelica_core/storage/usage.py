@@ -8,6 +8,11 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Iterable
 
+from jelica_core.reporting import (
+    REPORT_DIRECTORY_NAME,
+    REPORT_RECOGNIZED_EXTENSIONS,
+    list_stored_reports,
+)
 from jelica_core.result_package import (
     RESULT_PACKAGE_DIRECTORY_NAME,
     list_result_packages,
@@ -20,6 +25,7 @@ from jelica_core.tasks.storage import TASK_TRASH_DIRNAME, resolve_task_workspace
 class StorageCategory(StrEnum):
     TASKS = "tasks"
     RESULTS = "results"
+    REPORTS = "reports"
     DATABASE = "database"
     OTHER = "other"
     TOTAL = "total"
@@ -28,6 +34,7 @@ class StorageCategory(StrEnum):
 _STORAGE_CATEGORY_ORDER: tuple[StorageCategory, ...] = (
     StorageCategory.TASKS,
     StorageCategory.RESULTS,
+    StorageCategory.REPORTS,
     StorageCategory.DATABASE,
     StorageCategory.OTHER,
     StorageCategory.TOTAL,
@@ -60,6 +67,17 @@ class ResultStorageMetrics:
 
 
 @dataclass(frozen=True, slots=True)
+class ReportStorageMetrics:
+    bytes: int
+    reports: int
+    pdf: int
+    html: int
+    xml: int
+    txt: int
+    other_files: int
+
+
+@dataclass(frozen=True, slots=True)
 class DatabaseStorageMetrics:
     bytes: int
     main_bytes: int
@@ -84,6 +102,7 @@ class TotalStorageMetrics:
 class StorageUsageReport:
     tasks: TaskStorageMetrics
     results: ResultStorageMetrics
+    reports: ReportStorageMetrics
     database: DatabaseStorageMetrics
     other: OtherStorageMetrics
     total: TotalStorageMetrics
@@ -128,6 +147,16 @@ class StorageUsageReport:
                 "referenced_packages": self.results.referenced_packages,
                 "standalone_packages": self.results.standalone_packages,
                 "invalid_packages": self.results.invalid_packages,
+            }
+        if StorageCategory.REPORTS in selected:
+            payload["reports"] = {
+                "bytes": self.reports.bytes,
+                "reports": self.reports.reports,
+                "pdf": self.reports.pdf,
+                "html": self.reports.html,
+                "xml": self.reports.xml,
+                "txt": self.reports.txt,
+                "other_files": self.reports.other_files,
             }
         if StorageCategory.DATABASE in selected:
             payload["database"] = {
@@ -174,6 +203,7 @@ def analyze_storage_usage(
     config = resolved_config or core_config_service.require_initialized_config()
     home = core_config_service.get_jelica_home().resolve(strict=False)
     result_root = home / RESULT_PACKAGE_DIRECTORY_NAME
+    reports_root = home / REPORT_DIRECTORY_NAME
     database_paths = _database_paths(config.database_path)
     roots = _unique_paths((home, config.data_dir))
     diagnostics: list[StorageDiagnostic] = []
@@ -187,6 +217,7 @@ def analyze_storage_usage(
             home=home,
             tasks_root=config.tasks_dir,
             result_root=result_root,
+            reports_root=reports_root,
             database_paths=database_paths,
             seen_inodes=seen_inodes,
             visited_directories=visited_directories,
@@ -212,6 +243,12 @@ def analyze_storage_usage(
         results_bytes=category_bytes[StorageCategory.RESULTS],
         diagnostics=diagnostics,
     )
+    report_metrics = _report_metrics(
+        core_config_service=core_config_service,
+        reports_root=reports_root,
+        reports_bytes=category_bytes[StorageCategory.REPORTS],
+        diagnostics=diagnostics,
+    )
 
     database_metrics = _database_metrics(
         database_paths=database_paths,
@@ -231,6 +268,7 @@ def analyze_storage_usage(
     return StorageUsageReport(
         tasks=task_metrics,
         results=result_metrics,
+        reports=report_metrics,
         database=database_metrics,
         other=other_metrics,
         total=total_metrics,
@@ -245,6 +283,7 @@ def _scan_path(
     home: Path,
     tasks_root: Path,
     result_root: Path,
+    reports_root: Path,
     database_paths: dict[str, Path],
     seen_inodes: set[tuple[int, int]],
     visited_directories: set[tuple[int, int]],
@@ -287,6 +326,7 @@ def _scan_path(
                 home=home,
                 tasks_root=tasks_root,
                 result_root=result_root,
+                reports_root=reports_root,
                 database_paths=database_paths,
                 seen_inodes=seen_inodes,
                 visited_directories=visited_directories,
@@ -306,6 +346,7 @@ def _scan_path(
                 path=path,
                 tasks_root=tasks_root,
                 result_root=result_root,
+                reports_root=reports_root,
                 database_paths=database_paths,
             ),
             bytes=max(0, int(info.st_size)),
@@ -318,6 +359,7 @@ def _classify_path(
     path: Path,
     tasks_root: Path,
     result_root: Path,
+    reports_root: Path,
     database_paths: dict[str, Path],
 ) -> StorageCategory:
     lexical_path = _absolute_lexical(path)
@@ -325,6 +367,8 @@ def _classify_path(
         return StorageCategory.TASKS
     if _is_relative_to(lexical_path, _absolute_lexical(result_root)):
         return StorageCategory.RESULTS
+    if _is_relative_to(lexical_path, _absolute_lexical(reports_root)):
+        return StorageCategory.REPORTS
     if any(lexical_path == _absolute_lexical(item) for item in database_paths.values()):
         return StorageCategory.DATABASE
     return StorageCategory.OTHER
@@ -477,6 +521,48 @@ def _result_metrics(
     )
 
 
+def _report_metrics(
+    *,
+    core_config_service: CoreConfigService,
+    reports_root: Path,
+    reports_bytes: int,
+    diagnostics: list[StorageDiagnostic],
+) -> ReportStorageMetrics:
+    try:
+        reports = list_stored_reports(core_config_service=core_config_service)
+    except Exception as error:
+        diagnostics.append(StorageDiagnostic(f"report catalog cannot be inspected: {error}"))
+        reports = tuple()
+
+    counts = {suffix.removeprefix("."): 0 for suffix in REPORT_RECOGNIZED_EXTENSIONS}
+    for report in reports:
+        counts[report.format.value] += 1
+
+    other_files = 0
+    if reports_root.exists() and reports_root.is_dir() and not reports_root.is_symlink():
+        try:
+            other_files = sum(
+                1
+                for entry in reports_root.iterdir()
+                if not entry.is_symlink()
+                and entry.is_file()
+                and entry.suffix.casefold() not in REPORT_RECOGNIZED_EXTENSIONS
+            )
+        except OSError as error:
+            diagnostics.append(
+                StorageDiagnostic(f"report directory cannot be inspected: {error}")
+            )
+    return ReportStorageMetrics(
+        bytes=reports_bytes,
+        reports=len(reports),
+        pdf=counts["pdf"],
+        html=counts["html"],
+        xml=counts["xml"],
+        txt=counts["txt"],
+        other_files=other_files,
+    )
+
+
 def _database_metrics(
     *,
     database_paths: dict[str, Path],
@@ -584,6 +670,7 @@ def _is_relative_to(path: Path, root: Path) -> bool:
 __all__ = [
     "DatabaseStorageMetrics",
     "OtherStorageMetrics",
+    "ReportStorageMetrics",
     "ResultStorageMetrics",
     "StorageCategory",
     "StorageDiagnostic",

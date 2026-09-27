@@ -25,8 +25,6 @@ import jelica_cli.system_config as cli_system_config
 import jelica_cli.terminal as cli_terminal
 import jelica_core.events.operations as core_operations
 from jelica_cli.results_export import (
-    ReportExportError,
-    ReportExportErrorCode,
     ReportOpenResult,
     ReportOpenWarningCode,
 )
@@ -1523,7 +1521,10 @@ def test_analyze_accepts_relative_sample_paths_from_arbitrary_current_directory(
     assert result.exit_code == 0
     task_config_path = _single_task_config_path(jelica_home)
     saved_config = json.loads(task_config_path.read_text(encoding="utf-8"))
-    assert saved_config["samples"] == ["Sample_1.fasta", "Sample_2.fasta"]
+    assert saved_config["samples"] == [
+        str((samples_dir / "Sample_1.fasta").resolve()),
+        str((samples_dir / "Sample_2.fasta").resolve()),
+    ]
 
 
 def test_analyze_saves_default_priority_in_normalized_config(tmp_path: Path) -> None:
@@ -1579,19 +1580,23 @@ def test_analyze_reference_override_is_saved_as_selector(
             "--alignment.mode=prealigned",
             f"--reference={reference_selector}",
         ]
-        expected_samples = ["data/alignment.afa"]
+        expected_samples = [str((tmp_path / "data/alignment.afa").resolve())]
+        expected_reference = (
+            f"{(tmp_path / 'data/alignment.afa').resolve()}::NC_045512.2"
+        )
     else:
         sample = tmp_path / "Sample_1.fasta"
         sample.write_text(">NC_045512.2\nACGT\n", encoding="utf-8")
         analyze_args = ["analyze", str(sample), f"--reference={reference_selector}"]
         expected_samples = [str(sample)]
+        expected_reference = reference_selector
 
     result = _invoke_cli(args=analyze_args, jelica_home=jelica_home)
 
     assert result.exit_code == 0
     task_config_path = _single_task_config_path(jelica_home)
     saved_config = json.loads(task_config_path.read_text(encoding="utf-8"))
-    assert saved_config["reference"] == reference_selector
+    assert saved_config["reference"] == expected_reference
     assert saved_config["samples"] == expected_samples
 
 
@@ -4493,15 +4498,14 @@ def test_results_export_help_uses_canonical_equals_forms(tmp_path: Path) -> None
 
     assert result.exit_code == 0
     assert "--format=pdf" in result.stdout
-    assert "--output=report.pdf" in result.stdout
-    assert "--open=true" in result.stdout
+    assert "--output=PATH" in result.stdout
+    assert "--open" in result.stdout
 
 
 def test_results_export_with_format_equals_creates_pdf(
     tmp_path: Path, monkeypatch: Any
 ) -> None:
     jelica_home, _, content_id = _prepare_imported_package_for_export(tmp_path)
-    digest = content_digest_from_content_id(content_id)
     cwd = tmp_path / "cwd"
     cwd.mkdir(parents=True)
     monkeypatch.chdir(cwd)
@@ -4512,15 +4516,18 @@ def test_results_export_with_format_equals_creates_pdf(
     )
 
     assert result.exit_code == 0
-    assert "PDF report created" in result.stdout
+    assert "Generated: 1" in result.stdout
     output_path = _extract_export_path(result.stdout)
-    expected_path = (cwd / f"jelica-report-{digest}.pdf").resolve(strict=False)
+    digest = content_digest_from_content_id(content_id)
+    expected_path = (
+        jelica_home / "reports" / f"package__{digest}.pdf"
+    ).resolve(strict=False)
     assert output_path == expected_path
     assert output_path.is_file()
     assert output_path.read_bytes().startswith(b"%PDF-")
 
 
-def test_results_export_default_output_name_is_based_on_digest_for_all_source_types(
+def test_results_export_default_output_name_uses_resolved_source_filename(
     tmp_path: Path,
     monkeypatch: Any,
 ) -> None:
@@ -4536,7 +4543,6 @@ def test_results_export_default_output_name_is_based_on_digest_for_all_source_ty
         name=task_name,
         content_id=content_id,
     )
-    expected_name = f"jelica-report-{digest}.pdf"
     source_refs = (
         content_id,
         digest,
@@ -4555,7 +4561,14 @@ def test_results_export_default_output_name_is_based_on_digest_for_all_source_ty
         )
         assert result.exit_code == 0
         output_path = _extract_export_path(result.stdout)
-        expected_path = (cwd / expected_name).resolve(strict=False)
+        expected_stem = (
+            "package"
+            if index == len(source_refs) - 1
+            else f"package__{digest}{f'_{index}' if index else ''}"
+        )
+        expected_path = (
+            jelica_home / "reports" / f"{expected_stem}.pdf"
+        ).resolve(strict=False)
         assert output_path == expected_path
         assert output_path.is_file()
         assert result_packages_dir not in output_path.parents
@@ -4614,7 +4627,7 @@ def test_results_export_rejects_missing_output_parent_directory(
     assert not (cwd / "missing").exists()
 
 
-def test_results_export_replaces_existing_output_after_successful_render(
+def test_results_export_force_replaces_existing_output_after_successful_render(
     tmp_path: Path,
     monkeypatch: Any,
 ) -> None:
@@ -4632,6 +4645,7 @@ def test_results_export_replaces_existing_output_after_successful_render(
             content_id,
             "--format=pdf",
             "--output=analysis-report.pdf",
+            "--force",
         ],
         jelica_home=jelica_home,
     )
@@ -4653,17 +4667,13 @@ def test_results_export_keeps_existing_output_when_render_fails(
     output_path = cwd / "analysis-report.pdf"
     output_path.write_bytes(b"old-pdf-bytes")
 
-    def failing_export(*, package_path: Path, output: str | None) -> Path:
-        _ = (package_path, output)
-        raise ReportExportError(
-            code=ReportExportErrorCode.PDF_RENDER_FAILED,
-            message="forced render failure",
-        )
+    def failing_render(*args: object, **kwargs: object) -> bytes:
+        _ = (args, kwargs)
+        raise RuntimeError("forced render failure")
 
     monkeypatch.setattr(
-        cli_results_export,
-        "_export_report_pdf",
-        failing_export,
+        "jelica_core.reporting.generation.PdfReportRenderer.render",
+        failing_render,
     )
     result = _invoke_cli(
         args=[
@@ -4672,12 +4682,13 @@ def test_results_export_keeps_existing_output_when_render_fails(
             content_id,
             "--format=pdf",
             "--output=analysis-report.pdf",
+            "--force",
         ],
         jelica_home=jelica_home,
     )
 
     assert result.exit_code == 1
-    assert "[pdf_render_failed]" in result.stdout
+    assert "PDF report could not be rendered" in result.stdout
     assert output_path.read_bytes() == b"old-pdf-bytes"
 
 
@@ -4695,7 +4706,7 @@ def test_results_export_open_defaults_to_false_and_does_not_call_opener(
         opener_calls.append(path)
         return ReportOpenResult(opened=True)
 
-    monkeypatch.setattr(cli_results_export, "open_report_file", fake_open_report)
+    monkeypatch.setattr(cli_main, "open_report_file", fake_open_report)
     result = _invoke_cli(
         args=["results", "export", content_id, "--format=pdf"],
         jelica_home=jelica_home,
@@ -4723,7 +4734,7 @@ def test_results_export_open_true_calls_opener_once_with_published_absolute_path
         observed_pdf_headers.append(path.read_bytes().startswith(b"%PDF-"))
         return ReportOpenResult(opened=True)
 
-    monkeypatch.setattr(cli_results_export, "open_report_file", fake_open_report)
+    monkeypatch.setattr(cli_main, "open_report_file", fake_open_report)
     result = _invoke_cli(
         args=[
             "results",
@@ -4731,7 +4742,7 @@ def test_results_export_open_true_calls_opener_once_with_published_absolute_path
             content_id,
             "--format=pdf",
             "--output=analysis-report.pdf",
-            "--open=true",
+            "--open",
         ],
         jelica_home=jelica_home,
     )
@@ -4742,7 +4753,6 @@ def test_results_export_open_true_calls_opener_once_with_published_absolute_path
     assert observed_files == [True]
     assert observed_pdf_headers == [True]
     assert ".tmp" not in str(observed_paths[0])
-    assert "Report opened in the default application." in result.stdout
 
 
 def test_results_export_does_not_call_opener_when_generation_fails(
@@ -4759,18 +4769,14 @@ def test_results_export_does_not_call_opener_when_generation_fails(
         opener_calls.append(path)
         return ReportOpenResult(opened=True)
 
-    def failing_export(*, package_path: Path, output: str | None) -> Path:
-        _ = (package_path, output)
-        raise ReportExportError(
-            code=ReportExportErrorCode.PDF_RENDER_FAILED,
-            message="forced render failure",
-        )
+    def failing_render(*args: object, **kwargs: object) -> bytes:
+        _ = (args, kwargs)
+        raise RuntimeError("forced render failure")
 
-    monkeypatch.setattr(cli_results_export, "open_report_file", fake_open_report)
+    monkeypatch.setattr(cli_main, "open_report_file", fake_open_report)
     monkeypatch.setattr(
-        cli_results_export,
-        "_export_report_pdf",
-        failing_export,
+        "jelica_core.reporting.generation.PdfReportRenderer.render",
+        failing_render,
     )
     result = _invoke_cli(
         args=[
@@ -4778,7 +4784,7 @@ def test_results_export_does_not_call_opener_when_generation_fails(
             "export",
             content_id,
             "--format=pdf",
-            "--open=true",
+            "--open",
         ],
         jelica_home=jelica_home,
     )
@@ -4803,7 +4809,7 @@ def test_results_export_keeps_pdf_and_warns_when_auto_open_fails(
             warning_code=ReportOpenWarningCode.REPORT_OPEN_FAILED,
         )
 
-    monkeypatch.setattr(cli_results_export, "open_report_file", failing_open_report)
+    monkeypatch.setattr(cli_main, "open_report_file", failing_open_report)
     result = _invoke_cli(
         args=[
             "results",
@@ -4811,7 +4817,7 @@ def test_results_export_keeps_pdf_and_warns_when_auto_open_fails(
             content_id,
             "--format=pdf",
             "--output=analysis-report.pdf",
-            "--open=true",
+            "--open",
         ],
         jelica_home=jelica_home,
     )
@@ -4819,11 +4825,8 @@ def test_results_export_keeps_pdf_and_warns_when_auto_open_fails(
     assert result.exit_code == 0
     output_path = (cwd / "analysis-report.pdf").resolve(strict=False)
     assert output_path.is_file()
-    assert "PDF report created" in result.stdout
-    assert (
-        "Warning: [report_open_failed] The report could not be opened automatically."
-        in result.stdout
-    )
+    assert "Generated: 1" in result.stdout
+    assert "Report could not be opened automatically." in result.stdout
     assert "Traceback" not in result.stdout
 
 

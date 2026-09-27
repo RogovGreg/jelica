@@ -3,7 +3,7 @@ from __future__ import annotations
 from .api import initialize_analysis_task, plan_analysis, plan_analysis_from_inputs
 from .errors import AnalysisTaskInitializationError, AnalysisTaskWorkspaceCompensationError
 from .models import InitializeAnalysisTaskRequest
-from .orchestrator import AnalysisOrchestrator
+from .orchestrator import AnalysisOrchestrator, bind_submission_paths
 from .planning import (
     AnalysisExecutionSelection,
     AnalysisPlan,
@@ -21,6 +21,7 @@ __all__ = [
     "AnalysisTaskWorkspaceCompensationError",
     "InitializeAnalysisTaskRequest",
     "build_analysis_plan",
+    "bind_submission_paths",
     "initialize_analysis_task",
     "plan_analysis",
     "plan_analysis_from_inputs",

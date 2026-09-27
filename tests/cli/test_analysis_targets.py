@@ -121,7 +121,7 @@ def test_analysis_alias_plan_defaults_source_and_prints_selection(tmp_path: Path
     result = _invoke(jelica_home=jelica_home, args=["align", "--plan"])
 
     assert result.exit_code == 0, result.stdout
-    assert "Sources:\n  - ." in result.stdout
+    assert f"Sources:\n  - {Path.cwd().resolve()}" in result.stdout
     assert "Target: alignment" in result.stdout
     assert "From phase: auto" in result.stdout
     assert "Resolved start phase: input_processing" in result.stdout

@@ -51,7 +51,18 @@ from jelica_core.events import (
     set_command_id,
 )
 from jelica_core.input_sources import InputSourceKind, classify_input_source
-from jelica_core.reporting import ResultOverviewBuildError, build_result_overview
+from jelica_core.reporting import (
+    ReportGenerationError,
+    ReportStoreError,
+    ReportStoreErrorCode,
+    ResultOverviewBuildError,
+    build_result_overview,
+    delete_stored_reports,
+    generate_reports,
+    list_stored_reports,
+    plan_report_generation,
+    resolve_stored_report,
+)
 from jelica_core.result_package import (
     JelicaPackageValidator,
     ListedResultPackage,
@@ -124,9 +135,7 @@ from .machine_protocol import (
     serialize_machine_payload,
 )
 from .results_export import (
-    ReportExportError,
-    ReportExportErrorCode,
-    export_results_pdf_report,
+    open_report_file,
 )
 from .results_import import (
     ResultImportPlanError,
@@ -527,6 +536,11 @@ results_app = typer.Typer(
     ),
     rich_markup_mode=None,
 )
+reports_app = typer.Typer(
+    add_completion=False,
+    help="jelica reports <command> — Generate and manage filesystem-backed reports.",
+    rich_markup_mode=None,
+)
 storage_app = typer.Typer(
     add_completion=False,
     help="jelica storage <command> — Inspect managed persistent storage.",
@@ -542,6 +556,7 @@ tasks_app.add_typer(
 app.add_typer(service_app, name="service", rich_help_panel="Service")
 app.add_typer(events_app, name="events", rich_help_panel="Events")
 app.add_typer(results_app, name="results", rich_help_panel="Result packages")
+app.add_typer(reports_app, name="reports", rich_help_panel="Reports")
 app.add_typer(storage_app, name="storage", rich_help_panel="Storage")
 
 
@@ -838,6 +853,7 @@ def storage_usage(
     ),
     tasks: bool = typer.Option(False, "--tasks", help="Include task storage."),
     results: bool = typer.Option(False, "--results", help="Include result-package storage."),
+    reports: bool = typer.Option(False, "--reports", help="Include managed report storage."),
     database: bool = typer.Option(False, "--database", help="Include SQLite storage."),
     other: bool = typer.Option(False, "--other", help="Include other managed storage."),
     total: bool = typer.Option(False, "--total", help="Include total managed storage."),
@@ -854,6 +870,7 @@ def storage_usage(
     selected_categories = _storage_selected_categories(
         tasks=tasks,
         results=results,
+        reports=reports,
         database=database,
         other=other,
         total=total,
@@ -1003,6 +1020,7 @@ def _result_list_display_name(package: ListedResultPackage) -> str:
 _STORAGE_CATEGORY_ORDER: tuple[StorageCategory, ...] = (
     StorageCategory.TASKS,
     StorageCategory.RESULTS,
+    StorageCategory.REPORTS,
     StorageCategory.DATABASE,
     StorageCategory.OTHER,
     StorageCategory.TOTAL,
@@ -1013,6 +1031,7 @@ def _storage_selected_categories(
     *,
     tasks: bool,
     results: bool,
+    reports: bool,
     database: bool,
     other: bool,
     total: bool,
@@ -1022,6 +1041,7 @@ def _storage_selected_categories(
         for category, enabled in (
             (StorageCategory.TASKS, tasks),
             (StorageCategory.RESULTS, results),
+            (StorageCategory.REPORTS, reports),
             (StorageCategory.DATABASE, database),
             (StorageCategory.OTHER, other),
             (StorageCategory.TOTAL, total),
@@ -1078,6 +1098,9 @@ def _format_storage_one_line(
     if category is StorageCategory.RESULTS:
         suffix = f" ({report.results.packages} packages)" if standard else ""
         return f"Results: {_format_storage_bytes(report.results.bytes)}{suffix}"
+    if category is StorageCategory.REPORTS:
+        suffix = f" ({report.reports.reports} reports)" if standard else ""
+        return f"Reports: {_format_storage_bytes(report.reports.bytes)}{suffix}"
     if category is StorageCategory.DATABASE:
         return f"Database: {_format_storage_bytes(report.database.bytes)}"
     if category is StorageCategory.OTHER:
@@ -1112,6 +1135,17 @@ def _format_storage_verbose_block(
             f"  Referenced packages: {report.results.referenced_packages}",
             f"  Standalone packages: {report.results.standalone_packages}",
             f"  Invalid packages: {report.results.invalid_packages}",
+        ]
+    if category is StorageCategory.REPORTS:
+        return [
+            "Reports",
+            f"  Size: {_format_storage_bytes(report.reports.bytes)} ({report.reports.bytes} bytes)",
+            f"  Reports: {report.reports.reports}",
+            f"  PDF: {report.reports.pdf}",
+            f"  HTML: {report.reports.html}",
+            f"  XML: {report.reports.xml}",
+            f"  TXT: {report.reports.txt}",
+            f"  Other files: {report.reports.other_files}",
         ]
     if category is StorageCategory.DATABASE:
         lines = [
@@ -1362,79 +1396,375 @@ def results_overview(
 @results_app.command(
     "export",
     help=(
-        "jelica results export SOURCE --format=pdf [--output=report.pdf] [--open=true] "
-        "— Export a PDF report."
+        "jelica results export RESULT_REF... [--format=pdf] [--output=PATH] "
+        "[--name=TEMPLATE] [--force] [--open] — Generate managed reports."
     ),
     rich_help_panel="Export",
 )
 def results_export(
-    source: str = typer.Argument(
-        ...,
-        help="Task ID, content ID, bare digest, or direct path to a .jelica package.",
+    sources: list[str] | None = typer.Argument(
+        None,
+        help="One or more task/result references or direct .jelica paths.",
     ),
     format_name: str = typer.Option(
-        ...,
+        "pdf",
         "--format",
-        help="Export format. Use --format=pdf.",
+        help="Report format. PDF is currently supported.",
+    ),
+    name_template: str | None = typer.Option(
+        None,
+        "--name",
+        help="Report filename stem/template without extension.",
     ),
     output: str | None = typer.Option(
         None,
         "--output",
-        help="Output report file path. Use --output=report.pdf.",
+        help="Output directory or exact .pdf target.",
     ),
-    open_option: str = typer.Option(
-        "false",
+    force: bool = typer.Option(
+        False,
+        "--force",
+        help="Overwrite the base target instead of allocating a collision name.",
+    ),
+    open_after_generation: bool = typer.Option(
+        False,
         "--open",
-        help="Open the exported report. Use --open=true or --open=false.",
+        help="Open each successfully generated report.",
+    ),
+    machine: bool = typer.Option(
+        False,
+        "--machine",
+        help="Write one machine protocol JSON response.",
     ),
 ) -> None:
-    if format_name.strip().lower() != "pdf":
-        _TERMINAL.plain(
-            "[unsupported_export_format] Only --format=pdf is supported.", style="red"
-        )
-        raise typer.Exit(code=1)
+    _run_report_generation_command(
+        sources=tuple(sources or ()),
+        format_name=format_name,
+        name_template=name_template,
+        output=output,
+        force=force,
+        open_after_generation=open_after_generation,
+        machine=machine,
+    )
 
+
+@reports_app.command(
+    "generate",
+    help=(
+        "jelica reports generate RESULT_REF... [--format=pdf] [--output=PATH] "
+        "[--name=TEMPLATE] [--force] [--open] — Generate managed reports."
+    ),
+    rich_help_panel="Generation",
+)
+def reports_generate(
+    sources: list[str] | None = typer.Argument(
+        None,
+        help="One or more task/result references or direct .jelica paths.",
+    ),
+    format_name: str = typer.Option(
+        "pdf",
+        "--format",
+        help="Report format. PDF is currently supported.",
+    ),
+    name_template: str | None = typer.Option(
+        None,
+        "--name",
+        help="Report filename stem/template without extension.",
+    ),
+    output: str | None = typer.Option(
+        None,
+        "--output",
+        help="Output directory or exact .pdf target.",
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        help="Overwrite the base target instead of allocating a collision name.",
+    ),
+    open_after_generation: bool = typer.Option(
+        False,
+        "--open",
+        help="Open each successfully generated report.",
+    ),
+    machine: bool = typer.Option(
+        False,
+        "--machine",
+        help="Write one machine protocol JSON response.",
+    ),
+) -> None:
+    _run_report_generation_command(
+        sources=tuple(sources or ()),
+        format_name=format_name,
+        name_template=name_template,
+        output=output,
+        force=force,
+        open_after_generation=open_after_generation,
+        machine=machine,
+    )
+
+
+def _run_report_generation_command(
+    *,
+    sources: tuple[str, ...],
+    format_name: str,
+    name_template: str | None,
+    output: str | None,
+    force: bool,
+    open_after_generation: bool,
+    machine: bool,
+) -> None:
     try:
-        open_after_export = _parse_open_option(value=open_option)
-        outcome = export_results_pdf_report(
-            source=source,
+        plan = plan_report_generation(
+            references=sources,
+            format_name=format_name,
+            name_template=name_template,
             output=output,
-            open_after_export=open_after_export,
+            force=force,
             core_config_service=_core_config_service(),
         )
-    except ResultPackageLibraryError as error:
-        _print_result_package_library_error(error)
-        raise typer.Exit(code=1) from error
-    except ReportExportError as error:
-        _TERMINAL.plain(f"[{error.code.value}] {error}", style="red")
-        raise typer.Exit(code=1) from error
-
-    _TERMINAL.success("PDF report created")
-    _TERMINAL.plain(f"Path: {outcome.output_path}")
-    if outcome.open_result is None:
-        raise typer.Exit(code=0)
-
-    if outcome.open_result.opened:
-        _TERMINAL.success("Report opened in the default application.")
-        raise typer.Exit(code=0)
-
-    warning_code = outcome.open_result.warning_code
-    if warning_code is not None:
-        _TERMINAL.warning(
-            f"[{warning_code.value}] The report could not be opened automatically."
+        outcome = generate_reports(
+            plan=plan,
+            report_opener=open_report_file if open_after_generation else None,
         )
+    except (ReportGenerationError, ReportStoreError) as error:
+        _exit_with_report_cli_error(error=error, machine=machine)
+
+    payload = outcome.to_dict()
+    if machine:
+        if outcome.failed_count:
+            error = _build_cli_public_error(
+                definition=CLI_RESULT_PACKAGE_RESOLUTION_FAILED,
+                message_params={"detail": "One or more reports could not be generated."},
+                expected=True,
+            ).model_copy(update={"safe_details": payload})
+            _print_machine_error(error=error)
+            raise typer.Exit(code=1)
+        _print_machine_success(data=payload)
+        raise typer.Exit(code=0)
+
+    _TERMINAL.plain(f"Generated: {outcome.generated_count}")
+    _TERMINAL.plain(f"Failed: {outcome.failed_count}")
+    for item in outcome.items:
+        if item.status == "generated" and item.path is not None:
+            _TERMINAL.plain(f"Path: {item.path.resolve(strict=False)}")
+            if item.open_warning is not None:
+                _TERMINAL.warning(item.open_warning)
+        elif item.status == "failed":
+            _TERMINAL.error(f"Failed: {item.reference} — {item.error}")
+    raise typer.Exit(code=1 if outcome.failed_count else 0)
+
+
+def _exit_with_report_cli_error(
+    *, error: ReportGenerationError | ReportStoreError, machine: bool
+) -> NoReturn:
+    detail = f"[{error.code}] {error}"
+    if machine:
+        machine_error = _build_cli_public_error(
+            definition=CLI_RESULT_PACKAGE_RESOLUTION_FAILED,
+            message_params={"detail": detail},
+            expected=True,
+        ).model_copy(update={"safe_details": {"report_error_code": error.code}})
+        _print_machine_error(error=machine_error)
+        raise typer.Exit(code=1)
+    _TERMINAL.error(detail)
+    raise typer.Exit(code=1)
+
+
+@reports_app.command(
+    "list",
+    help="jelica reports list [--short|--standard|--verbose] — List managed reports.",
+    rich_help_panel="Catalog",
+)
+def reports_list(
+    short: bool = typer.Option(False, "--short", help="Show one concise line per report."),
+    standard: bool = typer.Option(False, "--standard", help="Show the standard report view."),
+    verbose: bool = typer.Option(False, "--verbose", help="Show detailed report metadata."),
+    machine: bool = typer.Option(
+        False, "--machine", help="Write one machine protocol JSON response."
+    ),
+) -> None:
+    if sum((short, standard, verbose)) > 1:
+        raise typer.BadParameter(
+            "Options --short, --standard, and --verbose are mutually exclusive."
+        )
+    view = "short" if short else "verbose" if verbose else "standard"
+    try:
+        reports = list_stored_reports(core_config_service=_core_config_service())
+    except ReportStoreError as error:
+        _exit_with_report_cli_error(error=error, machine=machine)
+    if machine:
+        _print_machine_success(data={"reports": [report.to_dict() for report in reports]})
+        raise typer.Exit(code=0)
+    if not reports:
+        _TERMINAL.plain("No managed reports found")
+        raise typer.Exit(code=0)
+    for index, report in enumerate(reports, start=1):
+        if index > 1 and view != "short":
+            _TERMINAL.plain("")
+        indent = " " * len(f"{index}. ")
+        if view == "short":
+            _TERMINAL.plain(f"{index}. {report.filename}")
+        elif view == "standard":
+            _TERMINAL.plain(f"{index}. Report: {report.filename}")
+            _TERMINAL.plain(
+                f"{indent}Format: {report.format.value.upper()} - "
+                f"{_format_storage_bytes(report.size_bytes)}"
+            )
+        else:
+            _TERMINAL.plain(f"{index}. Report: {report.filename}")
+            _TERMINAL.plain(f"{indent}Format: {report.format.value.upper()}")
+            _TERMINAL.plain(
+                f"{indent}Size: {_format_storage_bytes(report.size_bytes)} "
+                f"({report.size_bytes} bytes)"
+            )
+            _TERMINAL.plain(f"{indent}Modified: {report.modified_at}")
+            _TERMINAL.plain(f"{indent}Path: {report.path.resolve(strict=False)}")
     raise typer.Exit(code=0)
 
 
-def _parse_open_option(*, value: str) -> bool:
-    normalized = value.strip().lower()
-    if normalized == "true":
-        return True
-    if normalized == "false":
-        return False
-    raise ReportExportError(
-        code=ReportExportErrorCode.INVALID_OPEN_VALUE,
-        message="Option --open must be a boolean (true/false).",
+@reports_app.command(
+    "path",
+    help="jelica reports path REPORT_REF — Resolve a managed report path.",
+)
+def reports_path(
+    reference: str = typer.Argument(
+        ..., help="Managed report filename, stem, or reference."
+    ),
+    machine: bool = typer.Option(
+        False, "--machine", help="Write one machine protocol JSON response."
+    ),
+) -> None:
+    try:
+        report = resolve_stored_report(
+            reference=reference,
+            core_config_service=_core_config_service(),
+        )
+    except ReportStoreError as error:
+        _exit_with_report_cli_error(error=error, machine=machine)
+    if machine:
+        _print_machine_success(data=report.to_dict())
+    else:
+        _TERMINAL.plain(str(report.path.resolve(strict=False)))
+    raise typer.Exit(code=0)
+
+
+@reports_app.command(
+    "open",
+    help="jelica reports open REPORT_REF — Open a managed or external report.",
+)
+def reports_open(
+    reference: str = typer.Argument(
+        ..., help="Managed reference or explicit external report path."
+    ),
+    machine: bool = typer.Option(
+        False, "--machine", help="Write one machine protocol JSON response."
+    ),
+) -> None:
+    target: Path
+    if _looks_like_report_path(reference):
+        candidate = Path(reference).expanduser()
+        if not candidate.is_absolute():
+            candidate = Path.cwd() / candidate
+        candidate = candidate.absolute()
+        report_format = candidate.suffix.casefold()
+        if (
+            not candidate.is_file()
+            or candidate.is_symlink()
+            or report_format not in {".pdf", ".html", ".xml", ".txt"}
+        ):
+            error = ReportStoreError(
+                code=ReportStoreErrorCode.REPORT_NOT_FOUND,
+                message="External report path must be an existing regular report file.",
+            )
+            _exit_with_report_cli_error(error=error, machine=machine)
+        target = candidate.resolve(strict=False)
+    else:
+        try:
+            target = resolve_stored_report(
+                reference=reference,
+                core_config_service=_core_config_service(),
+            ).path
+        except ReportStoreError as error:
+            _exit_with_report_cli_error(error=error, machine=machine)
+    result = open_report_file(target)
+    opened = bool(result.opened)
+    if machine:
+        _print_machine_success(data={"path": str(target.resolve(strict=False)), "opened": opened})
+    elif not opened:
+        _TERMINAL.warning("The report could not be opened automatically.")
+    else:
+        _TERMINAL.success("Report opened in the default application.")
+    raise typer.Exit(code=0)
+
+
+@reports_app.command(
+    "delete",
+    help="jelica reports delete REPORT_REF... [--all --force] — Delete managed reports.",
+)
+def reports_delete(
+    references: list[str] | None = typer.Argument(
+        None, help="One or more managed report references."
+    ),
+    all_reports: bool = typer.Option(
+        False,
+        "--all",
+        help="Delete all recognized managed reports; requires --force.",
+    ),
+    force: bool = typer.Option(False, "--force", help="Allow delete-all."),
+    yes: bool = typer.Option(
+        False, "--yes", help="Confirm deletion without an interactive prompt."
+    ),
+    machine: bool = typer.Option(
+        False,
+        "--machine",
+        help="Write one machine protocol JSON response. Requires --yes.",
+    ),
+) -> None:
+    if all_reports:
+        _validate_all_force_order(command_name="reports delete")
+    refs = tuple(references or ())
+    try:
+        if all_reports:
+            targets = list_stored_reports(core_config_service=_core_config_service())
+        else:
+            resolved_targets = {}
+            for reference in refs:
+                target = resolve_stored_report(
+                    reference=reference,
+                    core_config_service=_core_config_service(),
+                )
+                resolved_targets[target.path.resolve(strict=False)] = target
+            targets = tuple(resolved_targets.values())
+    except ReportStoreError as error:
+        _exit_with_report_cli_error(error=error, machine=machine)
+    if machine and not yes:
+        raise typer.BadParameter("reports delete --machine requires --yes.")
+    if not yes and not typer.confirm(f"Delete {len(targets)} managed reports?", default=False):
+        raise typer.Exit(code=1)
+    try:
+        deleted = delete_stored_reports(
+            references=refs,
+            delete_all=all_reports,
+            force=force,
+            core_config_service=_core_config_service(),
+        )
+    except ReportStoreError as error:
+        _exit_with_report_cli_error(error=error, machine=machine)
+    payload = {"deleted": len(deleted), "reports": [item.to_dict() for item in deleted]}
+    if machine:
+        _print_machine_success(data=payload)
+    else:
+        _TERMINAL.plain(f"Reports deleted: {len(deleted)}")
+    raise typer.Exit(code=0)
+
+
+def _looks_like_report_path(value: str) -> bool:
+    normalized = value.strip()
+    return (
+        normalized.startswith((".", "~", "/"))
+        or "/" in normalized
+        or "\\" in normalized
+        or Path(normalized).is_absolute()
     )
 
 
@@ -1623,6 +1953,7 @@ def analyze(
             config_json=config_json,
             output_format=output_format,
             verbose=verbose,
+            submission_base_dir=Path.cwd(),
         )
         if not machine:
             _print_analysis_plan(analysis_plan)
@@ -1647,6 +1978,7 @@ def analyze(
         config_json=config_json,
         raw_overrides=parsed_arguments.raw_overrides,
         positional_sources=parsed_arguments.sources,
+        submission_base_dir=Path.cwd(),
         core_config_service=_core_config_service(),
     )
 
@@ -2681,6 +3013,7 @@ def tasks_update(
         task_id=task_id,
         config_json=config_json,
         raw_overrides=parsed_arguments.raw_overrides,
+        submission_base_dir=Path.cwd(),
         core_config_service=_core_config_service(),
     )
     if not result.ok:
@@ -2767,6 +3100,7 @@ def tasks_samples_add(
     result = run_add_analytical_task_samples(
         task_id=task_id,
         sources=tuple(sources),
+        submission_base_dir=Path.cwd(),
         core_config_service=_core_config_service(),
     )
     if not result.ok:
@@ -3291,12 +3625,14 @@ def _build_analysis_plan_for_cli(
     config_json: str | None,
     output_format: str,
     verbose: bool,
+    submission_base_dir: Path,
 ) -> AnalysisPlan:
     try:
         return plan_analysis_from_inputs(
             config_json=config_json,
             raw_overrides=parsed_arguments.raw_overrides,
             positional_sources=parsed_arguments.sources,
+            submission_base_dir=submission_base_dir,
             core_config_service=_core_config_service(),
         )
     except Exception as error:

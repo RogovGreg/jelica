@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 from dataclasses import dataclass
 from enum import StrEnum
@@ -54,9 +55,15 @@ class InputSourceClassification:
     inline_length: int | None = None
 
 
-def classify_input_source(source: str) -> InputSourceClassification:
+def classify_input_source(
+    source: str,
+    *,
+    base_directory: Path | None = None,
+) -> InputSourceClassification:
     normalized = source.strip()
     path_candidate = Path(normalized).expanduser()
+    if base_directory is not None and not path_candidate.is_absolute():
+        path_candidate = Path(os.path.abspath(base_directory.expanduser())) / path_candidate
     try:
         path_exists = path_candidate.exists()
     except OSError:
@@ -102,6 +109,50 @@ def classify_input_source(source: str) -> InputSourceClassification:
         original=source,
         normalized=normalized,
     )
+
+
+def resolve_submission_source(*, source: str, base_directory: Path) -> str:
+    """Bind a user-local source to the directory used at task submission.
+
+    Non-local source kinds retain their existing representation.  Local paths,
+    including path-like references that do not exist yet, become absolute so
+    later workers never interpret them relative to their own working directory.
+    """
+
+    normalized = source.strip()
+    base = Path(os.path.abspath(base_directory.expanduser()))
+    classification = classify_input_source(normalized, base_directory=base)
+    if classification.kind is InputSourceKind.LOCAL_PATH:
+        assert classification.local_path is not None
+        return os.path.abspath(classification.local_path)
+    if classification.kind in {
+        InputSourceKind.NCBI_NUCLEOTIDE_URL,
+        InputSourceKind.NCBI_NUCLEOTIDE_ACCESSION,
+        InputSourceKind.INLINE_SEQUENCE,
+    }:
+        return normalized
+    if normalized.startswith(("http://", "https://")):
+        return normalized
+    if looks_like_local_path(normalized):
+        candidate = Path(normalized).expanduser()
+        if not candidate.is_absolute():
+            candidate = base / candidate
+        return os.path.abspath(candidate)
+    return normalized
+
+
+def resolve_submission_reference(*, reference: str, base_directory: Path) -> str:
+    """Bind a local reference selector while preserving record selectors."""
+
+    normalized = reference.strip()
+    if "::" not in normalized:
+        return resolve_submission_source(source=normalized, base_directory=base_directory)
+    path_part, record_selector = normalized.split("::", maxsplit=1)
+    resolved_path = resolve_submission_source(
+        source=path_part,
+        base_directory=base_directory,
+    )
+    return f"{resolved_path}::{record_selector}"
 
 
 def normalize_inline_sequence(value: str) -> str | None:

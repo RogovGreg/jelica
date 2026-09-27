@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from jelica_core.config import parse_cli_overrides
 from jelica_core.system_config import CoreConfigService
 from jelica_core.tasks import InitializedAnalysisTask, LocalTaskStorage
@@ -49,6 +51,7 @@ def plan_analysis_from_inputs(
     config_json: str | None,
     raw_overrides: tuple[str, ...],
     positional_sources: tuple[str, ...],
+    submission_base_dir: Path | None = None,
     core_config_service: CoreConfigService | None = None,
 ) -> AnalysisPlan:
     """Build a plan from the same input forms accepted by task initialization."""
@@ -57,6 +60,7 @@ def plan_analysis_from_inputs(
         config_json=config_json,
         overrides=tuple(parse_cli_overrides(raw_overrides)),
         positional_sources=positional_sources,
+        submission_base_dir=submission_base_dir,
     )
     return plan_analysis(
         request=request,

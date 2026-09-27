@@ -20,6 +20,7 @@ from jelica_contracts import (
 )
 from jelica_core.analysis import (
     InitializeAnalysisTaskRequest,
+    bind_submission_paths,
     initialize_analysis_task,
     resolve_analysis_execution_selection,
 )
@@ -31,6 +32,7 @@ from jelica_core.config import (
     parse_cli_overrides,
     resolve_analysis_config,
 )
+from jelica_core.input_sources import resolve_submission_source
 from jelica_core.result_package import (
     ResultPackageLibraryError,
     TaskResultReferenceAnalysis,
@@ -726,6 +728,7 @@ def run_initialize_analysis_task_from_inputs(
     config_json: str | None,
     raw_overrides: tuple[str, ...],
     positional_sources: tuple[str, ...],
+    submission_base_dir: Path | None = None,
     core_config_service: CoreConfigService | None = None,
 ) -> CoreOperationResult[InitializedAnalysisTask]:
     service = core_config_service or CoreConfigService()
@@ -744,6 +747,7 @@ def run_initialize_analysis_task_from_inputs(
             config_json=config_json,
             overrides=tuple(parsed_overrides),
             positional_sources=positional_sources,
+            submission_base_dir=submission_base_dir,
         )
     except Exception as error:
         return _failure_result(error=error, runtime=runtime, execution_context=execution_context)
@@ -761,6 +765,7 @@ def run_create_analytical_task_from_inputs(
     config_json: str | None,
     raw_overrides: tuple[str, ...],
     positional_sources: tuple[str, ...],
+    submission_base_dir: Path | None = None,
     core_config_service: CoreConfigService | None = None,
 ) -> CoreOperationResult[InitializedAnalysisTask]:
     return run_initialize_analysis_task_from_inputs(
@@ -769,6 +774,7 @@ def run_create_analytical_task_from_inputs(
         config_json=config_json,
         raw_overrides=raw_overrides,
         positional_sources=positional_sources,
+        submission_base_dir=submission_base_dir,
         core_config_service=core_config_service,
     )
 
@@ -2031,6 +2037,7 @@ def run_update_analytical_task(
     task_id: str,
     config_json: str | None = None,
     raw_overrides: tuple[str, ...] = (),
+    submission_base_dir: Path | None = None,
     core_config_service: CoreConfigService | None = None,
     operation_id: str = "tasks.update",
     operation_context: dict[str, JSONValue] | None = None,
@@ -2117,6 +2124,10 @@ def run_update_analytical_task(
         merged_config = apply_config_overrides(
             base_config=parsed_config,
             overrides=tuple(parsed_overrides),
+        )
+        merged_config = bind_submission_paths(
+            config_input=merged_config,
+            base_directory=submission_base_dir,
         )
         resolution = resolve_analysis_config(
             merged_config,
@@ -2270,6 +2281,7 @@ def run_add_analytical_task_samples(
     *,
     task_id: str,
     sources: Sequence[str],
+    submission_base_dir: Path | None = None,
     core_config_service: CoreConfigService | None = None,
 ) -> CoreOperationResult[TaskUpdateResult]:
     service = core_config_service or CoreConfigService()
@@ -2284,6 +2296,11 @@ def run_add_analytical_task_samples(
         if normalized_task_id == "":
             raise AnalyticalTaskInvalidRecordDataError(detail="task_id must not be empty")
         normalized_sources = _normalize_added_sources(sources=sources)
+        if submission_base_dir is not None:
+            normalized_sources = [
+                resolve_submission_source(source=source, base_directory=submission_base_dir)
+                for source in normalized_sources
+            ]
         if len(normalized_sources) == 0:
             raise AnalyticalTaskInvalidRecordDataError(
                 detail="at least one source must be provided"
@@ -2319,6 +2336,7 @@ def run_add_analytical_task_samples(
         task_id=normalized_task_id,
         config_json=config_json,
         raw_overrides=(),
+        submission_base_dir=submission_base_dir,
         core_config_service=service,
         operation_id="tasks.samples.add",
         operation_context={

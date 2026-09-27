@@ -384,7 +384,7 @@ def test_analyze_plan_machine_is_dry_run_and_accepts_trace_id(tmp_path: Path) ->
     payload = _parse_single_response(result.stdout)
     assert payload["ok"] is True
     assert payload["trace_id"] == trace_id
-    assert payload["data"]["plan"]["sources"] == ["."]
+    assert payload["data"]["plan"]["sources"] == [str(Path.cwd().resolve())]
     resolved = CliSystemConfigService(jelica_home=jelica_home).load_resolved_core_config()
     assert list(resolved.tasks_dir.iterdir()) == []
 

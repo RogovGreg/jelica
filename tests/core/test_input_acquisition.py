@@ -11,6 +11,7 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 
+from jelica_core.analysis import InitializeAnalysisTaskRequest, initialize_analysis_task
 from jelica_core.runtime.input_acquisition import (
     INPUT_DIRECTORY_DEPTH_LIMIT_REACHED_EVENT,
     INPUT_DIRECTORY_EMPTY_EVENT,
@@ -20,6 +21,7 @@ from jelica_core.runtime.input_acquisition import (
     INPUT_FILE_TYPE_UNSUPPORTED_EVENT,
     INPUT_NO_DATA_ACQUIRED_EVENT,
     INPUT_PATH_NOT_FOUND_EVENT,
+    INPUT_RELATIVE_PATH_UNRESOLVED_EVENT,
     INPUT_SYMLINK_UNSUPPORTED_EVENT,
     INPUT_SYMLINKS_SKIPPED_EVENT,
     INPUT_UNSUPPORTED_FILES_SKIPPED_EVENT,
@@ -38,6 +40,7 @@ from jelica_core.runtime.models import (
 )
 from jelica_core.runtime.pipeline import StageContext
 from jelica_core.runtime.progress import NullProgressReporter
+from jelica_core.system_config import CoreConfigService
 from jelica_core.tasks.storage import compute_config_hash
 
 
@@ -225,6 +228,107 @@ def test_stage_rejects_missing_local_path(tmp_path: Path) -> None:
         stage.run(context, NullProgressReporter())
 
     assert error_info.value.event_name == INPUT_PATH_NOT_FOUND_EVENT
+
+
+def test_stage_rejects_unresolved_relative_local_path_without_worker_cwd_fallback(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    caller_directory = tmp_path / "caller"
+    worker_directory = tmp_path / "worker"
+    caller_directory.mkdir()
+    worker_directory.mkdir()
+    (caller_directory / "sample.fasta").write_text(
+        ">sample\nACGT\n", encoding="utf-8"
+    )
+    (worker_directory / "sample.fasta").write_text(
+        ">wrong-worker-file\nTGCA\n", encoding="utf-8"
+    )
+    context = _build_stage_context(worker_directory, samples=["."])
+    stage = InputAcquisitionStage()
+    stage.preflight(context)
+    monkeypatch.chdir(worker_directory)
+
+    with pytest.raises(InputAcquisitionError) as error_info:
+        stage.run(context, NullProgressReporter())
+
+    assert error_info.value.event_name == INPUT_RELATIVE_PATH_UNRESOLVED_EVENT
+    assert not any((context.stage_staging_directory / "inputs" / "files").glob("*"))
+
+
+def test_submission_directory_is_used_after_worker_cwd_changes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    caller_directory = tmp_path / "caller"
+    worker_directory = tmp_path / "worker"
+    caller_directory.mkdir()
+    worker_directory.mkdir()
+    for filename, sequence in (("A.fasta", "ACGT"), ("B.fasta", "TGCA")):
+        (caller_directory / filename).write_text(
+            f">{filename[0]}\n{sequence}\n", encoding="utf-8"
+        )
+    misleading_directory = worker_directory / "tmp" / "pdfs"
+    misleading_directory.mkdir(parents=True)
+    for filename in ("misleading.txt", "another.txt"):
+        (misleading_directory / filename).write_text("not sequence data", encoding="utf-8")
+
+    config_service = CoreConfigService(jelica_home=tmp_path / "home")
+    config_service.initialize_system_config(force=True)
+    monkeypatch.chdir(caller_directory)
+    request = InitializeAnalysisTaskRequest(
+        positional_sources=(".",),
+        submission_base_dir=Path.cwd(),
+    )
+    task = initialize_analysis_task(
+        request=request,
+        core_config_service=config_service,
+    )
+
+    expected_source = str(caller_directory.resolve())
+    assert task.config.samples == [expected_source]
+    saved_config = json.loads(task.config_path.read_text(encoding="utf-8"))
+    assert saved_config["samples"] == [expected_source]
+    revision_path = task.task_dir / task.current_config_relative_path
+    revision_config = json.loads(revision_path.read_text(encoding="utf-8"))
+    assert revision_config["samples"] == [expected_source]
+
+    job_directory = task.task_dir / "jobs" / "job-1"
+    launch_spec = WorkerLaunchSpec(
+        task_id=task.task_id,
+        job_id="job-1",
+        worker_instance_id="worker-1",
+        lease_token="lease-1",
+        database_path=config_service.require_initialized_config().database_path,
+        task_dir=task.task_dir,
+        job_dir=job_directory,
+        config_revision_path=revision_path,
+        config_hash=task.current_config_hash,
+        runtime_state_json=RuntimeStateCheckpoint.new(
+            pipeline_version=DEFAULT_PIPELINE_VERSION
+        ).to_runtime_state_json(),
+        pipeline_name=DEFAULT_PIPELINE_NAME,
+        pipeline_version=DEFAULT_PIPELINE_VERSION,
+    )
+    context = StageContext(
+        launch_spec=launch_spec,
+        stage_index=1,
+        stage_staging_directory=job_directory / "staging" / "input_acquisition" / "worker-1",
+    )
+
+    monkeypatch.chdir(worker_directory)
+    stage = InputAcquisitionStage()
+    stage.preflight(context)
+    stage.run(context, NullProgressReporter())
+
+    manifest = _manifest(context)
+    materialized = _manifest_materialized_files(manifest)
+    assert {str(item["source_path"]) for item in materialized} == {
+        str((caller_directory / "A.fasta").resolve()),
+        str((caller_directory / "B.fasta").resolve()),
+    }
+    assert not any(
+        str(item["source_path"]).startswith(str(worker_directory.resolve()))
+        for item in materialized
+    )
 
 
 def test_stage_rejects_empty_file(tmp_path: Path) -> None:

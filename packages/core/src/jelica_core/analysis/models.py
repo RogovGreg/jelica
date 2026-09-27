@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -18,6 +19,7 @@ class InitializeAnalysisTaskRequest(BaseModel):
     config_json: str | None = None
     overrides: tuple[ConfigOverride, ...] = Field(default_factory=tuple)
     positional_sources: tuple[str, ...] = Field(default_factory=tuple)
+    submission_base_dir: Path | None = Field(default=None, exclude=True)
 
     @field_validator("name")
     @classmethod

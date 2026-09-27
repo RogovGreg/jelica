@@ -402,8 +402,8 @@ def _render_report_pdf_to_temporary_file(
     *, report_model: AnalysisReportModel, directory: Path
 ) -> Path:
     renderer = PdfReportRenderer()
-    payload = renderer.render(model=report_model)
     try:
+        payload = renderer.render(model=report_model)
         with tempfile.NamedTemporaryFile(
             mode="wb",
             delete=False,
@@ -412,8 +412,10 @@ def _render_report_pdf_to_temporary_file(
             suffix=".tmp",
         ) as temporary_file:
             temporary_file.write(payload)
+            temporary_file.flush()
+            os.fsync(temporary_file.fileno())
             return Path(temporary_file.name)
-    except OSError as error:
+    except Exception as error:
         raise ReportExportError(
             code=ReportExportErrorCode.PDF_RENDER_FAILED,
             message="PDF report could not be rendered.",

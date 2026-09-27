@@ -29,6 +29,7 @@ def _initialize_task(
     config_json: str | None = None,
     raw_overrides: tuple[str, ...] = (),
     positional_sources: tuple[str, ...] = (),
+    submission_base_dir: Path | None = None,
     initialize_core: bool = True,
 ) -> InitializedAnalysisTask:
     config_service = CoreConfigService(jelica_home=jelica_home)
@@ -40,6 +41,7 @@ def _initialize_task(
         config_json=config_json,
         overrides=tuple(parse_cli_overrides(raw_overrides)),
         positional_sources=positional_sources,
+        submission_base_dir=submission_base_dir,
     )
     return initialize_analysis_task(
         request=request,
@@ -408,6 +410,116 @@ def test_initialize_preserves_optional_reference_selector(
 
     assert task.config.reference == reference_selector
     assert task.config.samples == ["sample-a.fasta"]
+
+
+@pytest.mark.parametrize(
+    ("source", "expected_relative_path"),
+    (
+        (".", "."),
+        ("./samples", "samples"),
+        ("../samples", "../samples"),
+        ("sample.fasta", "sample.fasta"),
+        ("nested/sample.fasta", "nested/sample.fasta"),
+    ),
+)
+def test_initialize_binds_relative_sources_to_submission_directory(
+    tmp_path: Path,
+    source: str,
+    expected_relative_path: str,
+) -> None:
+    caller_directory = tmp_path / "caller"
+    caller_directory.mkdir()
+    (caller_directory / "samples").mkdir()
+    (tmp_path / "samples").mkdir()
+    (caller_directory / "sample.fasta").write_text(
+        ">sample\nACGT\n", encoding="utf-8"
+    )
+    (caller_directory / "nested").mkdir()
+    (caller_directory / "nested" / "sample.fasta").write_text(
+        ">nested\nACGT\n", encoding="utf-8"
+    )
+
+    task = _initialize_task(
+        tmp_path / "home",
+        positional_sources=(source,),
+        submission_base_dir=caller_directory,
+    )
+
+    expected = (caller_directory / expected_relative_path).resolve()
+    assert task.config.samples == [str(expected)]
+    saved_config = json.loads(task.config_path.read_text(encoding="utf-8"))
+    assert saved_config["samples"] == [str(expected)]
+
+
+def test_initialize_preserves_absolute_and_non_local_sources(
+    tmp_path: Path,
+) -> None:
+    caller_directory = tmp_path / "caller"
+    caller_directory.mkdir()
+    absolute_sample = caller_directory / "sample.fasta"
+    absolute_sample.write_text(">sample\nACGT\n", encoding="utf-8")
+
+    task = _initialize_task(
+        tmp_path / "home",
+        positional_sources=(
+            str(absolute_sample),
+            "NC_045512.2",
+            "https://www.ncbi.nlm.nih.gov/nuccore/NC_045512.2",
+            "ACGTACGT",
+        ),
+        submission_base_dir=caller_directory,
+    )
+
+    assert task.config.samples == [
+        str(absolute_sample),
+        "NC_045512.2",
+        "https://www.ncbi.nlm.nih.gov/nuccore/NC_045512.2",
+        "ACGTACGT",
+    ]
+
+
+def test_initialize_keeps_symlink_source_visible_to_runtime_validation(
+    tmp_path: Path,
+) -> None:
+    caller_directory = tmp_path / "caller"
+    caller_directory.mkdir()
+    target = caller_directory / "target.fasta"
+    target.write_text(">target\nACGT\n", encoding="utf-8")
+    symlink = caller_directory / "linked.fasta"
+    symlink.symlink_to(target)
+
+    task = _initialize_task(
+        tmp_path / "home",
+        positional_sources=("linked.fasta",),
+        submission_base_dir=caller_directory,
+    )
+
+    assert task.config.samples == [str(symlink.absolute())]
+
+
+def test_initialize_binds_local_reference_selector_to_submission_directory(
+    tmp_path: Path,
+) -> None:
+    caller_directory = tmp_path / "caller"
+    reference_directory = caller_directory / "data"
+    reference_directory.mkdir(parents=True)
+    (reference_directory / "alignment.afa").write_text(
+        ">reference\nACGT\n", encoding="utf-8"
+    )
+
+    task = _initialize_task(
+        tmp_path / "home",
+        positional_sources=("sample.fasta",),
+        raw_overrides=(
+            "--alignment.mode=prealigned",
+            "--reference=data/alignment.afa::NC_045512.2",
+        ),
+        submission_base_dir=caller_directory,
+    )
+
+    assert task.config.reference == (
+        f"{(reference_directory / 'alignment.afa').resolve()}::NC_045512.2"
+    )
 
 
 def test_initialize_defaults_statistics_fields(tmp_path: Path) -> None:

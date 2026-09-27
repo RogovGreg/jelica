@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from datetime import datetime
+from pathlib import Path
 from uuid import UUID, uuid4
 
 from pydantic import ValidationError
@@ -15,6 +16,7 @@ from jelica_core.config import (
     convert_config_validation_error,
     resolve_analysis_config,
 )
+from jelica_core.input_sources import resolve_submission_reference, resolve_submission_source
 from jelica_core.tasks import (
     InitializedAnalysisTask,
     LocalTaskStorage,
@@ -108,6 +110,10 @@ class AnalysisOrchestrator:
             config_input=config_with_overrides,
             positional_sources=request.positional_sources,
         )
+        final_input = bind_submission_paths(
+            config_input=final_input,
+            base_directory=request.submission_base_dir,
+        )
         resolution = resolve_analysis_config(
             final_input,
             default_alignment_mode=default_alignment_mode,
@@ -136,5 +142,33 @@ def _apply_positional_samples(
     mutable_config["samples"] = list(positional_sources)
     try:
         return AnalysisConfigInput.model_validate(mutable_config)
+    except ValidationError as error:
+        raise convert_config_validation_error(error) from error
+
+
+def bind_submission_paths(
+    *,
+    config_input: AnalysisConfigInput,
+    base_directory: Path | None,
+) -> AnalysisConfigInput:
+    if base_directory is None:
+        return config_input
+    payload = config_input.model_dump(mode="python")
+    samples = payload.get("samples")
+    if isinstance(samples, list):
+        payload["samples"] = [
+            None
+            if source is None
+            else resolve_submission_source(source=source, base_directory=base_directory)
+            for source in samples
+        ]
+    reference = payload.get("reference")
+    if isinstance(reference, str):
+        payload["reference"] = resolve_submission_reference(
+            reference=reference,
+            base_directory=base_directory,
+        )
+    try:
+        return AnalysisConfigInput.model_validate(payload)
     except ValidationError as error:
         raise convert_config_validation_error(error) from error

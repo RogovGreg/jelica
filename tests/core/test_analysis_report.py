@@ -9,9 +9,12 @@ import pytest
 
 from jelica_core.reporting import (
     PdfReportRenderer,
+    ReportGenerationError,
     ReportStage,
     build_analysis_report_model,
     export_analysis_report_pdf,
+    generate_reports,
+    plan_report_generation,
 )
 from jelica_core.result_package import (
     JELICA_PACKAGE_CONFIGURATION_PATH,
@@ -31,6 +34,7 @@ from jelica_core.result_package import (
     infer_media_type,
     serialize_stable_json,
 )
+from jelica_core.system_config import CoreConfigService
 
 
 def _sha256(payload: bytes) -> str:
@@ -538,3 +542,89 @@ def test_analysis_report_export_handles_stage_without_published_details(
     assert outcome.output_path == expected_path.resolve(strict=False)
     assert outcome.output_path.is_file()
     assert outcome.output_path.read_bytes().startswith(b"%PDF-")
+
+
+def test_report_generation_uses_managed_source_stem_and_deduplicates_sources(
+    tmp_path: Path,
+) -> None:
+    home = tmp_path / "home"
+    service = CoreConfigService(jelica_home=home)
+    service.initialize_system_config()
+    package_path = tmp_path / "package.jelica"
+    content_id = _build_full_analysis_package(package_path)
+    named_package_path = tmp_path / f"Analysis__{content_id.removeprefix('sha256:')}.jelica"
+    package_path.rename(named_package_path)
+    output = tmp_path / "reports"
+    output.mkdir()
+
+    plan = plan_report_generation(
+        references=(str(named_package_path), str(named_package_path)),
+        name_template="{index}_{hash}_{task_id}",
+        output=str(output),
+        core_config_service=service,
+    )
+
+    assert len(plan.sources) == 1
+    assert plan.sources[0].content_id == content_id
+    assert plan.rendered_stems == (
+        f"1_{content_id.removeprefix('sha256:')}_task-report",
+    )
+    outcome = generate_reports(plan=plan)
+
+    assert outcome.generated_count == 1
+    assert outcome.failed_count == 0
+    assert outcome.items[0].path is not None
+    assert outcome.items[0].path.name == (
+        f"1_{content_id.removeprefix('sha256:')}_task-report.pdf"
+    )
+
+
+def test_report_generation_rejects_name_for_hash_only_source(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    service = CoreConfigService(jelica_home=home)
+    service.initialize_system_config()
+    content_id = _build_full_analysis_package(tmp_path / "package.jelica")
+    digest = content_id.removeprefix("sha256:")
+    source = tmp_path / f"{digest}.jelica"
+    (tmp_path / "package.jelica").rename(source)
+
+    with pytest.raises(ReportGenerationError, match=r"\{name\}"):
+        plan_report_generation(
+            references=(str(source),),
+            name_template="{name}",
+            core_config_service=service,
+        )
+
+
+def test_report_generation_keeps_existing_target_when_renderer_fails(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    home = tmp_path / "home"
+    service = CoreConfigService(jelica_home=home)
+    service.initialize_system_config()
+    package_path = tmp_path / "package.jelica"
+    _build_full_analysis_package(package_path)
+    output = tmp_path / "report.pdf"
+    output.write_bytes(b"existing-report")
+
+    plan = plan_report_generation(
+        references=(str(package_path),),
+        output=str(output),
+        force=True,
+        core_config_service=service,
+    )
+
+    def fail_render(*args: object, **kwargs: object) -> bytes:
+        _ = (args, kwargs)
+        raise RuntimeError("forced renderer failure")
+
+    monkeypatch.setattr(
+        "jelica_core.reporting.generation.PdfReportRenderer.render",
+        fail_render,
+    )
+    outcome = generate_reports(plan=plan)
+
+    assert outcome.generated_count == 0
+    assert outcome.failed_count == 1
+    assert output.read_bytes() == b"existing-report"

@@ -3,6 +3,7 @@ from __future__ import annotations
 from .usage import (
     DatabaseStorageMetrics,
     OtherStorageMetrics,
+    ReportStorageMetrics,
     ResultStorageMetrics,
     StorageCategory,
     StorageDiagnostic,
@@ -15,6 +16,7 @@ from .usage import (
 __all__ = [
     "DatabaseStorageMetrics",
     "OtherStorageMetrics",
+    "ReportStorageMetrics",
     "ResultStorageMetrics",
     "StorageCategory",
     "StorageDiagnostic",
