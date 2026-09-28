@@ -728,6 +728,7 @@ def run_initialize_analysis_task_from_inputs(
     config_json: str | None,
     raw_overrides: tuple[str, ...],
     positional_sources: tuple[str, ...],
+    sample_metadata_csv: str | None = None,
     submission_base_dir: Path | None = None,
     core_config_service: CoreConfigService | None = None,
 ) -> CoreOperationResult[InitializedAnalysisTask]:
@@ -747,6 +748,7 @@ def run_initialize_analysis_task_from_inputs(
             config_json=config_json,
             overrides=tuple(parsed_overrides),
             positional_sources=positional_sources,
+            sample_metadata_csv=sample_metadata_csv,
             submission_base_dir=submission_base_dir,
         )
     except Exception as error:
@@ -765,6 +767,7 @@ def run_create_analytical_task_from_inputs(
     config_json: str | None,
     raw_overrides: tuple[str, ...],
     positional_sources: tuple[str, ...],
+    sample_metadata_csv: str | None = None,
     submission_base_dir: Path | None = None,
     core_config_service: CoreConfigService | None = None,
 ) -> CoreOperationResult[InitializedAnalysisTask]:
@@ -774,6 +777,7 @@ def run_create_analytical_task_from_inputs(
         config_json=config_json,
         raw_overrides=raw_overrides,
         positional_sources=positional_sources,
+        sample_metadata_csv=sample_metadata_csv,
         submission_base_dir=submission_base_dir,
         core_config_service=core_config_service,
     )

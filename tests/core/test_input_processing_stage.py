@@ -64,6 +64,11 @@ from jelica_core.runtime.models import (
 from jelica_core.runtime.pipeline import StageContext, StageEventReporter, StageRunResult
 from jelica_core.runtime.progress import NullProgressReporter, ProgressReporter
 from jelica_core.runtime.sequence_inspector import SequenceInspectionResult, SequenceInspector
+from jelica_core.sample_metadata import (
+    SampleMetadataOverride,
+    SampleMetadataSelector,
+    SequenceMetadata,
+)
 from jelica_core.system_config import CoreConfigService
 from jelica_core.tasks import AnalyticalTaskRegistryService, AnalyticalTaskState
 from jelica_core.tasks.storage import compute_config_hash, write_text_atomically
@@ -77,6 +82,7 @@ class _InputFileFixture:
     format_hint: str
     payload: str
     source_type: str = "local_file"
+    source_path: str | None = None
 
 
 class _RecordingProgressReporter:
@@ -110,6 +116,7 @@ def _resolved_config_document(
     reference: str | None = None,
     kmers: tuple[str, ...] = (),
     kmer_strand: str = "forward",
+    sample_metadata: tuple[SampleMetadataOverride, ...] = (),
 ) -> dict[str, object]:
     statistics: dict[str, object] | None = None
     if len(kmers) > 0:
@@ -123,7 +130,7 @@ def _resolved_config_document(
                 "statistics": statistics,
             }
         )
-    ).config
+    ).config.model_copy(update={"sample_metadata": sample_metadata})
     return config.model_dump(mode="json")
 
 
@@ -185,16 +192,17 @@ def _prepare_acquisition_output(
         target_path.parent.mkdir(parents=True, exist_ok=True)
         write_text_atomically(path=target_path, payload=input_file.payload)
         payload_bytes = input_file.payload.encode("utf-8")
-        materialized_items.append(
-            {
-                "relative_path": input_file.materialized_relative_path,
-                "source_type": input_file.source_type,
-                "source_reference": input_file.source_reference,
-                "format_hint": input_file.format_hint,
-                "size_bytes": len(payload_bytes),
-                "sha256": hashlib.sha256(payload_bytes).hexdigest(),
-            }
-        )
+        item: dict[str, object] = {
+            "relative_path": input_file.materialized_relative_path,
+            "source_type": input_file.source_type,
+            "source_reference": input_file.source_reference,
+            "format_hint": input_file.format_hint,
+            "size_bytes": len(payload_bytes),
+            "sha256": hashlib.sha256(payload_bytes).hexdigest(),
+        }
+        if input_file.source_path is not None:
+            item["source_path"] = input_file.source_path
+        materialized_items.append(item)
     manifest_payload = {
         "schema_version": 1,
         "task_id": context.launch_spec.task_id,
@@ -1089,6 +1097,135 @@ def test_stage_emits_live_progress_and_single_file_event_for_multi_record_file(
     assert "issue_count_by_severity" in file_event_context
 
 
+def test_stage_applies_metadata_before_validation_and_preserves_invalid_sample_metadata(
+    tmp_path: Path,
+) -> None:
+    source_path = str(tmp_path / "dataset" / "multi.fasta")
+    overrides = (
+        SampleMetadataOverride(
+            selector=SampleMetadataSelector(record_id="broken", source_path=source_path),
+            metadata=SequenceMetadata(host="Homo sapiens", note="user override"),
+        ),
+    )
+    context = _build_stage_context(
+        tmp_path,
+        config_document=_resolved_config_document(sample_metadata=overrides),
+    )
+    _prepare_acquisition_output(
+        context=context,
+        input_files=(
+            _InputFileFixture(
+                source_reference="data/multi.fasta",
+                source_path=source_path,
+                materialized_relative_path="inputs/files/0001_multi.fasta",
+                format_hint=".fasta",
+                payload=">valid\nACGT\n>broken\nAXGT\n",
+            ),
+        ),
+    )
+
+    _stage, result = _run_stage(context=context)
+
+    assert result.failure is None
+    manifest = _load_staging_manifest(context)
+    broken = next(
+        sample
+        for sample in manifest.logical_samples
+        if sample.original_record_id == "broken"
+    )
+    assert broken.validation_status.value == "invalid"
+    assert broken.metadata.host == "Homo sapiens"
+    assert broken.metadata.note == "user override"
+
+
+@pytest.mark.parametrize(
+    ("relative_path", "format_hint", "payload", "expected_host"),
+    (
+        ("inputs/files/0001_valid.gb", ".gb", None, "Homo sapiens"),
+        ("inputs/files/0001_valid.fasta", ".fasta", ">sample\nACGT\n", None),
+    ),
+)
+def test_stage_with_sequence_metadata_validates_and_commits_domain_manifest(
+    tmp_path: Path,
+    relative_path: str,
+    format_hint: str,
+    payload: str | None,
+    expected_host: str | None,
+) -> None:
+    if format_hint == ".gb":
+        from Bio import SeqIO
+        from Bio.Seq import Seq
+        from Bio.SeqFeature import FeatureLocation, SeqFeature
+        from Bio.SeqRecord import SeqRecord
+
+        generated = tmp_path / "generated.gb"
+        record = SeqRecord(
+            Seq("ACGT"),
+            id="ABC123.1",
+            annotations={"molecule_type": "DNA"},
+            features=[
+                SeqFeature(
+                    FeatureLocation(0, 4),
+                    type="source",
+                    qualifiers={"host": ["  Homo sapiens  "]},
+                ),
+            ],
+        )
+        with generated.open("w", encoding="utf-8") as handle:
+            SeqIO.write([record], handle, "genbank")
+        payload = generated.read_text(encoding="utf-8")
+    assert payload is not None
+
+    context = _build_stage_context(
+        tmp_path,
+        config_document=_resolved_config_document(),
+    )
+    _prepare_acquisition_output(
+        context=context,
+        input_files=(
+            _InputFileFixture(
+                source_reference="data/valid" + format_hint,
+                materialized_relative_path=relative_path,
+                format_hint=format_hint,
+                payload=payload,
+            ),
+        ),
+    )
+    _stage, result = _run_stage(context=context)
+    assert result.failure is None
+
+    generic_manifest = StageArtifactManifest(
+        stage_id="input_processing",
+        job_id=context.launch_spec.job_id,
+        worker_instance_id=context.launch_spec.worker_instance_id,
+        pipeline_version=context.launch_spec.pipeline_version,
+        completed_at="2026-09-28T00:00:00Z",
+        artifacts=result.artifacts,
+    )
+    generic_manifest_path = write_stage_manifest(
+        directory=context.stage_staging_directory,
+        manifest=generic_manifest,
+    )
+    committed = commit_stage_directory(
+        job_dir=context.launch_spec.job_dir,
+        stage_id="input_processing",
+        job_id=context.launch_spec.job_id,
+        worker_instance_id=context.launch_spec.worker_instance_id,
+        pipeline_version=context.launch_spec.pipeline_version,
+        staging_directory=context.stage_staging_directory,
+        manifest_path=generic_manifest_path,
+        task_id=context.launch_spec.task_id,
+        config_hash=context.launch_spec.config_hash,
+    )
+
+    committed_root = context.launch_spec.job_dir / "stages" / "input_processing"
+    committed_manifest = InputProcessingManifest.model_validate_json(
+        (committed_root / INPUT_PROCESSING_MANIFEST_RELATIVE_PATH).read_bytes()
+    )
+    assert committed.stage_id == "input_processing"
+    assert committed_manifest.logical_samples[0].metadata.host == expected_host
+
+
 def test_stage_emits_validation_failed_event_without_completed_success_event(
     tmp_path: Path,
 ) -> None:
@@ -1373,6 +1510,52 @@ def test_runtime_completes_task_for_single_valid_sample(tmp_path: Path) -> None:
     manifest = InputProcessingManifest.model_validate(manifest_payload)
     assert manifest.dataset_summary.valid_sample_count == 1
     assert manifest.dataset_summary.comparative_analysis_available is False
+
+
+def test_runtime_commits_genbank_sample_metadata_end_to_end(tmp_path: Path) -> None:
+    from Bio import SeqIO
+    from Bio.Seq import Seq
+    from Bio.SeqFeature import FeatureLocation, SeqFeature
+    from Bio.SeqRecord import SeqRecord
+
+    service = _initialize_core(tmp_path / "home")
+    sample = tmp_path / "valid.gb"
+    record = SeqRecord(
+        Seq("ACGT"),
+        id="ABC123.1",
+        annotations={"molecule_type": "DNA"},
+        features=[
+            SeqFeature(
+                FeatureLocation(0, 4),
+                type="source",
+                qualifiers={"host": ["Homo sapiens"]},
+            ),
+        ],
+    )
+    with sample.open("w", encoding="utf-8") as handle:
+        SeqIO.write([record], handle, "genbank")
+    task_id = _initialize_task_for_runtime(service=service, sample_paths=(sample,))
+
+    started = run_start_analytical_task(task_id=task_id, core_config_service=service)
+
+    assert started.ok is True, started.error
+    resolved = service.load_resolved_config()
+    snapshot = AnalyticalTaskRegistryService(
+        database_path=resolved.database_path
+    ).get_task_snapshot(task_id=task_id)
+    assert snapshot.active_or_latest_job is not None
+    stage_root = (
+        resolved.tasks_dir
+        / task_id
+        / "jobs"
+        / snapshot.active_or_latest_job.job_id
+        / "stages"
+        / "input_processing"
+    )
+    manifest = InputProcessingManifest.model_validate_json(
+        (stage_root / INPUT_PROCESSING_MANIFEST_RELATIVE_PATH).read_bytes()
+    )
+    assert manifest.logical_samples[0].metadata.host == "Homo sapiens"
 
 
 @pytest.mark.parametrize(

@@ -25,6 +25,7 @@ from jelica_core.runtime.input_processing_models import (
     INPUT_PROCESSING_MANIFEST_RELATIVE_PATH,
     InputProcessingManifest,
 )
+from jelica_core.sample_metadata import SequenceMetadata
 
 
 class ResultOverviewBuildErrorCode(StrEnum):
@@ -45,6 +46,7 @@ class ResultOverviewSample(BaseModel):
     sequence_id: str | None = None
     original_record_id: str | None = None
     original_description: str | None = None
+    metadata: SequenceMetadata = Field(default_factory=SequenceMetadata)
     source_reference: str = Field(min_length=1)
     validation_status: str = Field(min_length=1)
     eligible_for_analysis: bool
@@ -173,6 +175,7 @@ class ResultOverviewBuilder:
                 sequence_id=sample.sequence_id,
                 original_record_id=sample.original_record_id,
                 original_description=sample.original_description,
+                metadata=sample.metadata,
                 source_reference=sample.provenance.input_manifest_source_reference,
                 validation_status=sample.validation_status.value,
                 eligible_for_analysis=sample.eligible_for_analysis,

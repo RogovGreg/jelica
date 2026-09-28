@@ -34,6 +34,7 @@ from jelica_core.runtime.input_processing_models import (
     ValidationIssueSeverity,
     sequence_id_digest,
 )
+from jelica_core.sample_metadata import SequenceMetadata
 
 _SEQUENCE_ID = "sha256:" + ("a" * 64)
 _SECOND_SEQUENCE_ID = "sha256:" + ("b" * 64)
@@ -83,6 +84,7 @@ def _logical_sample(*, sample_id: str, sequence_id: str) -> InputProcessingLogic
         original_description=None,
         validation_status=SampleValidationStatus.VALID,
         validation_issues=(),
+        metadata=SequenceMetadata(host="Homo sapiens"),
         sequence_id=sequence_id,
         eligible_for_analysis=True,
     )
@@ -146,6 +148,7 @@ def test_manifest_round_trip_and_schema_version() -> None:
 
     assert manifest.schema_version == INPUT_PROCESSING_MANIFEST_SCHEMA_VERSION
     assert restored.model_dump(mode="json") == payload
+    assert restored.logical_samples[0].metadata.host == "Homo sapiens"
     assert restored.unique_sequences[0].logical_sample_ids == ("sample-a", "sample-b")
     expected_counts = CanonicalBaseCounts(A=1, C=1, G=1, T=1, U=0)
     assert restored.unique_sequences[0].facts.base_counts.definite == expected_counts

@@ -184,6 +184,7 @@ class AnalyzeCliArguments:
     config_path: Path | None
     sources: tuple[str, ...]
     raw_overrides: tuple[str, ...]
+    sample_metadata_csv: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -1840,6 +1841,14 @@ def analyze(
         "--from-phase",
         help="Start execution from this phase using committed prerequisites.",
     ),
+    sample_metadata: str | None = typer.Option(
+        None,
+        "--sample-metadata",
+        help=(
+            "Optional CSV with per-sample metadata overrides; record_id and/or source "
+            "identifies a sample, and source is relative to the CSV directory."
+        ),
+    ),
     machine: bool = typer.Option(
         False,
         "--machine",
@@ -1916,7 +1925,10 @@ def analyze(
     _set_cli_trace_id(normalized_trace_id)
 
     try:
-        parsed_arguments = _parse_analyze_arguments(raw_arguments)
+        parsed_arguments = _parse_analyze_arguments(
+            raw_arguments,
+            sample_metadata_csv=sample_metadata,
+        )
         parsed_arguments = _with_execution_overrides(
             parsed_arguments,
             target=effective_target,
@@ -1978,6 +1990,7 @@ def analyze(
         config_json=config_json,
         raw_overrides=parsed_arguments.raw_overrides,
         positional_sources=parsed_arguments.sources,
+        sample_metadata_csv=parsed_arguments.sample_metadata_csv,
         submission_base_dir=Path.cwd(),
         core_config_service=_core_config_service(),
     )
@@ -3632,6 +3645,7 @@ def _build_analysis_plan_for_cli(
             config_json=config_json,
             raw_overrides=parsed_arguments.raw_overrides,
             positional_sources=parsed_arguments.sources,
+            sample_metadata_csv=parsed_arguments.sample_metadata_csv,
             submission_base_dir=submission_base_dir,
             core_config_service=_core_config_service(),
         )
@@ -3740,7 +3754,11 @@ def _reject_removed_analyze_output_flags(
             )
 
 
-def _parse_analyze_arguments(raw_arguments: list[str]) -> AnalyzeCliArguments:
+def _parse_analyze_arguments(
+    raw_arguments: list[str],
+    *,
+    sample_metadata_csv: str | None = None,
+) -> AnalyzeCliArguments:
     positional_arguments: list[str] = []
     raw_overrides: list[str] = []
 
@@ -3759,6 +3777,7 @@ def _parse_analyze_arguments(raw_arguments: list[str]) -> AnalyzeCliArguments:
             config_path=None,
             sources=(".",) if not _has_samples_override(raw_overrides) else tuple(),
             raw_overrides=tuple(raw_overrides),
+            sample_metadata_csv=sample_metadata_csv,
         )
 
     first_argument = positional_arguments[0]
@@ -3779,6 +3798,7 @@ def _parse_analyze_arguments(raw_arguments: list[str]) -> AnalyzeCliArguments:
         config_path=config_path,
         sources=tuple(sources),
         raw_overrides=tuple(raw_overrides),
+        sample_metadata_csv=sample_metadata_csv,
     )
 
 
@@ -3797,6 +3817,7 @@ def _with_execution_overrides(
         config_path=arguments.config_path,
         sources=arguments.sources,
         raw_overrides=tuple(raw_overrides),
+        sample_metadata_csv=arguments.sample_metadata_csv,
     )
 
 

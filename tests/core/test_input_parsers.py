@@ -7,6 +7,7 @@ from typing import Literal, TextIO
 import pytest
 from Bio import Entrez, SeqIO
 from Bio.Seq import Seq
+from Bio.SeqFeature import FeatureLocation, SeqFeature
 from Bio.SeqRecord import SeqRecord
 
 from jelica_core.config import AnalysisAlignmentMode
@@ -15,6 +16,7 @@ from jelica_core.runtime.input_parsers import (
     PARSER_ISSUE_FORMAT_NOT_ALLOWED_FOR_ALIGNMENT_MODE,
     PARSER_ISSUE_GAP_NOT_ALLOWED_FOR_ALIGNMENT_MODE,
     PARSER_ISSUE_GENBANK_MALFORMED,
+    PARSER_ISSUE_GENBANK_SOURCE_FEATURE_AMBIGUOUS,
     PARSER_ISSUE_RECORD_DUPLICATE_ID,
     PARSER_ISSUE_RECORD_ID_MISSING,
     PARSER_ISSUE_RECORD_SEQUENCE_EMPTY,
@@ -367,8 +369,106 @@ def test_genbank_single_and_multi_record_parsing(tmp_path: Path) -> None:
     assert [item.record_id for item in result.records] == ["NC_000001.1", "NC_000002.1"]
     assert [item.description for item in result.records] == ["record one", "record two"]
     assert result.records[0].metadata != result.records[1].metadata
+    assert result.records[0].sequence_metadata.has_values() is False
+    assert result.records[1].sequence_metadata.has_values() is False
     assert json.dumps(result.records[0].metadata)
     assert json.dumps(result.records[1].metadata)
+
+
+def test_genbank_extracts_typed_source_metadata_and_normalizes_qualifiers(
+    tmp_path: Path,
+) -> None:
+    stage_dir = tmp_path / "staging"
+    relative_path = "inputs/files/0001_metadata.gbk"
+    qualifiers = {
+        "collection_date": [" 2021-03 "],
+        "geo_loc_name": [" Serbia: Belgrade "],
+        "host": [" human ", "Homo sapiens", "   "],
+        "isolation_source": ["nasal swab"],
+        "isolate": ["ISO-1"],
+        "strain": ["S-1"],
+        "lat_lon": ["44.8 N 20.5 E"],
+        "host_disease": ["COVID-19"],
+        "sex": ["female"],
+        "genotype": ["G1"],
+        "serotype": ["S1"],
+        "haplotype": ["H1"],
+        "note": ["  collected in spring  "],
+        "collected_by": ["Lab A"],
+        "lab_host": ["Vero E6"],
+    }
+    record = SeqRecord(
+        Seq("ACGT"),
+        id="ABC123.1",
+        annotations={"molecule_type": "DNA"},
+        features=[
+            SeqFeature(FeatureLocation(0, 4), type="source", qualifiers=qualifiers),
+        ],
+    )
+    _write_genbank(stage_dir, relative_path=relative_path, records=[record])
+
+    result = InputRecordParser().parse_materialized_file(
+        stage_staging_directory=stage_dir,
+        materialized_file=_materialized_file(relative_path=relative_path, format_hint=".gbk"),
+        alignment_mode=AnalysisAlignmentMode.NONE,
+    )
+
+    assert result.issues == ()
+    assert result.records[0].sequence_metadata.model_dump() == {
+        "collection_date": "2021-03",
+        "geo_loc_name": "Serbia: Belgrade",
+        "host": "human; Homo sapiens",
+        "isolation_source": "nasal swab",
+        "isolate": "ISO-1",
+        "strain": "S-1",
+        "lat_lon": "44.8 N 20.5 E",
+        "host_disease": "COVID-19",
+        "sex": "female",
+        "genotype": "G1",
+        "serotype": "S1",
+        "haplotype": "H1",
+        "note": "collected in spring",
+        "collected_by": "Lab A",
+        "lab_host": "Vero E6",
+    }
+
+
+def test_genbank_uses_unique_whole_record_source_and_warns_when_ambiguous(
+    tmp_path: Path,
+) -> None:
+    stage_dir = tmp_path / "staging"
+    relative_path = "inputs/files/0001_sources.gbk"
+    whole_record = SeqRecord(
+        Seq("ACGT"),
+        id="WHOLE.1",
+        annotations={"molecule_type": "DNA"},
+        features=[
+            SeqFeature(FeatureLocation(0, 4), type="source", qualifiers={"host": ["whole"]}),
+            SeqFeature(FeatureLocation(1, 3), type="source", qualifiers={"host": ["partial"]}),
+        ],
+    )
+    ambiguous = SeqRecord(
+        Seq("ACGT"),
+        id="AMBIG.1",
+        annotations={"molecule_type": "DNA"},
+        features=[
+            SeqFeature(FeatureLocation(0, 2), type="source", qualifiers={"host": ["one"]}),
+            SeqFeature(FeatureLocation(2, 4), type="source", qualifiers={"host": ["two"]}),
+        ],
+    )
+    _write_genbank(stage_dir, relative_path=relative_path, records=[whole_record, ambiguous])
+
+    result = InputRecordParser().parse_materialized_file(
+        stage_staging_directory=stage_dir,
+        materialized_file=_materialized_file(relative_path=relative_path, format_hint=".gbk"),
+        alignment_mode=AnalysisAlignmentMode.NONE,
+    )
+
+    assert [record.sequence_metadata.host for record in result.records] == ["whole", None]
+    assert [issue.code for issue in result.issues] == [
+        PARSER_ISSUE_GENBANK_SOURCE_FEATURE_AMBIGUOUS
+    ]
+    assert result.issues[0].severity.value == "warning"
 
 
 def test_genbank_record_without_sequence_reports_issue(tmp_path: Path) -> None:

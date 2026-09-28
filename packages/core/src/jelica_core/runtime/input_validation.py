@@ -172,6 +172,7 @@ class RecordValidator:
             ),
             original_record_id=_optional_text(parsed_record.record_id),
             original_description=_optional_text(parsed_record.description),
+            metadata=parsed_record.sequence_metadata,
             validation_status=validation_status,
             validation_issues=tuple(normalized_issues),
             sequence_id=facts.sequence_id,

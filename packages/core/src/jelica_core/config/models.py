@@ -17,6 +17,8 @@ from pydantic import (
     model_validator,
 )
 
+from jelica_core.sample_metadata import SampleMetadataOverride
+
 CURRENT_ANALYSIS_CONFIG_SCHEMA_VERSION = 1
 DEFAULT_ANALYSIS_EXECUTION_TARGET = "full_analysis"
 AUTO_ANALYSIS_EXECUTION_FROM_PHASE = "auto"
@@ -751,6 +753,7 @@ class ResolvedAnalysisConfig(BaseModel):
     schema_version: int = Field(gt=0)
     trace_id: UUID | None = Field(default=None, exclude_if=lambda value: value is None)
     samples: list[StrictStr | None] = Field(min_length=1)
+    sample_metadata: tuple[SampleMetadataOverride, ...] = Field(default_factory=tuple)
     priority: int = Field(ge=1)
     execution: ResolvedAnalysisExecutionConfig = Field(
         default_factory=_default_analysis_execution_config

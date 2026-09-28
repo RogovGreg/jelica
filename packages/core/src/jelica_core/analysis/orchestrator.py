@@ -17,6 +17,7 @@ from jelica_core.config import (
     resolve_analysis_config,
 )
 from jelica_core.input_sources import resolve_submission_reference, resolve_submission_source
+from jelica_core.sample_metadata import load_sample_metadata_csv
 from jelica_core.tasks import (
     InitializedAnalysisTask,
     LocalTaskStorage,
@@ -118,6 +119,18 @@ class AnalysisOrchestrator:
             final_input,
             default_alignment_mode=default_alignment_mode,
         )
+        if request.sample_metadata_csv is not None:
+            metadata_overrides = load_sample_metadata_csv(
+                metadata_csv=request.sample_metadata_csv,
+                submission_base_dir=request.submission_base_dir,
+            )
+            resolution = resolution.model_copy(
+                update={
+                    "config": resolution.config.model_copy(
+                        update={"sample_metadata": metadata_overrides}
+                    )
+                }
+            )
         resolve_analysis_execution_selection(
             config=resolution.config,
             allow_explicit_from_phase=True,

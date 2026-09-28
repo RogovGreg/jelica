@@ -51,6 +51,7 @@ def plan_analysis_from_inputs(
     config_json: str | None,
     raw_overrides: tuple[str, ...],
     positional_sources: tuple[str, ...],
+    sample_metadata_csv: str | None = None,
     submission_base_dir: Path | None = None,
     core_config_service: CoreConfigService | None = None,
 ) -> AnalysisPlan:
@@ -60,6 +61,7 @@ def plan_analysis_from_inputs(
         config_json=config_json,
         overrides=tuple(parse_cli_overrides(raw_overrides)),
         positional_sources=positional_sources,
+        sample_metadata_csv=sample_metadata_csv,
         submission_base_dir=submission_base_dir,
     )
     return plan_analysis(

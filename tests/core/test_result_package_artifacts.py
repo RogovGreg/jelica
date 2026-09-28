@@ -241,6 +241,26 @@ def test_compute_content_id_changes_when_protected_artifact_changes() -> None:
     )
 
 
+def test_input_processing_metadata_changes_package_content_id() -> None:
+    baseline_manifest, baseline_payloads = _build_manifest()
+    changed_payloads = dict(baseline_payloads)
+    changed_payloads[JELICA_PACKAGE_INPUT_MANIFEST_PATH] = (
+        b'{"logical_samples":[{"metadata":{"host":"Homo sapiens"}}]}\n'
+    )
+    changed_artifacts = tuple(
+        ResultPackageArtifactInfo(
+            path=path,
+            stage=_artifact_stage(path),
+            media_type=infer_media_type(path),
+            size=len(payload),
+            sha256=_sha256(payload),
+        )
+        for path, payload in sorted(changed_payloads.items())
+    )
+
+    assert compute_content_id(artifacts=changed_artifacts) != baseline_manifest.content_id
+
+
 def test_result_package_filename_keeps_full_digest_and_parses_legacy_and_named_forms() -> (
     None
 ):

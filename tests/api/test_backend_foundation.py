@@ -405,6 +405,42 @@ def test_cli_client_reads_typed_result_overview(
     assert result.distance_matrix is None
 
 
+def test_task_result_overview_contract_accepts_nested_sequence_metadata() -> None:
+    overview = TaskResultOverview.model_validate(
+        {
+            "task_id": "task-1",
+            "content_id": "sha256:abc",
+            "input_processing": {
+                "valid_sample_count": 1,
+                "invalid_sample_count": 0,
+                "unique_sequence_count": 1,
+                "duplicate_logical_sample_count": 0,
+                "samples": [
+                    {
+                        "sample_id": "sample-1",
+                        "sequence_id": "sha256:def",
+                        "original_record_id": "ABC.1",
+                        "original_description": None,
+                        "metadata": {"host": "Homo sapiens", "geo_loc_name": "Serbia"},
+                        "source_reference": "sample.gb",
+                        "validation_status": "valid",
+                        "eligible_for_analysis": True,
+                        "source_length": 4,
+                        "gc_content": 0.5,
+                        "ambiguous_count": 0,
+                    }
+                ],
+            },
+            "alignment": None,
+            "distance_matrix": None,
+            "phylogenetic_tree": None,
+        }
+    )
+
+    assert overview.input_processing is not None
+    assert overview.input_processing.samples[0].metadata.host == "Homo sapiens"
+
+
 def test_cli_client_find_task_by_trace_id_returns_matching_active_task(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -60,6 +60,26 @@ class TaskResultPackageReference(BaseModel):
     command_id: str = Field(min_length=1)
 
 
+class TaskResultSequenceMetadata(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    collection_date: str | None = None
+    geo_loc_name: str | None = None
+    host: str | None = None
+    isolation_source: str | None = None
+    isolate: str | None = None
+    strain: str | None = None
+    lat_lon: str | None = None
+    host_disease: str | None = None
+    sex: str | None = None
+    genotype: str | None = None
+    serotype: str | None = None
+    haplotype: str | None = None
+    note: str | None = None
+    collected_by: str | None = None
+    lab_host: str | None = None
+
+
 class TaskResultOverviewSample(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -67,6 +87,7 @@ class TaskResultOverviewSample(BaseModel):
     sequence_id: str | None = None
     original_record_id: str | None = None
     original_description: str | None = None
+    metadata: TaskResultSequenceMetadata = Field(default_factory=TaskResultSequenceMetadata)
     source_reference: str = Field(min_length=1)
     validation_status: str = Field(min_length=1)
     eligible_for_analysis: bool

@@ -12,6 +12,12 @@ from jelica_core.config import (
     ResolvedAnalysisConfig,
     ResolvedAnalysisStatisticsConfig,
 )
+from jelica_core.sample_metadata import (
+    SampleMetadataCandidate,
+    SampleMetadataMatchError,
+    SampleMetadataOverride,
+    resolve_sample_metadata_overrides,
+)
 from jelica_core.tasks.storage import write_text_atomically
 from jelica_core.tasks.timestamps import serialize_utc_datetime, utc_now
 
@@ -172,6 +178,24 @@ class InputProcessingStage:
                 alignment_mode=resolved_config.alignment.mode,
             )
             parsed_files.append(parsed_file)
+
+            progress_reporter(0.1 + (0.25 * file_index / total_files))
+
+        try:
+            parsed_files = list(
+                _apply_sample_metadata_overrides(
+                    parsed_files=tuple(parsed_files),
+                    overrides=resolved_config.sample_metadata,
+                )
+            )
+        except SampleMetadataMatchError as error:
+            raise InputProcessingError(
+                f"sample metadata matching failed ({error.code}): {error}"
+            ) from error
+
+        for file_index, parsed_file in enumerate(parsed_files, start=1):
+            context.check_control()
+            materialized_file = parsed_file.materialized_file
             file_validated_records: list[ValidatedRecord] = []
             for parsed_record in parsed_file.records:
                 context.check_control()
@@ -221,7 +245,7 @@ class InputProcessingStage:
                     total_file_count=total_files,
                 ),
             )
-            progress_reporter(0.1 + (0.5 * file_index / total_files))
+            progress_reporter(0.35 + (0.25 * file_index / total_files))
 
         context.check_control()
         validation_result = dataset_validator.build_result(
@@ -278,6 +302,55 @@ def _record_label(*, parsed_record: ParsedInputRecord) -> str:
     if record_id != "":
         return record_id
     return f"record #{parsed_record.record_index + 1}"
+
+
+def _apply_sample_metadata_overrides(
+    *,
+    parsed_files: tuple[ParsedInputFileResult, ...],
+    overrides: tuple[SampleMetadataOverride, ...],
+) -> tuple[ParsedInputFileResult, ...]:
+    if len(overrides) == 0:
+        return parsed_files
+
+    candidates: list[SampleMetadataCandidate] = []
+    candidate_ids: dict[tuple[str, int], str] = {}
+    for parsed_file in parsed_files:
+        for parsed_record in parsed_file.records:
+            key = (parsed_record.materialized_relative_path, parsed_record.record_index)
+            candidate_id = f"{key[0]}#{key[1]}"
+            candidate_ids[key] = candidate_id
+            candidates.append(
+                SampleMetadataCandidate(
+                    candidate_id=candidate_id,
+                    record_id=parsed_record.record_id,
+                    source_path=parsed_record.source_path,
+                    automatic_metadata=parsed_record.sequence_metadata,
+                )
+            )
+
+    resolved = resolve_sample_metadata_overrides(
+        candidates=tuple(candidates),
+        overrides=overrides,
+    )
+    enriched_files: list[ParsedInputFileResult] = []
+    for parsed_file in parsed_files:
+        enriched_records = tuple(
+            parsed_record.model_copy(
+                update={
+                    "sequence_metadata": resolved[
+                        candidate_ids[
+                            (
+                                parsed_record.materialized_relative_path,
+                                parsed_record.record_index,
+                            )
+                        ]
+                    ]
+                }
+            )
+            for parsed_record in parsed_file.records
+        )
+        enriched_files.append(parsed_file.model_copy(update={"records": enriched_records}))
+    return tuple(enriched_files)
 
 
 def _update_progress_description(

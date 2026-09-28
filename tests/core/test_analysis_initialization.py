@@ -20,6 +20,7 @@ from jelica_core.config import (
 )
 from jelica_core.system_config import CoreConfigService, CoreNotInitializedError
 from jelica_core.tasks import InitializedAnalysisTask
+from jelica_core.tasks.storage import compute_config_hash
 
 
 def _initialize_task(
@@ -30,6 +31,7 @@ def _initialize_task(
     raw_overrides: tuple[str, ...] = (),
     positional_sources: tuple[str, ...] = (),
     submission_base_dir: Path | None = None,
+    sample_metadata_csv: str | None = None,
     initialize_core: bool = True,
 ) -> InitializedAnalysisTask:
     config_service = CoreConfigService(jelica_home=jelica_home)
@@ -42,6 +44,7 @@ def _initialize_task(
         overrides=tuple(parse_cli_overrides(raw_overrides)),
         positional_sources=positional_sources,
         submission_base_dir=submission_base_dir,
+        sample_metadata_csv=sample_metadata_csv,
     )
     return initialize_analysis_task(
         request=request,
@@ -113,6 +116,53 @@ def test_initialize_from_positional_sources_only(tmp_path: Path) -> None:
     )
 
     assert task.config.samples == ["pos-a.fasta", "pos-b.fasta"]
+
+
+def test_initialize_persists_normalized_metadata_csv_overrides(tmp_path: Path) -> None:
+    submission_dir = tmp_path / "submission"
+    submission_dir.mkdir()
+    metadata_csv = submission_dir / "metadata.csv"
+    metadata_csv.write_text(
+        "source,record_id,host,note\nsubdir/../sample.fasta,ABC.1,  Homo sapiens  ,  kept  \n",
+        encoding="utf-8",
+    )
+
+    task = _initialize_task(
+        tmp_path / "home",
+        positional_sources=("sample.fasta",),
+        sample_metadata_csv="metadata.csv",
+        submission_base_dir=submission_dir,
+    )
+
+    assert task.config.sample_metadata[0].selector.record_id == "ABC.1"
+    assert task.config.sample_metadata[0].selector.source_path == str(
+        submission_dir / "sample.fasta"
+    )
+    assert task.config.sample_metadata[0].metadata.host == "Homo sapiens"
+    assert task.config.sample_metadata[0].metadata.note == "kept"
+    metadata_csv.unlink()
+    persisted = json.loads(task.config_path.read_text(encoding="utf-8"))
+    assert persisted["sample_metadata"][0]["metadata"]["host"] == "Homo sapiens"
+
+
+def test_effective_sample_metadata_changes_resolved_config_hash(tmp_path: Path) -> None:
+    metadata_csv = tmp_path / "metadata.csv"
+    metadata_csv.write_text("record_id,host\nABC.1,Homo sapiens\n", encoding="utf-8")
+    baseline = _initialize_task(
+        tmp_path / "baseline-home",
+        positional_sources=("sample.fasta",),
+        submission_base_dir=tmp_path,
+    )
+    with_metadata = _initialize_task(
+        tmp_path / "metadata-home",
+        positional_sources=("sample.fasta",),
+        sample_metadata_csv=str(metadata_csv),
+        submission_base_dir=tmp_path,
+    )
+
+    assert compute_config_hash(baseline.config.model_dump(mode="json")) != compute_config_hash(
+        with_metadata.config.model_dump(mode="json")
+    )
 
 
 def test_initialize_from_dynamic_samples_only(tmp_path: Path) -> None:
@@ -199,6 +249,7 @@ def test_unknown_fields_are_absent_from_resolved_config(
         "priority": 1,
         "reference": None,
         "schema_version": 1,
+        "sample_metadata": [],
         "samples": ["sample-a"],
         "statistics": {"kmer_strand": "forward", "kmers": []},
     }
@@ -346,6 +397,7 @@ def test_resolved_config_serialization_is_json_compatible(
         "priority": 1,
         "reference": None,
         "schema_version": 1,
+        "sample_metadata": [],
         "samples": ["sample-a.fasta"],
         "statistics": {"kmer_strand": "forward", "kmers": []},
     }

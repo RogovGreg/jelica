@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from jelica_contracts import JSONObject
 from jelica_core.config import AnalysisAlignmentMode, AnalysisKmerStrand
+from jelica_core.sample_metadata import SequenceMetadata
 
 INPUT_PROCESSING_STAGE_ID: Final = "input_processing"
 INPUT_PROCESSING_MANIFEST_SCHEMA_VERSION: Final = 1
@@ -158,6 +159,8 @@ class ParsedInputRecord(BaseModel):
     record_id: str | None = None
     description: str | None = None
     metadata: JSONObject = Field(default_factory=dict)
+    sequence_metadata: SequenceMetadata = Field(default_factory=SequenceMetadata)
+    source_path: str | None = None
     raw_sequence: str | None = None
     raw_sequence_path: str | None = None
 
@@ -464,6 +467,7 @@ class InputProcessingLogicalSample(BaseModel):
     provenance: LogicalSampleProvenance
     original_record_id: str | None = None
     original_description: str | None = None
+    metadata: SequenceMetadata = Field(default_factory=SequenceMetadata)
     validation_status: SampleValidationStatus
     validation_issues: tuple[InputProcessingValidationIssue, ...] = Field(default_factory=tuple)
     sequence_id: str | None = Field(default=None, pattern=SEQUENCE_ID_PATTERN)

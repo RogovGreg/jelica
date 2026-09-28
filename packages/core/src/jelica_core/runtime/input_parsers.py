@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Final, cast
 
 from Bio import SeqIO
+from Bio.SeqFeature import SeqFeature
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 from Bio.SeqRecord import SeqRecord
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -16,6 +17,7 @@ from jelica_core.input_sources import (
     SUPPORTED_GENBANK_EXTENSIONS,
     SUPPORTED_TEXT_EXTENSIONS,
 )
+from jelica_core.sample_metadata import SEQUENCE_METADATA_FIELDS, SequenceMetadata
 
 from .input_processing_models import (
     InputProcessingValidationIssue,
@@ -41,6 +43,9 @@ PARSER_ISSUE_RECORD_DUPLICATE_ID: Final = "record_duplicate_id_in_file"
 PARSER_ISSUE_SEQUENCE_ABSENT: Final = "record_sequence_absent"
 PARSER_ISSUE_GAP_NOT_ALLOWED_FOR_ALIGNMENT_MODE: Final = (
     "record_gap_not_allowed_for_alignment_mode"
+)
+PARSER_ISSUE_GENBANK_SOURCE_FEATURE_AMBIGUOUS: Final = (
+    "genbank_source_feature_ambiguous"
 )
 
 
@@ -298,6 +303,8 @@ class InputRecordParser:
                             record_id=record_id,
                             description=description,
                             metadata=metadata,
+                            sequence_metadata=SequenceMetadata(),
+                            source_path=materialized_file.source_path,
                             raw_sequence=normalized.sequence,
                         )
                     )
@@ -385,6 +392,25 @@ class InputRecordParser:
                         )
 
                     metadata = _build_genbank_metadata(seq_record)
+                    sequence_metadata, source_feature_ambiguous = (
+                        _extract_genbank_sequence_metadata(seq_record)
+                    )
+                    if source_feature_ambiguous:
+                        issues.append(
+                            _build_issue(
+                                code=PARSER_ISSUE_GENBANK_SOURCE_FEATURE_AMBIGUOUS,
+                                message=(
+                                    "GenBank record has multiple source features without a "
+                                    "unique whole-record source feature; automatic metadata "
+                                    "were not extracted."
+                                ),
+                                scope=ValidationIssueScope.RECORD,
+                                materialized_file=materialized_file,
+                                record_id=record_id,
+                                record_index=record_index,
+                                severity=ValidationIssueSeverity.WARNING,
+                            )
+                        )
                     dot_replacements = normalized.dot_to_gap_replacements
                     if dot_replacements > 0:
                         metadata["normalization"] = {
@@ -401,6 +427,8 @@ class InputRecordParser:
                             record_id=record_id,
                             description=description,
                             metadata=metadata,
+                            sequence_metadata=sequence_metadata,
+                            source_path=materialized_file.source_path,
                             raw_sequence=normalized.sequence,
                         )
                     )
@@ -501,6 +529,8 @@ class InputRecordParser:
                 record_id=None,
                 description=None,
                 metadata=metadata,
+                sequence_metadata=SequenceMetadata(),
+                source_path=materialized_file.source_path,
                 raw_sequence=normalized.sequence,
             )
         )
@@ -515,11 +545,12 @@ def _build_issue(
     context: JSONObject | None = None,
     record_id: str | None = None,
     record_index: int | None = None,
+    severity: ValidationIssueSeverity = ValidationIssueSeverity.ERROR,
 ) -> InputProcessingValidationIssue:
     return InputProcessingValidationIssue(
         code=code,
         message=message,
-        severity=ValidationIssueSeverity.ERROR,
+        severity=severity,
         scope=scope,
         path=materialized_file.relative_path,
         record_id=record_id,
@@ -598,6 +629,51 @@ def _build_genbank_metadata(record: SeqRecord) -> JSONObject:
     if record.name.strip() != "" and record.name != record.id:
         metadata["name"] = record.name
     return cast(JSONObject, metadata)
+
+
+def _extract_genbank_sequence_metadata(
+    record: SeqRecord,
+) -> tuple[SequenceMetadata, bool]:
+    source_features = tuple(feature for feature in record.features if feature.type == "source")
+    if len(source_features) == 0:
+        return SequenceMetadata(), False
+    if len(source_features) == 1:
+        return _sequence_metadata_from_source_feature(source_features[0]), False
+
+    whole_record_features = tuple(
+        feature
+        for feature in source_features
+        if _is_whole_record_source_feature(feature=feature, sequence_length=len(record.seq))
+    )
+    if len(whole_record_features) == 1:
+        return _sequence_metadata_from_source_feature(whole_record_features[0]), False
+    return SequenceMetadata(), True
+
+
+def _is_whole_record_source_feature(*, feature: SeqFeature, sequence_length: int) -> bool:
+    location = feature.location
+    if location is None:
+        return False
+    try:
+        return int(location.start) == 0 and int(location.end) == sequence_length
+    except (TypeError, ValueError):
+        return False
+
+
+def _sequence_metadata_from_source_feature(feature: SeqFeature) -> SequenceMetadata:
+    values: dict[str, str | None] = {}
+    for field_name in SEQUENCE_METADATA_FIELDS:
+        raw_values = feature.qualifiers.get(field_name, ())
+        normalized_values = [
+            value.strip()
+            for value in raw_values
+            if isinstance(value, str) and value.strip() != ""
+        ]
+        if len(normalized_values) == 1:
+            values[field_name] = normalized_values[0]
+        elif len(normalized_values) > 1:
+            values[field_name] = "; ".join(normalized_values)
+    return SequenceMetadata(**values)
 
 
 def _to_json_value(value: object) -> JSONValue:

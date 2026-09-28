@@ -141,6 +141,19 @@ def resolve_submission_source(*, source: str, base_directory: Path) -> str:
     return normalized
 
 
+def resolve_submission_local_path(*, source: str, base_directory: Path) -> str:
+    """Bind one local path without resolving symlinks or classifying it as input data."""
+
+    normalized = source.strip()
+    if normalized == "":
+        raise ValueError("local path must not be empty")
+    candidate = Path(normalized).expanduser()
+    base = Path(os.path.abspath(base_directory.expanduser()))
+    if not candidate.is_absolute():
+        candidate = base / candidate
+    return os.path.abspath(candidate)
+
+
 def resolve_submission_reference(*, reference: str, base_directory: Path) -> str:
     """Bind a local reference selector while preserving record selectors."""
 

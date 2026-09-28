@@ -1,8 +1,27 @@
+export type SequenceMetadata = Readonly<{
+  collection_date: string | null;
+  geo_loc_name: string | null;
+  host: string | null;
+  isolation_source: string | null;
+  isolate: string | null;
+  strain: string | null;
+  lat_lon: string | null;
+  host_disease: string | null;
+  sex: string | null;
+  genotype: string | null;
+  serotype: string | null;
+  haplotype: string | null;
+  note: string | null;
+  collected_by: string | null;
+  lab_host: string | null;
+}>;
+
 export type ResultOverviewSample = Readonly<{
   sample_id: string;
   sequence_id: string | null;
   original_record_id: string | null;
   original_description: string | null;
+  metadata: SequenceMetadata;
   source_reference: string;
   validation_status: string;
   eligible_for_analysis: boolean;

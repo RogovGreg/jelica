@@ -126,6 +126,58 @@ def test_analyze_plan_preserves_explicit_samples_override(tmp_path: Path) -> Non
     assert "Sources:\n  - ." not in result.stdout
 
 
+def test_analyze_plan_validates_and_displays_normalized_sample_metadata_csv(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    jelica_home = tmp_path / "home"
+    _initialize(jelica_home)
+    submission_dir = tmp_path / "submission"
+    submission_dir.mkdir()
+    metadata_csv = submission_dir / "metadata.csv"
+    metadata_csv.write_text(
+        "source,record_id,host\nsubdir/../sample.fasta,ABC.1,Homo sapiens\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(submission_dir)
+
+    result = _invoke(
+        jelica_home=jelica_home,
+        args=[
+            "analyze",
+            "--plan",
+            "sample.fasta",
+            "--sample-metadata=metadata.csv",
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert '"sample_metadata": [' in result.stdout
+    assert str(submission_dir / "sample.fasta") in result.stdout
+    assert "Homo sapiens" in result.stdout
+    tasks_dir = (
+        CliSystemConfigService(jelica_home=jelica_home)
+        .core_service.require_initialized_config()
+        .tasks_dir
+    )
+    assert list(tasks_dir.iterdir()) == []
+
+
+def test_analyze_plan_rejects_malformed_sample_metadata_csv(tmp_path: Path) -> None:
+    jelica_home = tmp_path / "home"
+    _initialize(jelica_home)
+    metadata_csv = tmp_path / "metadata.csv"
+    metadata_csv.write_text("record_id,unexpected\nABC.1,value\n", encoding="utf-8")
+
+    result = _invoke(
+        jelica_home=jelica_home,
+        args=["analyze", "--plan", "sample.fasta", f"--sample-metadata={metadata_csv}"],
+    )
+
+    assert result.exit_code != 0
+    assert "unsupported column" in result.stdout.lower()
+
+
 def test_analyze_show_plan_without_source_uses_current_directory(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
