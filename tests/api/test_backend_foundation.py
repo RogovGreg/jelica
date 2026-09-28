@@ -428,17 +428,31 @@ def test_task_result_overview_contract_accepts_nested_sequence_metadata() -> Non
                         "source_length": 4,
                         "gc_content": 0.5,
                         "ambiguous_count": 0,
+                        "lineage": "B.1.351",
                     }
                 ],
             },
             "alignment": None,
             "distance_matrix": None,
             "phylogenetic_tree": None,
+            "lineage_detection": {
+                "status": "completed",
+                "method": "nextclade_pango",
+                "tool_version": "nextclade 3.14.0",
+                "dataset_name": "nextstrain/sars-cov-2",
+                "dataset_version": "2026-09-01",
+                "assigned_sample_count": 1,
+                "unassigned_sample_count": 0,
+                "groups": [{"lineage": "B.1.351", "sample_ids": ["sample-1"]}],
+            },
         }
     )
 
     assert overview.input_processing is not None
     assert overview.input_processing.samples[0].metadata.host == "Homo sapiens"
+    assert overview.input_processing.samples[0].lineage == "B.1.351"
+    assert overview.lineage_detection is not None
+    assert overview.lineage_detection.groups[0].lineage == "B.1.351"
 
 
 def test_cli_client_find_task_by_trace_id_returns_matching_active_task(

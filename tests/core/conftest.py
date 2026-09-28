@@ -69,3 +69,12 @@ def default_resolved_clade_detection_block() -> dict[str, object]:
         "method": "max_pairwise_distance",
         "max_within_clade_distance": None,
     }
+
+
+@pytest.fixture
+def default_resolved_lineage_detection_block() -> dict[str, object]:
+    return {
+        "enabled": False,
+        "method": "nextclade_pango",
+        "dataset": None,
+    }

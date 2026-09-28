@@ -32,6 +32,8 @@ from .models import (
     ComparativeAnalysisConfigInput,
     ComparativePairwiseConfigInput,
     DistanceMatrixConfigInput,
+    LineageDetectionConfigInput,
+    LineageDetectionMethod,
     PhylogeneticTreeConfigInput,
     ResolvedAnalysisAlignmentConfig,
     ResolvedAnalysisConfig,
@@ -45,6 +47,7 @@ from .models import (
     ResolvedComparativeStatisticsConfig,
     ResolvedComparativeSymbolPolicyConfig,
     ResolvedDistanceMatrixConfig,
+    ResolvedLineageDetectionConfig,
     ResolvedPhylogeneticTreeConfig,
     ResolvedSequenceDifferencesConfig,
     _normalize_analysis_sample_selector,
@@ -90,6 +93,7 @@ def resolve_analysis_config(
         distance_matrix=resolved_distance_matrix,
         phylogenetic_tree=resolved_phylogenetic_tree,
     )
+    resolved_lineage_detection = _resolve_lineage_detection(config_input=config_input)
     if resolved_samples is None or "samples" not in config_input.model_fields_set:
         raise MissingSamplesError(empty_list=False)
     if len(resolved_samples) == 0:
@@ -111,6 +115,7 @@ def resolve_analysis_config(
             distance_matrix=resolved_distance_matrix,
             phylogenetic_tree=resolved_phylogenetic_tree,
             clade_detection=resolved_clade_detection,
+            lineage_detection=resolved_lineage_detection,
         )
     except ValidationError as error:
         raise convert_config_validation_error(error) from error
@@ -483,6 +488,25 @@ def _resolve_clade_detection(
         enabled=True,
         method=clade_input.method or AnalysisCladeDetectionMethod.MAX_PAIRWISE_DISTANCE,
         max_within_clade_distance=clade_input.max_within_clade_distance,
+    )
+
+
+def _resolve_lineage_detection(
+    *,
+    config_input: AnalysisConfigInput,
+) -> ResolvedLineageDetectionConfig:
+    lineage_input = config_input.lineage_detection
+    if lineage_input is None:
+        lineage_input = LineageDetectionConfigInput()
+    if lineage_input.enabled is True and lineage_input.dataset is None:
+        raise ConfigSchemaValidationError(
+            "Lineage detection requires dataset when enabled.",
+            field_path="lineage_detection.dataset",
+        )
+    return ResolvedLineageDetectionConfig(
+        enabled=lineage_input.enabled is True,
+        method=lineage_input.method or LineageDetectionMethod.NEXTCLADE_PANGO,
+        dataset=lineage_input.dataset,
     )
 
 

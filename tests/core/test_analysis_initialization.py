@@ -230,6 +230,7 @@ def test_unknown_fields_are_absent_from_resolved_config(
     default_resolved_distance_matrix_block: dict[str, object],
     default_resolved_phylogenetic_tree_block: dict[str, object],
     default_resolved_clade_detection_block: dict[str, object],
+    default_resolved_lineage_detection_block: dict[str, object],
 ) -> None:
     task = _initialize_task(
         tmp_path,
@@ -246,6 +247,7 @@ def test_unknown_fields_are_absent_from_resolved_config(
         "execution": {"from_phase": "auto", "target": "full_analysis"},
         "phylogenetic_tree": default_resolved_phylogenetic_tree_block,
         "clade_detection": default_resolved_clade_detection_block,
+        "lineage_detection": default_resolved_lineage_detection_block,
         "priority": 1,
         "reference": None,
         "schema_version": 1,
@@ -380,6 +382,7 @@ def test_resolved_config_serialization_is_json_compatible(
     default_resolved_distance_matrix_block: dict[str, object],
     default_resolved_phylogenetic_tree_block: dict[str, object],
     default_resolved_clade_detection_block: dict[str, object],
+    default_resolved_lineage_detection_block: dict[str, object],
 ) -> None:
     task = _initialize_task(tmp_path, positional_sources=("sample-a.fasta",))
 
@@ -394,6 +397,7 @@ def test_resolved_config_serialization_is_json_compatible(
         "execution": {"from_phase": "auto", "target": "full_analysis"},
         "phylogenetic_tree": default_resolved_phylogenetic_tree_block,
         "clade_detection": default_resolved_clade_detection_block,
+        "lineage_detection": default_resolved_lineage_detection_block,
         "priority": 1,
         "reference": None,
         "schema_version": 1,

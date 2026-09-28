@@ -27,6 +27,7 @@ from jelica_core.events.definitions import (
     CORE_CLADE_DETECTION_FAILED,
     CORE_COMPARATIVE_ANALYSIS_FAILED,
     CORE_DISTANCE_MATRIX_FAILED,
+    CORE_LINEAGE_DETECTION_FAILED,
     CORE_PHYLOGENETIC_TREE_FAILED,
 )
 from jelica_core.events.operations import (
@@ -565,4 +566,69 @@ def test_clade_detection_failure_event_name_resolves_structured_definition() -> 
     assert (
         _FAILED_JOB_REASON_DEFINITIONS["CLADE_DETECTION_FAILED"]
         is CORE_CLADE_DETECTION_FAILED
+    )
+
+
+def test_runtime_callback_persists_registered_lineage_detection_events(
+    tmp_path: Path,
+) -> None:
+    lineage_events = (
+        ("LINEAGE_DETECTION_STARTED", "CORE_LINEAGE_DETECTION_STARTED"),
+        ("LINEAGE_DETECTION_SKIPPED", "CORE_LINEAGE_DETECTION_SKIPPED"),
+        ("LINEAGE_DETECTION_PROGRESS", "CORE_LINEAGE_DETECTION_PROGRESS"),
+        (
+            "LINEAGE_DETECTION_RESULT_PUBLISHED",
+            "CORE_LINEAGE_DETECTION_RESULT_PUBLISHED",
+        ),
+        ("LINEAGE_DETECTION_COMPLETED", "CORE_LINEAGE_DETECTION_COMPLETED"),
+        ("LINEAGE_DETECTION_FAILED", "CORE_LINEAGE_DETECTION_FAILED"),
+    )
+    log_path = tmp_path / "lineage-events.jsonl"
+    event_service = EventService(
+        factory=CoreEventFactory(),
+        sinks=[
+            JsonlFileEventSink(
+                path=log_path,
+                minimum_level=EventType.DEBUG,
+                required=True,
+            )
+        ],
+    )
+    runtime = CoreOperationRuntime(
+        event_service=event_service,
+        translator=CoreExceptionTranslator(
+            include_diagnostics=False,
+            diagnostic_field_limit=256,
+        ),
+        system_log_path=log_path,
+    )
+    callback = _build_runtime_event_callback(
+        runtime=runtime,
+        execution_context=CoreExecutionContext(
+            stage="lineage_detection",
+            operation_id="test.lineage_detection_events",
+        ),
+    )
+
+    for runtime_name, core_name in lineage_events:
+        CORE_EVENT_CATALOG.get(core_name)
+        callback(
+            runtime_name,
+            {
+                "task_id": "task-test",
+                "job_id": "job-test",
+                "stage_id": "lineage_detection",
+                "detail": "Safe lineage-detection lifecycle status.",
+            },
+        )
+
+    records = _read_jsonl(log_path)
+    assert [record["name"] for record in records] == [core_name for _, core_name in lineage_events]
+    assert all(record["task_id"] == "task-test" for record in records)
+
+
+def test_lineage_detection_failure_event_name_resolves_structured_definition() -> None:
+    assert (
+        _FAILED_JOB_REASON_DEFINITIONS["LINEAGE_DETECTION_FAILED"]
+        is CORE_LINEAGE_DETECTION_FAILED
     )

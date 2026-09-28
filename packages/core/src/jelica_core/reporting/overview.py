@@ -13,6 +13,7 @@ from jelica_core.distance_matrix import (
     DistanceMatrixResult,
     DistancePairRecord,
 )
+from jelica_core.lineage_detection import LineageDetectionManifest
 from jelica_core.phylogenetic_tree import TREE_JSON_RELATIVE_PATH, PhylogeneticTreeResult
 from jelica_core.result_package import (
     JelicaPackageManifest,
@@ -53,6 +54,7 @@ class ResultOverviewSample(BaseModel):
     source_length: int | None = Field(default=None, ge=0)
     gc_content: float | None = Field(default=None, ge=0.0, le=1.0)
     ambiguous_count: int | None = Field(default=None, ge=0)
+    lineage: str | None = None
 
 
 class ResultOverviewInput(BaseModel):
@@ -98,6 +100,26 @@ class ResultOverviewTree(BaseModel):
     rooted: dict[str, object]
 
 
+class ResultOverviewLineageGroup(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    lineage: str = Field(min_length=1)
+    sample_ids: tuple[str, ...] = ()
+
+
+class ResultOverviewLineageDetection(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    status: str = Field(min_length=1)
+    method: str = Field(min_length=1)
+    tool_version: str | None = None
+    dataset_name: str | None = None
+    dataset_version: str | None = None
+    assigned_sample_count: int = Field(ge=0)
+    unassigned_sample_count: int = Field(ge=0)
+    groups: tuple[ResultOverviewLineageGroup, ...] = ()
+
+
 class ResultOverview(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -107,6 +129,7 @@ class ResultOverview(BaseModel):
     alignment: ResultOverviewAlignment | None = None
     distance_matrix: ResultOverviewDistance | None = None
     phylogenetic_tree: ResultOverviewTree | None = None
+    lineage_detection: ResultOverviewLineageDetection | None = None
 
 
 class ResultOverviewBuilder:
@@ -143,13 +166,46 @@ class ResultOverviewBuilder:
         reader: JelicaPackageReader,
         manifest: JelicaPackageManifest,
     ) -> ResultOverview:
+        lineage_detection = self._load_lineage_detection(reader=reader, manifest=manifest)
+        lineage_by_sample = (
+            {
+                assignment.sample_id: assignment.lineage
+                for assignment in lineage_detection.assignments
+            }
+            if lineage_detection is not None
+            else {}
+        )
         return ResultOverview(
             task_id=manifest.task.task_id,
             content_id=manifest.content_id,
-            input_processing=self._load_input_processing(reader=reader, manifest=manifest),
+            input_processing=self._load_input_processing(
+                reader=reader,
+                manifest=manifest,
+                lineage_by_sample=lineage_by_sample,
+            ),
             alignment=self._load_alignment(reader=reader, manifest=manifest),
             distance_matrix=self._load_distance_matrix(reader=reader, manifest=manifest),
             phylogenetic_tree=self._load_tree(reader=reader, manifest=manifest),
+            lineage_detection=(
+                ResultOverviewLineageDetection(
+                    status=lineage_detection.status.value,
+                    method=lineage_detection.method.value,
+                    tool_version=lineage_detection.tool_version,
+                    dataset_name=lineage_detection.dataset_name,
+                    dataset_version=lineage_detection.dataset_version,
+                    assigned_sample_count=lineage_detection.assigned_sample_count,
+                    unassigned_sample_count=lineage_detection.unassigned_sample_count,
+                    groups=tuple(
+                        ResultOverviewLineageGroup(
+                            lineage=group.lineage,
+                            sample_ids=group.sample_ids,
+                        )
+                        for group in lineage_detection.groups
+                    ),
+                )
+                if lineage_detection is not None
+                else None
+            ),
         )
 
     def _load_input_processing(
@@ -157,6 +213,7 @@ class ResultOverviewBuilder:
         *,
         reader: JelicaPackageReader,
         manifest: JelicaPackageManifest,
+        lineage_by_sample: dict[str, str | None],
     ) -> ResultOverviewInput | None:
         path = _stage_artifact_path(
             manifest=manifest,
@@ -194,6 +251,7 @@ class ResultOverviewBuilder:
                     if sample.sequence_id in facts_by_sequence_id
                     else None
                 ),
+                lineage=lineage_by_sample.get(sample.sample_id),
             )
             for sample in source.logical_samples
         )
@@ -205,6 +263,23 @@ class ResultOverviewBuilder:
             duplicate_logical_sample_count=summary.duplicate_logical_sample_count,
             samples=samples,
         )
+
+    def _load_lineage_detection(
+        self,
+        *,
+        reader: JelicaPackageReader,
+        manifest: JelicaPackageManifest,
+    ) -> LineageDetectionManifest | None:
+        from jelica_core.lineage_detection import LINEAGE_DETECTION_MANIFEST_RELATIVE_PATH
+
+        path = _stage_artifact_path(
+            manifest=manifest,
+            stage_name="lineage_detection",
+            suffix=LINEAGE_DETECTION_MANIFEST_RELATIVE_PATH,
+        )
+        if path is None:
+            return None
+        return LineageDetectionManifest.model_validate(reader.read_json_file(path=path))
 
     def _load_alignment(
         self,

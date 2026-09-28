@@ -65,6 +65,11 @@ from .distance_matrix_stage import (
     DISTANCE_MATRIX_PARTIAL_SUCCESS_EVENT,
     DISTANCE_MATRIX_RESULT_PUBLISHED_EVENT,
 )
+from .lineage_detection_stage import (
+    LINEAGE_DETECTION_COMPLETED_EVENT,
+    LINEAGE_DETECTION_FAILED_EVENT,
+    LINEAGE_DETECTION_RESULT_PUBLISHED_EVENT,
+)
 from .messages import (
     JobCompletedMessage,
     JobFailedMessage,
@@ -133,6 +138,7 @@ _COMPARATIVE_ANALYSIS_RESULT_PUBLISHED_EVENT = "COMPARATIVE_ANALYSIS_RESULT_PUBL
 _DISTANCE_MATRIX_STAGE_ID = "distance_matrix"
 _PHYLOGENETIC_TREE_STAGE_ID = "phylogenetic_tree"
 _CLADE_DETECTION_STAGE_ID = "clade_detection"
+_LINEAGE_DETECTION_STAGE_ID = "lineage_detection"
 
 _RECOVERY_SOURCE_STATES: frozenset[AnalyticalTaskState] = frozenset(
     {
@@ -1630,6 +1636,70 @@ class ExecutionRuntime:
                 final_event = CLADE_DETECTION_FAILED_EVENT
                 detail = "Clade detection failed."
             self._emit(final_event, {**clade_context, "detail": detail})
+        elif message.stage_id == _LINEAGE_DETECTION_STAGE_ID:
+            from jelica_core.lineage_detection import (
+                LINEAGE_ASSIGNMENTS_TSV_RELATIVE_PATH,
+                LINEAGE_DETECTION_MANIFEST_RELATIVE_PATH,
+                LINEAGE_GROUPS_JSON_RELATIVE_PATH,
+                LineageDetectionManifest,
+            )
+
+            domain_manifest_path = (
+                handle.job_dir
+                / "stages"
+                / _LINEAGE_DETECTION_STAGE_ID
+                / LINEAGE_DETECTION_MANIFEST_RELATIVE_PATH
+            )
+            try:
+                domain_manifest = LineageDetectionManifest.model_validate_json(
+                    domain_manifest_path.read_text(encoding="utf-8")
+                )
+            except Exception:
+                self._mark_job_failed(
+                    handle=handle,
+                    reason="lineage_detection_manifest_invalid",
+                    detail="Committed lineage-detection manifest is invalid.",
+                    failure_event_name=LINEAGE_DETECTION_FAILED_EVENT,
+                    failure_context={"detail": "Lineage-detection publication validation failed."},
+                )
+                return
+            lineage_context: dict[str, JSONValue] = {
+                "task_id": handle.task_id,
+                "job_id": handle.job_id,
+                "stage_id": message.stage_id,
+                "manifest_path": LINEAGE_DETECTION_MANIFEST_RELATIVE_PATH,
+                "artifact_count": len(manifest.artifacts),
+                "status": domain_manifest.status.value,
+                "enabled": domain_manifest.enabled,
+                "method": domain_manifest.method.value,
+                "assigned_sample_count": domain_manifest.assigned_sample_count,
+                "unassigned_sample_count": domain_manifest.unassigned_sample_count,
+                "group_count": len(domain_manifest.groups),
+            }
+            if domain_manifest.enabled:
+                lineage_context.update(
+                    {
+                        "assignments_path": LINEAGE_ASSIGNMENTS_TSV_RELATIVE_PATH,
+                        "groups_path": LINEAGE_GROUPS_JSON_RELATIVE_PATH,
+                        "tool_version": domain_manifest.tool_version,
+                        "dataset_name": domain_manifest.dataset_name,
+                        "dataset_version": domain_manifest.dataset_version,
+                    }
+                )
+            self._emit(
+                LINEAGE_DETECTION_RESULT_PUBLISHED_EVENT,
+                {
+                    **lineage_context,
+                    "detail": "Lineage-detection artifacts were atomically published.",
+                },
+            )
+            self._emit(
+                LINEAGE_DETECTION_COMPLETED_EVENT,
+                {
+                    **lineage_context,
+                    "detail": "Lineage detection completed successfully.",
+                },
+            )
 
     def _handle_job_completed(self, *, handle: _WorkerHandle) -> None:
         self._persist_progress(handle=handle, include_runtime_state=True, force=True)

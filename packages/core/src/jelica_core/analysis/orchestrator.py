@@ -16,7 +16,11 @@ from jelica_core.config import (
     convert_config_validation_error,
     resolve_analysis_config,
 )
-from jelica_core.input_sources import resolve_submission_reference, resolve_submission_source
+from jelica_core.input_sources import (
+    resolve_submission_local_path,
+    resolve_submission_reference,
+    resolve_submission_source,
+)
 from jelica_core.sample_metadata import load_sample_metadata_csv
 from jelica_core.tasks import (
     InitializedAnalysisTask,
@@ -181,6 +185,16 @@ def bind_submission_paths(
             reference=reference,
             base_directory=base_directory,
         )
+    lineage_detection = payload.get("lineage_detection")
+    if isinstance(lineage_detection, dict):
+        dataset = lineage_detection.get("dataset")
+        if isinstance(dataset, str):
+            normalized_lineage_detection = dict(lineage_detection)
+            normalized_lineage_detection["dataset"] = resolve_submission_local_path(
+                source=dataset,
+                base_directory=base_directory,
+            )
+            payload["lineage_detection"] = normalized_lineage_detection
     try:
         return AnalysisConfigInput.model_validate(payload)
     except ValidationError as error:

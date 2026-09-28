@@ -180,6 +180,7 @@ def test_saved_config_contains_only_resolved_config_fields(
     default_resolved_distance_matrix_block: dict[str, object],
     default_resolved_phylogenetic_tree_block: dict[str, object],
     default_resolved_clade_detection_block: dict[str, object],
+    default_resolved_lineage_detection_block: dict[str, object],
 ) -> None:
     orchestrator = AnalysisOrchestrator()
     request = InitializeAnalysisTaskRequest(
@@ -199,8 +200,10 @@ def test_saved_config_contains_only_resolved_config_fields(
         "execution": {"from_phase": "auto", "target": "full_analysis"},
         "phylogenetic_tree": default_resolved_phylogenetic_tree_block,
         "clade_detection": default_resolved_clade_detection_block,
+        "lineage_detection": default_resolved_lineage_detection_block,
         "priority": 1,
         "reference": None,
+        "sample_metadata": [],
         "samples": ["json-a"],
         "schema_version": 1,
         "statistics": {"kmer_strand": "forward", "kmers": []},

@@ -94,6 +94,7 @@ class TaskResultOverviewSample(BaseModel):
     source_length: int | None = Field(default=None, ge=0)
     gc_content: float | None = Field(default=None, ge=0.0, le=1.0)
     ambiguous_count: int | None = Field(default=None, ge=0)
+    lineage: str | None = None
 
 
 class TaskResultInputOverview(BaseModel):
@@ -203,6 +204,26 @@ class TaskResultTreeOverview(BaseModel):
     rooted: TaskResultRootedTree
 
 
+class TaskResultLineageGroup(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    lineage: str = Field(min_length=1)
+    sample_ids: tuple[str, ...] = ()
+
+
+class TaskResultLineageDetectionOverview(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    status: str = Field(min_length=1)
+    method: str = Field(min_length=1)
+    tool_version: str | None = None
+    dataset_name: str | None = None
+    dataset_version: str | None = None
+    assigned_sample_count: int = Field(ge=0)
+    unassigned_sample_count: int = Field(ge=0)
+    groups: tuple[TaskResultLineageGroup, ...] = ()
+
+
 class TaskResultOverview(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -212,6 +233,7 @@ class TaskResultOverview(BaseModel):
     alignment: TaskResultAlignmentOverview | None = None
     distance_matrix: TaskResultDistanceOverview | None = None
     phylogenetic_tree: TaskResultTreeOverview | None = None
+    lineage_detection: TaskResultLineageDetectionOverview | None = None
 
 
 class TaskResultLookupResponse(BaseModel):

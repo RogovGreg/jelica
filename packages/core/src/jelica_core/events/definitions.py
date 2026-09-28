@@ -1506,6 +1506,60 @@ CORE_CLADE_DETECTION_FAILED = EventDefinition(
     message_template="{detail}",
     category="clade_detection",
 )
+CORE_LINEAGE_DETECTION_STARTED = EventDefinition(
+    code=2358,
+    name="CORE_LINEAGE_DETECTION_STARTED",
+    namespace=CodeNamespace.CORE,
+    default_type=EventType.INFO,
+    title="Lineage detection started",
+    message_template="{detail}",
+    category="lineage_detection",
+)
+CORE_LINEAGE_DETECTION_SKIPPED = EventDefinition(
+    code=2359,
+    name="CORE_LINEAGE_DETECTION_SKIPPED",
+    namespace=CodeNamespace.CORE,
+    default_type=EventType.INFO,
+    title="Lineage detection skipped",
+    message_template="{detail}",
+    category="lineage_detection",
+)
+CORE_LINEAGE_DETECTION_PROGRESS = EventDefinition(
+    code=2360,
+    name="CORE_LINEAGE_DETECTION_PROGRESS",
+    namespace=CodeNamespace.CORE,
+    default_type=EventType.INFO,
+    title="Lineage-detection progress",
+    message_template="{detail}",
+    category="lineage_detection",
+)
+CORE_LINEAGE_DETECTION_RESULT_PUBLISHED = EventDefinition(
+    code=2361,
+    name="CORE_LINEAGE_DETECTION_RESULT_PUBLISHED",
+    namespace=CodeNamespace.CORE,
+    default_type=EventType.SUCCESS,
+    title="Lineage-detection result published",
+    message_template="{detail}",
+    category="lineage_detection",
+)
+CORE_LINEAGE_DETECTION_COMPLETED = EventDefinition(
+    code=2362,
+    name="CORE_LINEAGE_DETECTION_COMPLETED",
+    namespace=CodeNamespace.CORE,
+    default_type=EventType.SUCCESS,
+    title="Lineage detection completed",
+    message_template="{detail}",
+    category="lineage_detection",
+)
+CORE_LINEAGE_DETECTION_FAILED = EventDefinition(
+    code=2363,
+    name="CORE_LINEAGE_DETECTION_FAILED",
+    namespace=CodeNamespace.CORE,
+    default_type=EventType.ERROR,
+    title="Lineage detection failed",
+    message_template="{detail}",
+    category="lineage_detection",
+)
 CORE_ANALYTICAL_TASKS_DELETE_REQUESTED = EventDefinition(
     code=2276,
     name="CORE_ANALYTICAL_TASKS_DELETE_REQUESTED",
@@ -1880,6 +1934,12 @@ CORE_EVENT_DEFINITIONS: tuple[EventDefinition, ...] = (
     CORE_CLADE_DETECTION_RESULT_PUBLISHED,
     CORE_CLADE_DETECTION_COMPLETED,
     CORE_CLADE_DETECTION_FAILED,
+    CORE_LINEAGE_DETECTION_STARTED,
+    CORE_LINEAGE_DETECTION_SKIPPED,
+    CORE_LINEAGE_DETECTION_PROGRESS,
+    CORE_LINEAGE_DETECTION_RESULT_PUBLISHED,
+    CORE_LINEAGE_DETECTION_COMPLETED,
+    CORE_LINEAGE_DETECTION_FAILED,
     CORE_ANALYTICAL_TASKS_DELETE_REQUESTED,
     CORE_ANALYTICAL_TASKS_DELETE_COMPLETED,
     CORE_ANALYTICAL_TASKS_DELETE_PARTIALLY_COMPLETED,

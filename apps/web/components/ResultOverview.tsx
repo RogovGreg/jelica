@@ -249,6 +249,7 @@ export function ResultOverview({ overview }: ResultOverviewProps) {
                   <th scope="col">{t("result.overview.samples.gc")}</th>
                   <th scope="col">{t("result.overview.samples.ambiguous")}</th>
                   <th scope="col">{t("result.overview.samples.status")}</th>
+                  <th scope="col">Lineage</th>
                 </tr>
               </thead>
               <tbody>
@@ -262,6 +263,7 @@ export function ResultOverview({ overview }: ResultOverviewProps) {
                     <td>{sample.gcContent === null ? "—" : formatPercent(sample.gcContent)}</td>
                     <td>{sample.ambiguousCount?.toLocaleString() ?? "—"}</td>
                     <td>{humanizeIdentifier(sample.validationStatus)}</td>
+                    <td>{sample.lineage ?? "—"}</td>
                   </tr>
                 ))}
               </tbody>

@@ -40,6 +40,7 @@ export type AnalysisOverrides = {
   distance_matrix?: { enabled?: boolean; model?: "p_distance" };
   phylogenetic_tree?: { enabled?: boolean; method?: "neighbor_joining"; rooting?: "midpoint" };
   clade_detection?: { enabled?: boolean; method?: "max_pairwise_distance"; max_within_clade_distance?: number };
+  lineage_detection?: { enabled?: boolean; method?: "nextclade_pango"; dataset?: string };
 };
 
 export class AnalysisValidationError extends Error {
@@ -52,7 +53,7 @@ export class AnalysisValidationError extends Error {
 export function validateAnalysisOverrides(value: unknown): AnalysisOverrides | null {
   if (value === null || value === undefined) return null;
   const root = object(value, "overrides");
-  keys(root, ["alignment", "reference", "statistics", "comparative_analysis", "distance_matrix", "phylogenetic_tree", "clade_detection"], "overrides");
+  keys(root, ["alignment", "reference", "statistics", "comparative_analysis", "distance_matrix", "phylogenetic_tree", "clade_detection", "lineage_detection"], "overrides");
   const result: AnalysisOverrides = {};
   if (root.alignment !== undefined) result.alignment = validateAlignment(root.alignment);
   if (root.reference !== undefined) result.reference = text(root.reference, "overrides.reference");
@@ -61,6 +62,7 @@ export function validateAnalysisOverrides(value: unknown): AnalysisOverrides | n
   if (root.distance_matrix !== undefined) result.distance_matrix = validateDistance(root.distance_matrix);
   if (root.phylogenetic_tree !== undefined) result.phylogenetic_tree = validateTree(root.phylogenetic_tree);
   if (root.clade_detection !== undefined) result.clade_detection = validateClades(root.clade_detection);
+  if (root.lineage_detection !== undefined) result.lineage_detection = validateLineageDetection(root.lineage_detection);
   return result;
 }
 
@@ -169,6 +171,16 @@ function validateClades(value: unknown): NonNullable<AnalysisOverrides["clade_de
   const source = object(value, "overrides.clade_detection");
   keys(source, ["enabled", "method", "max_within_clade_distance"], "overrides.clade_detection");
   return { ...(source.enabled === undefined ? {} : { enabled: boolean(source.enabled, "clade_detection.enabled") }), ...(source.method === undefined ? {} : { method: enumValue(source.method, ["max_pairwise_distance"], "clade_detection.method") }), ...(source.max_within_clade_distance === undefined ? {} : { max_within_clade_distance: number(source.max_within_clade_distance, "clade_detection.max_within_clade_distance", 0, 1) }) };
+}
+
+function validateLineageDetection(value: unknown): NonNullable<AnalysisOverrides["lineage_detection"]> {
+  const source = object(value, "overrides.lineage_detection");
+  keys(source, ["enabled", "method", "dataset"], "overrides.lineage_detection");
+  return {
+    ...(source.enabled === undefined ? {} : { enabled: boolean(source.enabled, "lineage_detection.enabled") }),
+    ...(source.method === undefined ? {} : { method: enumValue(source.method, ["nextclade_pango"], "lineage_detection.method") }),
+    ...(source.dataset === undefined ? {} : { dataset: text(source.dataset, "lineage_detection.dataset") }),
+  };
 }
 
 function visit(value: object, prefix: string, result: string[]): void {

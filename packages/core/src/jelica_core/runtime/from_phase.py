@@ -15,6 +15,8 @@ from jelica_core.clade_detection import (
     INFERRED_CLADES_JSON_RELATIVE_PATH,
     CladeDetectionManifest,
     InferredCladesResult,
+)
+from jelica_core.clade_detection import (
     artifact_metadata as clade_detection_artifact_metadata,
 )
 from jelica_core.comparative_analysis import (
@@ -27,13 +29,22 @@ from jelica_core.config import (
     ResolvedAnalysisConfig,
     resolve_analysis_config,
 )
-from jelica_core.distance_matrix import DISTANCE_MATRIX_MANIFEST_RELATIVE_PATH, DistanceMatrixManifest
+from jelica_core.distance_matrix import (
+    DISTANCE_MATRIX_MANIFEST_RELATIVE_PATH,
+    DistanceMatrixManifest,
+)
 from jelica_core.input_sources import InputSourceKind, classify_input_source
+from jelica_core.lineage_detection import (
+    LINEAGE_DETECTION_MANIFEST_RELATIVE_PATH,
+    LineageDetectionManifest,
+)
 from jelica_core.phylogenetic_tree import (
     PHYLOGENETIC_TREE_MANIFEST_RELATIVE_PATH,
     TREE_JSON_RELATIVE_PATH,
     PhylogeneticTreeManifest,
     PhylogeneticTreeResult,
+)
+from jelica_core.phylogenetic_tree import (
     artifact_metadata as phylogenetic_tree_artifact_metadata,
 )
 from jelica_core.tasks.storage import compute_config_hash, write_text_atomically
@@ -47,7 +58,10 @@ from .artifacts import (
 )
 from .config_sync import _resolved_config_as_strict_input
 from .input_parsers import INPUT_MANIFEST_RELATIVE_PATH
-from .input_processing_models import INPUT_PROCESSING_MANIFEST_RELATIVE_PATH, InputProcessingManifest
+from .input_processing_models import (
+    INPUT_PROCESSING_MANIFEST_RELATIVE_PATH,
+    InputProcessingManifest,
+)
 from .models import DEFAULT_PIPELINE_NAME, RuntimeStateCheckpoint
 from .pipeline import build_pipeline_definition
 
@@ -61,6 +75,7 @@ _DOMAIN_MANIFEST_PATH_BY_STAGE: dict[str, str] = {
     "initialize_job": "execution_manifest.json",
     "input_acquisition": INPUT_MANIFEST_RELATIVE_PATH,
     "input_processing": INPUT_PROCESSING_MANIFEST_RELATIVE_PATH,
+    "lineage_detection": LINEAGE_DETECTION_MANIFEST_RELATIVE_PATH,
     "alignment": ALIGNMENT_MANIFEST_RELATIVE_PATH,
     "comparative_analysis": COMPARATIVE_ANALYSIS_MANIFEST_RELATIVE_PATH,
     "distance_matrix": DISTANCE_MATRIX_MANIFEST_RELATIVE_PATH,
@@ -518,6 +533,18 @@ def _rewrite_stage_domain_manifest(
     if stage_id == "alignment":
         path = stage_root / ALIGNMENT_MANIFEST_RELATIVE_PATH
         manifest = _load_typed_json_model(path=path, model_type=AlignmentManifest)
+        rewritten = manifest.model_copy(
+            update={
+                "task_id": task_id,
+                "job_id": job_id,
+                "config_hash": config_hash,
+            }
+        )
+        _write_json_model(path=path, model=rewritten)
+        return
+    if stage_id == "lineage_detection":
+        path = stage_root / LINEAGE_DETECTION_MANIFEST_RELATIVE_PATH
+        manifest = _load_typed_json_model(path=path, model_type=LineageDetectionManifest)
         rewritten = manifest.model_copy(
             update={
                 "task_id": task_id,

@@ -28,6 +28,7 @@ export type ResultOverviewSample = Readonly<{
   source_length: number | null;
   gc_content: number | null;
   ambiguous_count: number | null;
+  lineage: string | null;
 }>;
 
 export type ResultInputOverview = Readonly<{
@@ -115,6 +116,22 @@ export type ResultTreeOverview = Readonly<{
   rooted: ResultRootedTree;
 }>;
 
+export type ResultLineageGroup = Readonly<{
+  lineage: string;
+  sample_ids: readonly string[];
+}>;
+
+export type ResultLineageDetectionOverview = Readonly<{
+  status: string;
+  method: string;
+  tool_version: string | null;
+  dataset_name: string | null;
+  dataset_version: string | null;
+  assigned_sample_count: number;
+  unassigned_sample_count: number;
+  groups: readonly ResultLineageGroup[];
+}>;
+
 export type TaskResultOverview = Readonly<{
   task_id: string;
   content_id: string;
@@ -122,6 +139,7 @@ export type TaskResultOverview = Readonly<{
   alignment: ResultAlignmentOverview | null;
   distance_matrix: ResultDistanceOverview | null;
   phylogenetic_tree: ResultTreeOverview | null;
+  lineage_detection: ResultLineageDetectionOverview | null;
 }>;
 
 export type ResultSampleViewModel = Readonly<{
@@ -135,6 +153,7 @@ export type ResultSampleViewModel = Readonly<{
   sourceLength: number | null;
   gcContent: number | null;
   ambiguousCount: number | null;
+  lineage: string | null;
 }>;
 
 export type HeatmapCellViewModel = Readonly<{
@@ -195,6 +214,7 @@ export function buildResultSampleViewModels(
     sourceLength: sample.source_length,
     gcContent: sample.gc_content,
     ambiguousCount: sample.ambiguous_count,
+    lineage: sample.lineage,
   }));
 }
 

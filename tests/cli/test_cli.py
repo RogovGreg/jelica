@@ -1527,6 +1527,39 @@ def test_analyze_accepts_relative_sample_paths_from_arbitrary_current_directory(
     ]
 
 
+def test_analyze_binds_relative_lineage_dataset_path_at_submission(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    jelica_home = tmp_path / "home"
+    _run_non_interactive_init(jelica_home)
+    sample = tmp_path / "Sample_1.fasta"
+    sample.write_text(">sample\nACGT\n", encoding="utf-8")
+    dataset = tmp_path / "nextclade-dataset"
+    dataset.mkdir()
+    (dataset / "pathogen.json").write_text("{}\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+
+    result = _invoke_cli(
+        args=[
+            "analyze",
+            "Sample_1.fasta",
+            "--no-watch",
+            "--lineage_detection.enabled=true",
+            "--lineage_detection.dataset=nextclade-dataset",
+        ],
+        jelica_home=jelica_home,
+    )
+
+    assert result.exit_code == 0
+    saved_config = json.loads(_single_task_config_path(jelica_home).read_text(encoding="utf-8"))
+    assert saved_config["lineage_detection"] == {
+        "enabled": True,
+        "method": "nextclade_pango",
+        "dataset": str(dataset.resolve()),
+    }
+
+
 def test_analyze_saves_default_priority_in_normalized_config(tmp_path: Path) -> None:
     jelica_home = tmp_path / "home"
     _run_non_interactive_init(jelica_home)

@@ -115,6 +115,10 @@ class AnalysisCladeDetectionMethod(StrEnum):
     MAX_PAIRWISE_DISTANCE = "max_pairwise_distance"
 
 
+class LineageDetectionMethod(StrEnum):
+    NEXTCLADE_PANGO = "nextclade_pango"
+
+
 @dataclass(frozen=True, slots=True)
 class ConfigObjectKeySegment:
     """Object-key path segment in a CLI config override."""
@@ -387,6 +391,24 @@ class CladeDetectionConfigInput(BaseModel):
         return value
 
 
+class LineageDetectionConfigInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: StrictBool | None = None
+    method: LineageDetectionMethod | None = None
+    dataset: StrictStr | None = None
+
+    @field_validator("dataset")
+    @classmethod
+    def _normalize_dataset(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        if normalized == "":
+            raise ValueError("dataset must not be empty")
+        return normalized
+
+
 class ResolvedAnalysisMafftConfig(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -620,6 +642,30 @@ class ResolvedCladeDetectionConfig(BaseModel):
         return self
 
 
+class ResolvedLineageDetectionConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    enabled: StrictBool = False
+    method: LineageDetectionMethod = LineageDetectionMethod.NEXTCLADE_PANGO
+    dataset: StrictStr | None = None
+
+    @field_validator("dataset")
+    @classmethod
+    def _normalize_dataset(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        if normalized == "":
+            raise ValueError("dataset must not be empty")
+        return normalized
+
+    @model_validator(mode="after")
+    def _require_dataset_when_enabled(self) -> ResolvedLineageDetectionConfig:
+        if self.enabled and self.dataset is None:
+            raise ValueError("enabled lineage detection requires dataset to be set")
+        return self
+
+
 def _default_enabled_comparative_analysis_config() -> ResolvedComparativeAnalysisConfig:
     return ResolvedComparativeAnalysisConfig(
         enabled=True,
@@ -643,6 +689,10 @@ def _default_enabled_phylogenetic_tree_config() -> ResolvedPhylogeneticTreeConfi
 
 def _default_disabled_clade_detection_config() -> ResolvedCladeDetectionConfig:
     return ResolvedCladeDetectionConfig(enabled=False)
+
+
+def _default_disabled_lineage_detection_config() -> ResolvedLineageDetectionConfig:
+    return ResolvedLineageDetectionConfig(enabled=False)
 
 
 def _normalize_execution_selection_value(value: str, *, field_name: str) -> str:
@@ -715,6 +765,7 @@ class AnalysisConfigInput(BaseModel):
     distance_matrix: DistanceMatrixConfigInput | None = None
     phylogenetic_tree: PhylogeneticTreeConfigInput | None = None
     clade_detection: CladeDetectionConfigInput | None = None
+    lineage_detection: LineageDetectionConfigInput | None = None
 
     @field_validator("samples")
     @classmethod
@@ -772,6 +823,9 @@ class ResolvedAnalysisConfig(BaseModel):
     )
     clade_detection: ResolvedCladeDetectionConfig = Field(
         default_factory=_default_disabled_clade_detection_config
+    )
+    lineage_detection: ResolvedLineageDetectionConfig = Field(
+        default_factory=_default_disabled_lineage_detection_config
     )
 
     @field_validator("samples")

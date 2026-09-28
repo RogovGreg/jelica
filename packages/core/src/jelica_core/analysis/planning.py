@@ -232,6 +232,12 @@ def _configured_phase_states(
             config.clade_detection.enabled,
             None if config.clade_detection.enabled else "clade_detection.enabled is false",
         ),
+        "lineage_detection": (
+            config.lineage_detection.enabled,
+            None
+            if config.lineage_detection.enabled
+            else "lineage_detection.enabled is false",
+        ),
     }
 
 

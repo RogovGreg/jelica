@@ -50,6 +50,7 @@ def test_plan_resolves_file_defaults_cli_overrides_and_positional_sources(
         "initialize_job": True,
         "input_acquisition": True,
         "input_processing": True,
+        "lineage_detection": False,
         "alignment": False,
         "comparative_analysis": False,
         "distance_matrix": False,
@@ -118,6 +119,29 @@ def test_input_processing_targets_select_prefix_and_result_package(
         phase.skipped_reason == f"after execution target '{target}'"
         for phase in plan.potential_phases
         if not phase.selected
+    )
+
+
+def test_lineage_detection_target_selects_input_processing_lineage_and_result_package(
+    tmp_path: Path,
+) -> None:
+    service = _initialized_service(tmp_path / "home")
+
+    plan = plan_analysis_from_inputs(
+        config_json=None,
+        raw_overrides=("--execution.target=lineage_detection",),
+        positional_sources=("sample.fasta",),
+        core_config_service=service,
+    )
+
+    selected = tuple(phase.name for phase in plan.potential_phases if phase.selected)
+    assert plan.target == "lineage_detection"
+    assert selected == (
+        "initialize_job",
+        "input_acquisition",
+        "input_processing",
+        "lineage_detection",
+        "result_package",
     )
 
 

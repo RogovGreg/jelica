@@ -433,6 +433,23 @@ def _validate_stage_snapshot(
             expected_job_id=expected_job_id,
             expected_config_hash=expected_config_hash,
         )
+    elif expected_stage_id == "lineage_detection":
+        (
+            domain_manifest_sha256,
+            domain_status,
+            domain_config_hash,
+            source_artifacts,
+        ) = _validate_lineage_detection_domain(
+            job_dir=job_dir,
+            stage_root=stage_root,
+            generic_manifest=manifest,
+            expected_task_id=expected_task_id,
+            expected_job_id=expected_job_id,
+            expected_pipeline_version=expected_pipeline_version,
+            expected_config_hash=expected_config_hash,
+            fingerprints=fingerprints,
+            validate_upstream=validate_upstream,
+        )
     elif expected_stage_id == "alignment":
         alignment = _validate_alignment_domain(
             stage_root=stage_root,
@@ -686,6 +703,213 @@ def _validate_input_processing_domain(
             detail="The generic and input-processing artifact sets are inconsistent.",
         )
     return payload.config_hash
+
+
+def _validate_lineage_detection_domain(
+    *,
+    job_dir: Path,
+    stage_root: Path,
+    generic_manifest: StageArtifactManifest,
+    expected_task_id: str | None,
+    expected_job_id: str,
+    expected_pipeline_version: str,
+    expected_config_hash: str | None,
+    fingerprints: dict[str, StageArtifactFingerprint],
+    validate_upstream: bool,
+) -> tuple[str, str, str, tuple[str, ...]]:
+    from jelica_core.lineage_detection import (
+        LINEAGE_ASSIGNMENTS_TSV_RELATIVE_PATH,
+        LINEAGE_DETECTION_MANIFEST_RELATIVE_PATH,
+        LINEAGE_GROUPS_JSON_RELATIVE_PATH,
+        LineageAssignmentStatus,
+        LineageDetectionManifest,
+        LineageGroupsResult,
+        build_lineage_groups,
+        lineage_detection_artifact_paths,
+        parse_lineage_assignments_tsv,
+    )
+
+    from .input_processing_models import (
+        INPUT_PROCESSING_MANIFEST_RELATIVE_PATH,
+        InputProcessingManifest,
+    )
+
+    relative_path = LINEAGE_DETECTION_MANIFEST_RELATIVE_PATH
+    _require_generic_artifact(
+        generic_manifest=generic_manifest,
+        stage_id=generic_manifest.stage_id,
+        relative_path=relative_path,
+    )
+    manifest = _load_typed_json(
+        stage_root=stage_root,
+        stage_id=generic_manifest.stage_id,
+        relative_path=relative_path,
+        model=LineageDetectionManifest,
+    )
+    if (
+        manifest.job_id != expected_job_id
+        or (expected_task_id is not None and manifest.task_id != expected_task_id)
+        or (expected_config_hash is not None and manifest.config_hash != expected_config_hash)
+    ):
+        raise _snapshot_error(
+            StageSnapshotErrorCode.IDENTITY_MISMATCH,
+            stage_id=generic_manifest.stage_id,
+            detail="The lineage-detection domain identity does not match the job.",
+            relative_path=relative_path,
+        )
+    if generic_manifest.artifacts != lineage_detection_artifact_paths(manifest):
+        raise _snapshot_error(
+            StageSnapshotErrorCode.INVALID,
+            stage_id=generic_manifest.stage_id,
+            detail="The generic and lineage-detection artifact sets are inconsistent.",
+        )
+    for metadata in manifest.artifacts:
+        fingerprint = fingerprints[metadata.relative_path]
+        if fingerprint.size_bytes != metadata.size_bytes:
+            raise _snapshot_error(
+                StageSnapshotErrorCode.SIZE_MISMATCH,
+                stage_id=generic_manifest.stage_id,
+                detail="A lineage-detection artifact size does not match its metadata.",
+                relative_path=metadata.relative_path,
+            )
+        if fingerprint.sha256 != metadata.sha256:
+            raise _snapshot_error(
+                StageSnapshotErrorCode.HASH_MISMATCH,
+                stage_id=generic_manifest.stage_id,
+                detail="A lineage-detection artifact digest does not match its metadata.",
+                relative_path=metadata.relative_path,
+            )
+
+    if not manifest.enabled:
+        domain_hash = fingerprints[relative_path].sha256
+        return domain_hash, manifest.status.value, manifest.config_hash, manifest.source_artifacts
+
+    try:
+        input_snapshot = validate_committed_stage_snapshot(
+            job_dir=job_dir,
+            stage_id="input_processing",
+            expected_job_id=expected_job_id,
+            expected_pipeline_version=expected_pipeline_version,
+            expected_task_id=expected_task_id,
+            expected_config_hash=expected_config_hash,
+        )
+        input_manifest = _load_typed_json(
+            stage_root=job_dir / "stages" / "input_processing",
+            stage_id="input_processing",
+            relative_path=INPUT_PROCESSING_MANIFEST_RELATIVE_PATH,
+            model=InputProcessingManifest,
+        )
+    except StageCommitError as error:
+        raise _snapshot_error(
+            StageSnapshotErrorCode.UPSTREAM_INVALID,
+            stage_id=generic_manifest.stage_id,
+            detail="Lineage detection requires a valid committed input-processing snapshot.",
+        ) from error
+    expected_source_artifacts = tuple(
+        f"stages/input_processing/{item}"
+        for item in sorted(
+            {
+                INPUT_PROCESSING_MANIFEST_RELATIVE_PATH,
+                *(sequence.sequence_artifact_path for sequence in input_manifest.unique_sequences),
+            }
+        )
+    )
+    if manifest.source_artifacts != expected_source_artifacts:
+        raise _snapshot_error(
+            StageSnapshotErrorCode.UPSTREAM_INVALID,
+            stage_id=generic_manifest.stage_id,
+            detail="Lineage-detection source artifacts are inconsistent with input processing.",
+        )
+    if validate_upstream and input_snapshot.config_hash != manifest.config_hash:
+        raise _snapshot_error(
+            StageSnapshotErrorCode.UPSTREAM_INVALID,
+            stage_id=generic_manifest.stage_id,
+            detail="Lineage-detection input-processing snapshot has an inconsistent config hash.",
+        )
+    expected_samples = {
+        sample.sample_id: sample.sequence_id
+        for sample in input_manifest.logical_samples
+        if sample.eligible_for_analysis and sample.sequence_id is not None
+    }
+    assignment_by_sample = {assignment.sample_id: assignment for assignment in manifest.assignments}
+    if set(assignment_by_sample) != set(expected_samples):
+        raise _snapshot_error(
+            StageSnapshotErrorCode.INVALID,
+            stage_id=generic_manifest.stage_id,
+            detail="Lineage assignments do not cover exactly the eligible logical samples.",
+            relative_path=relative_path,
+        )
+    if any(
+        assignment.sequence_id != expected_samples[assignment.sample_id]
+        for assignment in manifest.assignments
+    ):
+        raise _snapshot_error(
+            StageSnapshotErrorCode.INVALID,
+            stage_id=generic_manifest.stage_id,
+            detail="A lineage assignment does not match its input-processing sequence.",
+            relative_path=relative_path,
+        )
+    if manifest.groups != build_lineage_groups(manifest.assignments):
+        raise _snapshot_error(
+            StageSnapshotErrorCode.INVALID,
+            stage_id=generic_manifest.stage_id,
+            detail="Lineage group membership is inconsistent with lineage assignments.",
+            relative_path=relative_path,
+        )
+    assigned_count = sum(
+        assignment.status is LineageAssignmentStatus.ASSIGNED
+        for assignment in manifest.assignments
+    )
+    if assigned_count != manifest.assigned_sample_count:
+        raise _snapshot_error(
+            StageSnapshotErrorCode.INVALID,
+            stage_id=generic_manifest.stage_id,
+            detail="Lineage assigned-sample count is inconsistent with assignments.",
+            relative_path=relative_path,
+        )
+    assignments_path = _resolve_artifact_path(
+        stage_root=stage_root,
+        stage_id=generic_manifest.stage_id,
+        relative_path=LINEAGE_ASSIGNMENTS_TSV_RELATIVE_PATH,
+    )
+    groups_path = _resolve_artifact_path(
+        stage_root=stage_root,
+        stage_id=generic_manifest.stage_id,
+        relative_path=LINEAGE_GROUPS_JSON_RELATIVE_PATH,
+    )
+    try:
+        assignment_rows = parse_lineage_assignments_tsv(
+            assignments_path.read_text(encoding="utf-8")
+        )
+        groups_result = LineageGroupsResult.model_validate_json(
+            groups_path.read_text(encoding="utf-8")
+        )
+    except (OSError, UnicodeError, ValueError) as error:
+        raise _snapshot_error(
+            StageSnapshotErrorCode.INVALID,
+            stage_id=generic_manifest.stage_id,
+            detail="Lineage-detection artifacts are invalid or not parseable.",
+        ) from error
+    if assignment_rows != manifest.assignments:
+        raise _snapshot_error(
+            StageSnapshotErrorCode.INVALID,
+            stage_id=generic_manifest.stage_id,
+            detail="Lineage assignment TSV is inconsistent with the canonical manifest.",
+            relative_path=LINEAGE_ASSIGNMENTS_TSV_RELATIVE_PATH,
+        )
+    if (
+        groups_result.groups != manifest.groups
+        or groups_result.assigned_sample_count != manifest.assigned_sample_count
+        or groups_result.unassigned_sample_count != manifest.unassigned_sample_count
+    ):
+        raise _snapshot_error(
+            StageSnapshotErrorCode.INVALID,
+            stage_id=generic_manifest.stage_id,
+            detail="Lineage groups JSON is inconsistent with the canonical manifest.",
+            relative_path=LINEAGE_GROUPS_JSON_RELATIVE_PATH,
+        )
+    domain_hash = fingerprints[relative_path].sha256
+    return domain_hash, manifest.status.value, manifest.config_hash, manifest.source_artifacts
 
 
 def _validate_alignment_domain(

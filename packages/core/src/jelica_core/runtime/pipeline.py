@@ -23,6 +23,7 @@ _TERMINAL_STAGE_BY_ANALYSIS_TARGET = {
     "input_processing": "input_processing",
     "validation": "input_processing",
     "sequence_statistics": "input_processing",
+    "lineage_detection": "lineage_detection",
     "alignment": "alignment",
     "comparative_analysis": "comparative_analysis",
     "distance_matrix": "distance_matrix",
@@ -302,6 +303,7 @@ def build_pipeline_definition(
         from .distance_matrix_stage import DistanceMatrixStage
         from .input_acquisition import InputAcquisitionStage
         from .input_processing_stage import InputProcessingStage
+        from .lineage_detection_stage import LineageDetectionStage
         from .phylogenetic_tree_stage import PhylogeneticTreeStage
         from .result_package_stage import ResultPackageStage
 
@@ -309,6 +311,7 @@ def build_pipeline_definition(
             InitializeJobStage(),
             InputAcquisitionStage(),
             InputProcessingStage(),
+            LineageDetectionStage(),
             AlignmentStage(),
             ComparativeAnalysisStage(),
             DistanceMatrixStage(),
